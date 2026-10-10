@@ -1775,8 +1775,20 @@ function zoomLayout(factor, clientX = null, clientY = null) {
     const rect = state.svg.getBoundingClientRect();
     const px = clientX == null ? 0.5 : Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
     const py = clientY == null ? 0.5 : Math.min(1, Math.max(0, (clientY - rect.top) / rect.height));
-    const width = Math.min(base.width, Math.max(base.width / 6, current.width / factor));
-    const height = Math.min(base.height, Math.max(base.height / 6, current.height / factor));
+
+    const plots = typeof homelandPlots === 'function' ? homelandPlots() : [];
+    const homelandW = plots.length ? Math.max(...plots.map(p => p.x + p.w)) : 80;
+    const homelandH = plots.length ? Math.max(...plots.map(p => p.y + p.h)) : 60;
+
+    const maxFactor = Math.max(3.5, (homelandW * 2.2) / base.width, (homelandH * 2.2) / base.height);
+    const maxWidth = base.width * maxFactor;
+    const maxHeight = base.height * maxFactor;
+    const minFactor = Math.min(1 / 6, 6 / Math.min(base.width, base.height));
+    const minWidth = base.width * minFactor;
+    const minHeight = base.height * minFactor;
+
+    const width = Math.min(maxWidth, Math.max(minWidth, current.width / factor));
+    const height = Math.min(maxHeight, Math.max(minHeight, current.height / factor));
     const focusX = current.x + current.width * px;
     const focusY = current.y + current.height * py;
     state.viewBox = { x: focusX - width * px, y: focusY - height * py, width, height };
@@ -2091,7 +2103,7 @@ function stopLayout() {
 }
 
 // Whether the layout shows the whole homeland rather than just what's placed; the player's toggle.
-let layoutShowsWhole = false;
+let layoutShowsWhole = true;
 let lastLayout = null;
 
 function homelandSvg(layout, homeLevel) {

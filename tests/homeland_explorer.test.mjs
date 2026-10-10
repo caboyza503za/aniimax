@@ -45,6 +45,17 @@ test('layout explorer zooms the SVG camera without changing its planned base bou
     assert.equal(map.svg.getAttribute('viewBox'), '0 0 120 80');
 });
 
+test('layout explorer can zoom out beyond base bounds to inspect all plots from afar', () => {
+    const map = explorer();
+    map.zoomLayout(0.5); // zoom out by 2x
+    assert.equal(map.state().viewBox.width, 240);
+    assert.equal(map.state().viewBox.height, 160);
+    assert.equal(map.svg.getAttribute('viewBox'), '-60 -40 240 160');
+
+    map.zoomLayout(0.5);
+    assert.ok(map.state().viewBox.width > 240);
+});
+
 test('layout explorer exposes keyboard pan and zoom after a map is drawn', () => {
     const map = explorer();
     let prevented = false;
