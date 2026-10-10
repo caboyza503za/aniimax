@@ -4365,7 +4365,7 @@ footer p { margin: 0; }
     border-radius: 50%;
     object-fit: cover;
     background: #1e293b;
-    box-shadow: 0 0 0 2px #ffffff;
+    box-shadow: 0 0 0 2.5px var(--elem-color, var(--border));
 }
 
 .aniimo-worker-info {
@@ -4381,12 +4381,31 @@ footer p { margin: 0; }
 }
 
 .aniimo-worker-name {
-    font-size: 0.92rem;
+    font-size: 0.95rem;
     font-weight: 800;
     color: var(--text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.aniimo-worker-count-pill {
+    display: inline-block;
+    padding: 0.12rem 0.5rem;
+    border-radius: 99px;
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    color: var(--accent);
+    font-size: 0.75rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.aniimo-worker-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.2rem;
 }
 
 .aniimo-worker-ability {
@@ -4403,11 +4422,23 @@ footer p { margin: 0; }
 .aniimo-worker-places {
     font-size: 0.78rem;
     color: var(--text-muted);
-    margin-top: 0.2rem;
+    margin-top: 0.25rem;
     line-height: 1.35;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.aniimo-worker-alts {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+    line-height: 1.3;
+}
+
+.aniimo-worker-alts b {
+    color: var(--text);
+    font-weight: 600;
 }
 
 .aniimo-worker-bonus {
@@ -4418,7 +4449,29 @@ footer p { margin: 0; }
     background: rgba(22, 163, 74, 0.12);
     padding: 0.1rem 0.4rem;
     border-radius: 6px;
-    margin-top: 0.25rem;
+}
+
+.aniimo-row-identity {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.aniimo-row-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border);
+    background: #1e293b;
+    flex-shrink: 0;
+}
+
+.aniimo-row-name {
+    display: block;
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: var(--text);
 }
 
 /* Plots aesthetic */

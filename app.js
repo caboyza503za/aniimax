@@ -11,7 +11,10 @@ import {
 } from './facility-config.js';
 import { allocateTurnFacilities, redistributeTurnFacilityRows } from './turn-jobs.js';
 import { createShareUrl, readShareHash, urlWithoutShare } from './share-config.js';
-import { getItemIconUrl, getFacilityGlyphUrl, getRecommendedWorker } from './aniidex-data.js';
+import {
+    getItemIconUrl, getFacilityGlyphUrl, getRecommendedWorker,
+    getBestAniimoForFacility, findAniimosByAbility, ALL_ANIIMOS, ABILITY_TH_MAP, PLOT_UNLOCK_INFO,
+} from './aniidex-data.js';
 
 let wasmReady = false;
 
@@ -4069,10 +4072,21 @@ function renderAniimoSummary(plan) {
         .map(g => {
             total += g.count;
             const where = whereText(g);
-            return `<tr><td data-label="Aniimo">${abilityTag(g.ability)} ${aniimoNeeds(g)}</td><td data-label="How many">${g.count}</td><td data-label="Busy on average">${g.busy.toFixed(1)}</td><td data-label="Where">${where}</td></tr>`;
+            const facNames = [...g.where.keys()].map(k => k.split(' (')[0]);
+            const primaryFac = facNames[0] || (g.jobs.size ? [...g.jobs.values()][0]?.values()?.next()?.value : '') || '';
+            const worker = getBestAniimoForFacility(primaryFac, g.ability, g.level);
+            const avatarHtml = worker?.avatar ? `<img src="${worker.avatar}" class="aniimo-row-avatar" alt="${worker.name}" loading="lazy">` : '';
+            const workerNameHtml = worker?.name ? `<strong class="aniimo-row-name">${worker.name}</strong>` : '';
+            return `<tr><td data-label="Aniimo"><div class="aniimo-row-identity">${avatarHtml}<div>${workerNameHtml}<div class="hint small">${abilityTag(g.ability)} ${aniimoNeeds(g)}</div></div></div></td><td data-label="How many"><strong>${g.count}</strong></td><td data-label="Busy on average">${g.busy.toFixed(1)}</td><td data-label="Where">${where}</td></tr>`;
         })
         .join('');
-    const haulingRow = `<tr><td data-label="Aniimo">${abilityTag('Hauling')} ${translate('any level')}</td><td data-label="How many">1+</td><td data-label="Busy on average">?</td><td data-label="Where">${translate("Carries produce to storage. How much work this is isn't known yet; add more if produce piles up.")}</td></tr>`;
+    const haulingWorker = getBestAniimoForFacility('Storage Unit', 'Hauling', 1) || {
+        name: 'ปูหน่ออ่อน',
+        avatar: 'https://aniidex.com/images/aniimo/UI_PetHead_10161.webp',
+    };
+    const haulingAvatar = haulingWorker?.avatar ? `<img src="${haulingWorker.avatar}" class="aniimo-row-avatar" alt="${haulingWorker.name}" loading="lazy">` : '';
+    const haulingName = haulingWorker?.name ? `<strong class="aniimo-row-name">${haulingWorker.name}</strong>` : '';
+    const haulingRow = `<tr><td data-label="Aniimo"><div class="aniimo-row-identity">${haulingAvatar}<div>${haulingName}<div class="hint small">${abilityTag('Hauling')} ${translate('any level')}</div></div></div></td><td data-label="How many"><strong>1+</strong></td><td data-label="Busy on average">?</td><td data-label="Where">${translate("Carries produce to storage. How much work this is isn't known yet; add more if produce piles up.")}</td></tr>`;
 
     // The count above says how many; this is only said when it's more than the homeland holds.
     const cap = homelandHolds;
@@ -4136,6 +4150,7 @@ function renderAniimoSummary(plan) {
         ${capNote}
     `;
     translateTree(container);
+    renderConcreteWorkforce(plan, kept);
 }
 
 // Splits one environment mode's rows across its individual building units. Unlike the old
@@ -5356,29 +5371,43 @@ window.addEventListener('scroll', hideTip, { passive: true, capture: true });
 function renderConcreteWorkforce(plan, kept = []) {
     const grid = document.getElementById('aniimo-workforce-grid');
     const badge = document.getElementById('aniimo-workforce-badge');
+    const section = document.getElementById('aniimo-workforce-section');
+    const abStrip = document.getElementById('aniimo-abilities');
     if (!grid) return;
+
+    if (abStrip) abStrip.style.display = 'none';
+    if (section) section.style.display = 'block';
+
+    if (!kept.length) {
+        grid.innerHTML = `<p class="hint" style="padding:1rem;margin:0;">${translate('Nothing in this plan needs an Aniimo.')}</p>`;
+        if (badge) badge.textContent = '0 ตัว';
+        return;
+    }
 
     const assignedWorkers = [];
 
     // Map each kept role to the best concrete Aniimo character
     kept.forEach(g => {
         const facNames = [...g.where.keys()].map(k => k.split(' (')[0]);
-        const primaryFac = facNames[0] || '';
+        const primaryFac = facNames[0] || (g.jobs.size ? [...g.jobs.values()][0]?.values()?.next()?.value : '') || '';
         const worker = getBestAniimoForFacility(primaryFac, g.ability, g.level);
         if (!worker) return;
 
-        const key = `${worker.name}|${g.label}`;
+        const candidates = typeof findAniimosByAbility === 'function' ? findAniimosByAbility(g.ability, g.level) : [];
+        const alts = candidates.filter(c => c.name !== worker.name).slice(0, 3).map(c => c.name);
         const whereStr = whereText(g);
+
         assignedWorkers.push({
             name: worker.name,
             nameEn: worker.nameEn,
             avatar: worker.avatar,
             ability: g.ability,
-            abilityTh: ABILITY_TH_MAP[g.ability] || g.ability,
+            abilityTh: (typeof ABILITY_TH_MAP !== 'undefined' && ABILITY_TH_MAP[g.ability]) || g.ability,
             level: g.level,
             count: g.count,
             places: whereStr,
             personalityBonus: g.bonus,
+            alts: alts.join(', '),
         });
     });
 
@@ -5390,6 +5419,9 @@ function renderConcreteWorkforce(plan, kept = []) {
         abilityTh: 'แบก',
         level: 1,
     };
+    const haulingCandidates = typeof findAniimosByAbility === 'function' ? findAniimosByAbility('Hauling', 1) : [];
+    const haulingAlts = haulingCandidates.filter(c => c.name !== haulingWorker.name).slice(0, 3).map(c => c.name);
+
     assignedWorkers.push({
         name: haulingWorker.name,
         avatar: haulingWorker.avatar,
@@ -5397,41 +5429,47 @@ function renderConcreteWorkforce(plan, kept = []) {
         abilityTh: 'แบก',
         level: 1,
         count: 1,
-        places: translate('ขนส่งผลผลิตไปยังที่จัดเก็บ'),
+        places: translate("Carries produce to storage. How much work this is isn't known yet; add more if produce piles up."),
         personalityBonus: false,
+        alts: haulingAlts.join(', '),
     });
 
     const totalCount = assignedWorkers.reduce((sum, w) => sum + w.count, 0);
     if (badge) {
-        const homeLevel = activeHomelandLevel();
-        const maxCap = ANIIMO_MAX[homeLevel - 1] || 32;
-        badge.textContent = `ใช้ ${totalCount} / ${maxCap} ตัว`;
+        const homeLevel = typeof activeHomelandLevel === 'function' ? activeHomelandLevel() : 16;
+        const maxCap = (typeof ANIIMO_MAX !== 'undefined' && ANIIMO_MAX[homeLevel - 1]) || 32;
+        badge.textContent = `${totalCount} / ${maxCap}`;
     }
 
-    // Sort by level descending then name
-    assignedWorkers.sort((a, b) => b.level - a.level || a.name.localeCompare(b.name));
+    // Sort by count descending, then level descending, then name
+    assignedWorkers.sort((a, b) => b.count - a.count || b.level - a.level || a.name.localeCompare(b.name));
 
     grid.innerHTML = assignedWorkers.map(w => {
-        const aInfo = ABILITY_BY_NAME.get(w.ability);
+        const aInfo = (typeof ABILITY_BY_NAME !== 'undefined' && ABILITY_BY_NAME.get(w.ability)) || null;
         const abilityColor = aInfo ? aInfo.color : '#3b82f6';
         const bonusTag = w.personalityBonus
-            ? `<span class="aniimo-worker-bonus">✨ ${translate('โบนัสนิสัย (+20% ความเร็ว)')}</span>`
+            ? `<span class="aniimo-worker-bonus">✨ ${translate('Personality match (+20% speed)')}</span>`
             : '';
-        const countBadge = w.count > 1 ? ` <span class="aniimo-worker-count">×${w.count}</span>` : '';
+        const countBadge = `<span class="aniimo-worker-count-pill">×${w.count}</span>`;
+        const altHtml = w.alts ? `<div class="aniimo-worker-alts">💡 ${translate('Or use:')} <b>${w.alts}</b></div>` : '';
         return `
             <div class="aniimo-worker-card">
-                <div class="aniimo-worker-avatar">
+                <div class="aniimo-worker-avatar" style="--elem-color:${abilityColor}">
                     <img src="${w.avatar}" alt="${w.name}" loading="lazy">
                 </div>
                 <div class="aniimo-worker-info">
                     <div class="aniimo-worker-top">
-                        <strong class="aniimo-worker-name">${w.name}${countBadge}</strong>
+                        <strong class="aniimo-worker-name">${w.name}</strong>
+                        ${countBadge}
+                    </div>
+                    <div class="aniimo-worker-meta">
                         <span class="aniimo-worker-ability" style="--ability:${abilityColor}">${w.abilityTh} Lv.${w.level}</span>
+                        ${bonusTag}
                     </div>
                     <div class="aniimo-worker-places" title="${w.places}">
                         📍 ${w.places}
                     </div>
-                    ${bonusTag}
+                    ${altHtml}
                 </div>
             </div>
         `;

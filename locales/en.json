@@ -849,5 +849,7 @@
   "Aniimo Workforce Assignment",
   "Concrete Aniimo workers assigned to facilities and plots based on live abilities and optimal output.",
   "Workshop",
-  "No facilities in this plot"
+  "No facilities in this plot",
+  "Or use:",
+  "Personality match (+20% speed)"
 ]

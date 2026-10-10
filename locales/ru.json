@@ -849,5 +849,7 @@
   "Aniimo Workforce Assignment": "Назначение рабочих Анимо",
   "Concrete Aniimo workers assigned to facilities and plots based on live abilities and optimal output.": "Конкретные рабочие Анимо назначены на постройки и участки на основе реальных навыков и максимальной отдачи.",
   "Workshop": "Мастерская",
-  "No facilities in this plot": "На этом участке нет построек"
+  "No facilities in this plot": "На этом участке нет построек",
+  "Or use:": "Или используйте:",
+  "Personality match (+20% speed)": "Бонус характера (+20% скорости)"
 }

@@ -988,5 +988,7 @@
     "Aniimo Workforce Assignment": "การมอบหมายแรงงานแอนิโม",
     "Concrete Aniimo workers assigned to facilities and plots based on live abilities and optimal output.": "คำนวณและจับคู่แอนิโมตัวจริงกับสิ่งก่อสร้างและแปลงที่ดินตามทักษะงานอย่างสมบูรณ์แบบ",
     "Workshop": "เวิร์กช็อป",
-    "No facilities in this plot": "ไม่มีสิ่งก่อสร้างในแปลงนี้"
+    "No facilities in this plot": "ไม่มีสิ่งก่อสร้างในแปลงนี้",
+    "Or use:": "หรือใช้:",
+    "Personality match (+20% speed)": "โบนัสนิสัย (+20% ความเร็ว)"
 }
