@@ -34,7 +34,7 @@
 //! the search runs out of nodes the plan is proven optimal; if it hits the time limit, the best
 //! open bound says how far from optimal it could be.
 
-use std::collections::{BTreeMap, BinaryHeap, HashMap};
+use std::collections::{BTreeMap, BinaryHeap, HashMap, HashSet};
 use std::time::{Duration, Instant};
 
 use microlp::{ComparisonOp, OptimizationDirection, Problem};
@@ -207,6 +207,45 @@ pub fn takes_turns(recipe: &ProductionItem) -> bool {
     recipe.sell_currency == "none"
 }
 
+/// How many tiers of zero-sell items are needed at `facility` for the given goal.
+fn needed_facility_tiers(facility: &str, recipes: &[&ProductionItem], goal: &Goal) -> usize {
+    let mut needed_items = HashSet::new();
+    match goal {
+        Goal::LevelUp(level_up)
+        | Goal::EarnWhileLevelingUp(level_up, _)
+        | Goal::StockUp(level_up, _, _) => {
+            for (item, amount) in &level_up.cost {
+                if *amount > 0.0 {
+                    needed_items.insert(item.as_str());
+                }
+            }
+        }
+        _ => {}
+    }
+    if needed_items.is_empty() {
+        return 1;
+    }
+    let mut expanded = true;
+    while expanded {
+        expanded = false;
+        for &recipe in recipes {
+            if needed_items.contains(recipe.name.as_str()) {
+                if let Some(inputs) = &recipe.raw_materials {
+                    for input in inputs {
+                        if needed_items.insert(input.as_str()) {
+                            expanded = true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    recipes
+        .iter()
+        .filter(|r| r.facility == facility && r.sell_currency == "none" && needed_items.contains(r.name.as_str()))
+        .count()
+}
+
 /// The item a recipe makes: a quick variant makes the regular item, and an uncovered crop (see
 /// [`crate::models::add_uncovered_variants`]) makes the same crop, just slower.
 fn made_item<'a>(name: &'a str, all: &HashMap<&str, &ProductionItem>) -> &'a str {
@@ -352,12 +391,23 @@ fn build_model<'a>(
     let seed_cost = |recipe: &ProductionItem| if currency == "coins" { recipe.cost.unwrap_or(0.0) } else { 0.0 };
 
     // Recipe rates and units.
+    let facility_tiers: HashMap<&str, usize> = recipes
+        .iter()
+        .map(|r| r.facility.as_str())
+        .collect::<HashSet<_>>()
+        .into_iter()
+        .map(|f| (f, needed_facility_tiers(f, &recipes, &goal)))
+        .collect();
+
     let mut rate_of: Vec<(&ProductionItem, usize)> = Vec::new();
     let mut units_of: Vec<(&ProductionItem, usize)> = Vec::new();
     for &recipe in &recipes {
         let rate = model.add(-seed_cost(recipe), (0.0, f64::INFINITY), false, VarKind::Rate(recipe));
         let max = facility_counts.get_count(&recipe.facility) as f64;
-        let units = model.add(0.0, (0.0, max), !takes_turns(recipe), VarKind::Units(recipe));
+        let owned = facility_counts.get_count(&recipe.facility);
+        let needed = facility_tiers.get(recipe.facility.as_str()).copied().unwrap_or(1);
+        let recipe_takes_turns = recipe.sell_currency == "none" && (owned < needed as u32 || needed == 0);
+        let units = model.add(0.0, (0.0, max), !recipe_takes_turns, VarKind::Units(recipe));
         model.constrain(vec![(rate, recipe.production_time), (units, -1.0)], ComparisonOp::Le, 0.0);
         rate_of.push((recipe, rate));
         units_of.push((recipe, units));
@@ -1055,7 +1105,15 @@ pub fn check_plan(
         if rate * recipe.production_time > units as f64 + TOLERANCE {
             return Err(format!("{name} runs {rate}/s but has {units} units at {}s each", recipe.production_time));
         }
-        let in_use = if takes_turns(recipe) { rate * recipe.production_time } else { units as f64 };
+        let active_none: Vec<&str> = plan
+            .recipe_rates
+            .iter()
+            .filter(|(n, &r)| r > 1e-9 && all.get(n.as_str()).map_or(false, |i| i.facility == recipe.facility && i.sell_currency == "none"))
+            .map(|(n, _)| n.as_str())
+            .collect();
+        let owned = facility_counts.get_count(&recipe.facility);
+        let facility_turns = recipe.sell_currency == "none" && active_none.len() > owned as usize;
+        let in_use = if facility_turns { rate * recipe.production_time } else { units as f64 };
         units_at.entry(recipe.facility.as_str()).or_default().push((recipe.facility_level, in_use));
         if let Some(environment) = recipe.environment.as_deref() {
             *plots_needing.entry((recipe.facility.as_str(), environment)).or_default() += units;
@@ -1515,15 +1573,23 @@ pub fn to_production_plan(
             });
             continue;
         }
-        // Recipes taking turns share units, so what's in use is their combined time.
-        let shared: Vec<&str> = rows.iter().filter(|(r, _, _)| takes_turns(r)).map(|(r, _, _)| r.name.as_str()).collect();
-        let shared_time: f64 = rows.iter().filter(|(r, _, _)| takes_turns(r)).map(|(r, _, rate)| rate * r.production_time).sum();
-        let used: u32 = rows.iter().filter(|(r, _, _)| !takes_turns(r)).map(|(_, u, _)| u).sum::<u32>()
+        // Recipes taking turns share units only when there are fewer units owned than active tiers.
+        let active_none: Vec<&str> = rows
+            .iter()
+            .filter(|(r, _, rate)| r.sell_currency == "none" && *rate > 1e-9)
+            .map(|(r, _, _)| r.name.as_str())
+            .collect();
+        let facility_turns = active_none.len() > owned as usize;
+        let is_turning = |r: &ProductionItem| r.sell_currency == "none" && facility_turns;
+
+        let shared: Vec<&str> = rows.iter().filter(|(r, _, _)| is_turning(r)).map(|(r, _, _)| r.name.as_str()).collect();
+        let shared_time: f64 = rows.iter().filter(|(r, _, _)| is_turning(r)).map(|(r, _, rate)| rate * r.production_time).sum();
+        let used: u32 = rows.iter().filter(|(r, _, _)| !is_turning(r)).map(|(_, u, _)| u).sum::<u32>()
             + ((shared_time - 1e-6).ceil().max(0.0) as u32);
         let used = used.min(owned);
         for (recipe, units, rate) in rows {
             let mut reason = uses_of(recipe);
-            if takes_turns(recipe) {
+            if is_turning(recipe) {
                 let others: Vec<&str> = shared.iter().copied().filter(|n| *n != recipe.name).collect();
                 if !others.is_empty() {
                     reason = format!("{reason}; takes turns with {}", others.join(", "));
