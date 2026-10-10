@@ -2229,19 +2229,17 @@ function homelandSvg(layout, homeLevel) {
                 fill="${color}" fill-opacity="${m.mode ? 1 : 0.25}" stroke="currentColor" stroke-opacity="0.6" stroke-width="0.08" />
                 ${m.mode ? environmentBuildingIcon(m.facility, m.mode, m.x + m.w / 2, m.y + m.h / 2) : ''}</g>`;
         }
-        const ribbonW = Math.min(m.w * 0.45, 0.75);
-        const ribbon = `<path d="M ${(m.x + 0.04).toFixed(3)} ${(m.y + 0.04).toFixed(3)} L ${(m.x + ribbonW).toFixed(3)} ${(m.y + 0.04).toFixed(3)} L ${(m.x + 0.04).toFixed(3)} ${(m.y + ribbonW).toFixed(3)} Z" fill="${color}" fill-opacity="0.85" />`;
         if (m.emode) {
             return `<g class="layout-piece emode-facility" ${tip}>
                 <rect x="${m.x + 0.04}" y="${m.y + 0.04}" width="${m.w - 0.08}" height="${m.h - 0.08}" rx="0.25"
-                    fill="#f6fcf5" stroke="#f59e0b" stroke-width="0.08" stroke-dasharray="0.6,0.2" />
-                ${ribbon}${badge}${workerBadge}
+                    fill="${color}" fill-opacity="0.90" stroke="#f59e0b" stroke-width="0.09" stroke-dasharray="0.6,0.2" />
+                ${badge}${workerBadge}
             </g>`;
         }
         return `<g class="layout-piece" ${tip}>
             <rect x="${m.x + 0.04}" y="${m.y + 0.04}" width="${m.w - 0.08}" height="${m.h - 0.08}" rx="0.25"
-                fill="#f6fcf5" stroke="${color}" stroke-width="0.07" />
-            ${ribbon}${badge}${workerBadge}
+                fill="${color}" fill-opacity="0.90" stroke="${color}" stroke-opacity="0.95" stroke-width="0.08" />
+            ${badge}${workerBadge}
         </g>`;
     }).join('');
     const coverageShapes = coverage.map(c => {
@@ -2267,9 +2265,9 @@ function homelandSvg(layout, homeLevel) {
             color: '#3b82f6',
         });
         return `<g class="layout-piece layout-storage-unit" data-storage-index="${idx}" ${tip}>
-            <rect x="${s.x + 0.04}" y="${s.y + 0.04}" width="${s.w - 0.08}" height="${s.h - 0.08}" rx="0.25" class="layout-storage" fill="#f6fcf5" stroke="#3b82f6" stroke-width="0.08" />
+            <rect x="${s.x + 0.04}" y="${s.y + 0.04}" width="${s.w - 0.08}" height="${s.h - 0.08}" rx="0.25" class="layout-storage" fill="#2563eb" fill-opacity="0.92" stroke="#1d4ed8" stroke-width="0.08" />
             ${facilityBadge({ ...s, facility: 'Storage Unit' })}
-            <rect x="${(s.x + 0.08).toFixed(2)}" y="${(s.y + 0.08).toFixed(2)}" width="0.72" height="0.42" rx="0.1" fill="#1d4ed8" fill-opacity="0.92" />
+            <rect x="${(s.x + 0.08).toFixed(2)}" y="${(s.y + 0.08).toFixed(2)}" width="0.72" height="0.42" rx="0.1" fill="#1e3a8a" fill-opacity="0.95" />
             <text x="${(s.x + 0.44).toFixed(2)}" y="${(s.y + 0.32).toFixed(2)}" text-anchor="middle" font-size="0.30" font-weight="bold" fill="#ffffff">#${num}</text>
         </g>`;
     }).join('');

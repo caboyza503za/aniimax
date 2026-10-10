@@ -3906,7 +3906,7 @@ tbody tr:hover {
     stroke: rgba(255, 255, 255, 0.44);
     stroke-width: 0.08;
 }
-.layout-storage { fill: #f6fcf5; stroke: #3b82f6; }
+.layout-storage { fill: #2563eb; fill-opacity: 0.92; stroke: #1d4ed8; }
 .layout-flow-line { stroke: var(--accent-cool); }
 .layout-dot { fill: var(--accent-warm); }
 .layout-svg .layout-storage-text { fill: var(--on-accent); }
