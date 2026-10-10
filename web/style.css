@@ -2715,6 +2715,9 @@ tr:hover .skip-row,
     dominant-baseline: hanging;
     fill: var(--text-muted);
     font-weight: 600;
+    opacity: 0.35;
+    pointer-events: none;
+    user-select: none;
 }
 
 .layout-hatch {
@@ -3689,16 +3692,30 @@ tbody tr:hover {
     border: 1px solid var(--border);
     border-radius: 14px;
     background-color: color-mix(in srgb, var(--bg) 55%, var(--surface));
-    background-image:
-        linear-gradient(color-mix(in srgb, var(--accent-cool) 7%, transparent) 1px, transparent 1px),
-        linear-gradient(90deg, color-mix(in srgb, var(--accent-cool) 7%, transparent) 1px, transparent 1px);
-    background-size: 18px 18px;
 }
 .layout-svg { min-width: 560px; }
 .layout-storage { fill: var(--accent); stroke: var(--accent); }
 .layout-flow-line { stroke: var(--accent-cool); }
 .layout-dot { fill: var(--accent-warm); }
 .layout-svg .layout-storage-text { fill: var(--on-accent); }
+
+/* Power Grid Frame ("กรอบเสาไฟ") & E-Mode visualization */
+.layout-power-grid-frame rect {
+    animation: pulse-power-frame 3s ease-in-out infinite alternate;
+}
+@keyframes pulse-power-frame {
+    0% { stroke-opacity: 0.7; stroke-width: 0.08; }
+    100% { stroke-opacity: 1; stroke-width: 0.11; }
+}
+.layout-piece.crackle-generator rect {
+    filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.45));
+}
+.layout-piece.crackle-pole rect {
+    filter: drop-shadow(0 0 1px rgba(217, 119, 6, 0.45));
+}
+.layout-piece.emode-facility rect {
+    filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.4));
+}
 
 /* Modals */
 .modal-content {

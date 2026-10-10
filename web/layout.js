@@ -148,7 +148,7 @@ export function layOut(pieces, options = {}) {
         const costOf = rects => shape.plots.reduce((sum, p, j) => sum + p.weight * Math.hypot(rects[j].x + p.w / 2, rects[j].y + p.h / 2), 0);
         let plots = null;
         const slots = shape.plots.map((p, j) => ({ x: shape.planned[j].x + x, y: shape.planned[j].y + y, w: p.w, h: p.h }));
-        if (slots.every(r => free(r, i) && !buildings.some(b => overlaps(r, b)))) {
+        if (slots.every((r, j) => free(r, i) && !buildings.some(b => overlaps(r, b)) && !slots.some((r2, k) => j !== k && overlaps(r, r2)))) {
             plots = assignSlots(shape.plots, slots);
             if (!plots.every((r, j) => allowed(r, shape.plots[j].zone))) plots = null;
         }
