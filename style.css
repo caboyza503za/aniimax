@@ -2688,31 +2688,35 @@ tr:hover .skip-row,
     }
 }
 
-/* Homeland plots in the layout: open ones outlined and numbered, the rest hatched. */
+/* Homeland plots in the layout: open ones have lush green turf, locked ones are dark with hatch. */
 .layout-plot rect {
-    fill: none;
-    stroke: var(--text-muted);
-    stroke-opacity: 0.6;
-    stroke-width: 0.12;
+    fill: #8fbd6d;
+    fill-opacity: 0.65;
+    stroke: #739b56;
+    stroke-opacity: 0.85;
+    stroke-width: 0.08;
 }
 
-/* Locked plots: red, hatched, outlined and labelled in red. */
+/* Locked plots: dark turf, hatched, outlined and labelled in red. */
 .layout-plot.locked rect {
     fill: url(#layout-locked);
+    fill-opacity: 0.8;
     stroke: #ef4444;
     stroke-opacity: 1;
 }
 
 .layout-svg .layout-plot.locked text {
-    fill: #ef4444;
+    fill: #fca5a5;
+    opacity: 0.9;
 }
 
 .layout-svg .layout-plot text {
     text-anchor: start;
     dominant-baseline: hanging;
-    fill: var(--text-muted);
-    font-weight: 600;
-    opacity: 0.35;
+    fill: #ffffff;
+    font-weight: 700;
+    opacity: 0.85;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
     pointer-events: none;
     user-select: none;
 }
@@ -3690,8 +3694,16 @@ tbody tr:hover {
     border-radius: 14px;
     background-color: color-mix(in srgb, var(--bg) 55%, var(--surface));
 }
-.layout-svg { min-width: 560px; }
-.layout-storage { fill: var(--accent); stroke: var(--accent); }
+.layout-svg {
+    min-width: 560px;
+    background-color: #7fa662;
+    border-radius: 12px;
+}
+.env-grid line {
+    stroke: rgba(255, 255, 255, 0.13);
+    stroke-width: 0.04;
+}
+.layout-storage { fill: #f6fcf5; stroke: #3b82f6; }
 .layout-flow-line { stroke: var(--accent-cool); }
 .layout-dot { fill: var(--accent-warm); }
 .layout-svg .layout-storage-text { fill: var(--on-accent); }
@@ -3719,13 +3731,22 @@ tbody tr:hover {
     pointer-events: none;
 }
 .facility-badge-circle {
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45));
 }
 .facility-badge-level {
     font-family: var(--font-body, system-ui, sans-serif);
     font-weight: 700;
     fill: #ffffff;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.95));
+}
+.facility-item-icon {
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+}
+.facility-worker-badge circle {
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.45));
+}
+.facility-emode-badge rect {
+    filter: drop-shadow(0 1px 2px rgba(245, 158, 11, 0.6));
 }
 
 /* Modals */

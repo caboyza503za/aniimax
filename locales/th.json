@@ -963,5 +963,9 @@
     "{count} machines use a total of {used}W / {max}W (Crackle Generator Lv.{level} quota, max 1 placed) &mdash; uses 1 Crackle Generator (1 Lightning Aniimo)": "เครื่องจักร {count} เครื่องใช้ไฟฟ้ารวม {used}W / {max}W (โควต้าเสากำเนิดไฟ Lv.{level} วางได้สูงสุด 1 เสา) &mdash; ใช้เสากำเนิดไฟฟ้าเปาะแปะ 1 เสา (แอนีโมสายฟ้า 1 ตัว)",
     "(saves {saved} Aniimo worker slots!)": "(ประหยัดคนงานแอนีโมได้ {saved} ตำแหน่ง!)",
     "speed": "ความเร็ว",
-    "That's {total} Aniimo, more than the {cap} an RV level {level} homeland holds.": "แอนีโม {total} ตัว เกินกว่าที่ดินแดนบ้านเกิดเลเวล RV {level} จุได้ ({cap} ตัว)"
+    "That's {total} Aniimo, more than the {cap} an RV level {level} homeland holds.": "แอนีโม {total} ตัว เกินกว่าที่ดินแดนบ้านเกิดเลเวล RV {level} จุได้ ({cap} ตัว)",
+    "Plot": "แปลงที่ดิน",
+    "Recommended Aniimo": "แอนีโมแนะนำ",
+    "Recommended Aniimo: {name} ({ability} Lv.{level})": "แอนีโมแนะนำ: {name} ({ability} Lv.{level})",
+    "Worker": "คนงาน"
 }
