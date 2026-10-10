@@ -1573,10 +1573,9 @@ function facilityBadge(m) {
     const ringColor = isWorking ? '#bcf8ff' : (m.isGenerator || m.isPowerPole ? '#facc15' : 'rgba(255, 255, 255, 0.45)');
     const badgeCircle = `<circle class="facility-badge-circle" cx="${cx.toFixed(3)}" cy="${badgeCy.toFixed(3)}" r="${r.toFixed(3)}" fill="#333a48" stroke="${ringColor}" stroke-width="${(r * 0.1).toFixed(3)}" />`;
     
-    const fallback = facilityIconSvg(m.facility || (m.isGenerator ? 'Crackle Generator' : m.isPowerPole ? 'Crackle Power Pole' : ''), cx, badgeCy, iconR);
     const icon = iconUrl
-        ? `<g class="facility-icon-wrap">${fallback}<image class="facility-item-icon" href="${iconUrl}" x="${(cx - iconR).toFixed(3)}" y="${(badgeCy - iconR).toFixed(3)}" width="${(iconR * 2).toFixed(3)}" height="${(iconR * 2).toFixed(3)}" preserveAspectRatio="xMidYMid meet" /></g>`
-        : fallback;
+        ? `<image class="facility-item-icon" href="${iconUrl}" x="${(cx - iconR).toFixed(3)}" y="${(badgeCy - iconR).toFixed(3)}" width="${(iconR * 2).toFixed(3)}" height="${(iconR * 2).toFixed(3)}" preserveAspectRatio="xMidYMid meet" />`
+        : facilityIconSvg(m.facility || (m.isGenerator ? 'Crackle Generator' : m.isPowerPole ? 'Crackle Power Pole' : ''), cx, badgeCy, iconR);
     
     let levelText = '';
     if (showLevel) {
@@ -1611,16 +1610,10 @@ function facilityWorkerBadge(m) {
     const wr = Math.min(0.42, Math.max(0.24, minDim * 0.16));
     const wx = m.x + m.w - wr - 0.1;
     const wy = m.y + wr + 0.1;
-    const clipId = `clip-worker-${Math.round((m.x || 0) * 100)}-${Math.round((m.y || 0) * 100)}`;
 
     return `<g class="facility-worker-badge" pointer-events="none">
-        <defs>
-            <clipPath id="${clipId}">
-                <circle cx="${wx.toFixed(3)}" cy="${wy.toFixed(3)}" r="${(wr * 0.95).toFixed(3)}" />
-            </clipPath>
-        </defs>
         <circle cx="${wx.toFixed(3)}" cy="${wy.toFixed(3)}" r="${wr.toFixed(3)}" fill="#1e293b" stroke="#ffffff" stroke-width="0.04" />
-        <image href="${worker.avatar}" x="${(wx - wr * 0.95).toFixed(3)}" y="${(wy - wr * 0.95).toFixed(3)}" width="${(wr * 1.9).toFixed(3)}" height="${(wr * 1.9).toFixed(3)}" clip-path="url(#${clipId})" preserveAspectRatio="xMidYMid slice" />
+        <image href="${worker.avatar}" x="${(wx - wr * 0.95).toFixed(3)}" y="${(wy - wr * 0.95).toFixed(3)}" width="${(wr * 1.9).toFixed(3)}" height="${(wr * 1.9).toFixed(3)}" clip-path="url(#circle-avatar-clip)" preserveAspectRatio="xMidYMid slice" />
     </g>`;
 }
 
@@ -1896,8 +1889,14 @@ function homelandSvg(layout, homeLevel) {
     const s = layout.storage;
     const totalTrips = layout.pieces.flatMap(p => p.members).filter(m => !m.building && !m.isGenerator && !m.isPowerPole).reduce((sum, m) => sum + (m.weight || 0), 0);
     return `<svg class="layout-svg" viewBox="${minX} ${minY} ${maxX - minX} ${maxY - minY}" role="img" aria-label="Homeland layout">
-        <defs><pattern id="layout-locked" width="1" height="1" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-            <line x1="0" y1="0" x2="0" y2="1" class="layout-hatch" /></pattern></defs>
+        <defs>
+            <pattern id="layout-locked" width="1" height="1" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <line x1="0" y1="0" x2="0" y2="1" class="layout-hatch" />
+            </pattern>
+            <clipPath id="circle-avatar-clip" clipPathUnits="objectBoundingBox">
+                <circle cx="0.5" cy="0.5" r="0.5" />
+            </clipPath>
+        </defs>
         <g class="env-grid">${lines.join('')}</g>
         <g class="layout-plots" pointer-events="none">${plotShapes}</g>
         <g class="layout-coverage">${coverageShapes}</g>
