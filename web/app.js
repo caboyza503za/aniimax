@@ -2119,7 +2119,6 @@ function homelandSvg(layout, homeLevel) {
         if (open) {
             return `<g class="layout-plot open" data-plot-number="${p.number}">
                 <rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="0.35" />
-                <text class="plot-title-label" x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central" font-size="2.0">แปลงที่ดิน ${p.number}</text>
             </g>`;
         } else {
             return `<g class="layout-plot locked" data-plot-number="${p.number}">
@@ -2303,7 +2302,7 @@ function homelandSvg(layout, homeLevel) {
     return `<svg class="layout-svg" viewBox="${minX} ${minY} ${maxX - minX} ${maxY - minY}" role="img" aria-label="Homeland layout">
         <defs>
             <pattern id="layout-locked" width="1" height="1" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                <rect width="1" height="1" fill="#141114" />
+                <rect width="1" height="1" fill="#1f1b20" />
                 <line x1="0" y1="0" x2="0" y2="1" class="layout-hatch" />
             </pattern>
             <clipPath id="circle-avatar-clip" clipPathUnits="objectBoundingBox">
