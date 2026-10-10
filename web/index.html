@@ -3,23 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aniimax - Aniimo Production Optimizer</title>
+    <title>Homeland Atlas — Aniimo Production Planner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
-    <header>
-        <h1>aniimax</h1>
-        <div class="header-buttons">
+    <header class="site-header">
+        <a class="brand-lockup" href="#top" aria-label="Homeland Atlas home">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 64 64" role="img">
+                    <path class="brand-mark-land" d="M11 17 23 9l10 5 10-4 10 9-4 12 5 10-11 12-13-4-13 6-8-11 5-10-4-9Z"/>
+                    <path class="brand-mark-routes" d="M16 24 28 29l8-10 12 8M17 43l14-8 12 6M28 29l3 6m5-16-5 16m5 6 7-14"/>
+                    <circle cx="28" cy="29" r="2.4"/><circle cx="48" cy="27" r="2.4"/><circle cx="31" cy="35" r="2.4"/><circle cx="43" cy="41" r="2.4"/>
+                </svg>
+            </span>
+            <span class="brand-copy">
+                <span class="brand-name">HOMELAND <b>ATLAS</b></span>
+                <span class="brand-kicker">ANIIMO PRODUCTION PLANNER</span>
+            </span>
+        </a>
+        <div class="header-buttons" aria-label="Page tools">
             <select id="language-switch" class="toggle-button" aria-label="Language"></select>
             <button class="toggle-button" onclick="showFacilities()" id="facilitiesToggle">facilities</button>
             <button class="toggle-button" onclick="showMath()" id="mathToggle">math</button>
             <button class="toggle-button" onclick="showHelp()" id="helpToggle">help</button>
-            <button class="toggle-button" onclick="toggleTheme()" id="themeToggle">light</button>
+            <button class="toggle-button theme-button" onclick="toggleTheme()" id="themeToggle">light</button>
         </div>
     </header>
-    <p class="subtitle">aniimo homeland production optimizer</p>
-    <p class="disclaimer"><span class="disclaimer-icon" aria-hidden="true">⚠</span>A few recipes, facility levels and counts haven't been confirmed in game yet; they're marked where they're used.</p>
+    <section class="atlas-hero" id="top" aria-label="Homeland Atlas introduction">
+        <div class="atlas-hero-copy">
+            <p class="eyebrow"><span></span> YOUR HOMELAND, MAPPED</p>
+            <h1>Plan the land.<br><em>Make every plot count.</em></h1>
+            <p class="subtitle">A strategic field guide for your Aniimo homeland — from your first plot to a full production network.</p>
+        </div>
+        <div class="atlas-key" aria-hidden="true">
+            <span class="key-line key-line-a"></span><span class="key-line key-line-b"></span><span class="key-pin pin-one"></span><span class="key-pin pin-two"></span><span class="key-pin pin-three"></span>
+            <span class="atlas-key-label label-north">NORTH FIELD</span><span class="atlas-key-label label-south">STORAGE</span>
+        </div>
+    </section>
+    <p class="disclaimer"><span class="disclaimer-icon" aria-hidden="true">!</span>A few recipes, facility levels and counts haven't been confirmed in game yet; they're marked where they're used.</p>
 
     <div class="container">
 
@@ -366,7 +391,11 @@
         </main>
 
         <footer>
-            <p>aniimax v<span id="version">-</span> | <a href="https://github.com/ae-bii/aniimax" target="_blank">github</a></p>
+            <div class="footer-brand">
+                <span class="footer-compass" aria-hidden="true">✦</span>
+                <span>HOMELAND ATLAS</span>
+            </div>
+            <p class="footer-owner">A CABOYZA503ZA PROJECT · v<span id="version">-</span> · <a href="https://github.com/caboyza503za/aniimax" target="_blank" rel="noreferrer">source</a></p>
             <p class="footer-note">Unofficial fan-made tool. Not affiliated with or endorsed by the makers of Aniimo.</p>
             <p class="footer-note">Your inputs are saved in your browser and never sent anywhere.</p>
         </footer>
