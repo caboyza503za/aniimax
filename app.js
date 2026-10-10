@@ -257,18 +257,7 @@ function calculateOptimalEMode(plan) {
     const facilities = new Set();
     const steps = new Set();
     if (!plan) return { facilities, steps };
-    let homeLevel = 20;
-    try {
-        if (typeof layoutHomeLevel === 'function') {
-            homeLevel = layoutHomeLevel();
-        } else if (isSimpleMode()) {
-            homeLevel = selectedHomeLevel();
-        } else if (lastPlanInput) {
-            homeLevel = homeLevelCovering(lastPlanInput);
-        }
-    } catch (e) {
-        homeLevel = selectedHomeLevel?.() || 20;
-    }
+    const homeLevel = activeHomelandLevel();
     if (!homeLevel || homeLevel < CRACKLE_GENERATOR.unlockHomeLevel) {
         return { facilities, steps }; // Crackle Generator locked before RV 12
     }
@@ -706,6 +695,22 @@ function isSimpleMode() {
 
 function selectedHomeLevel() {
     return numberOrDefault(document.getElementById('home-level').value, MAX_HOME_LEVEL);
+}
+
+function activeHomelandLevel() {
+    try {
+        if (typeof layoutHomeLevel === 'function') {
+            const lvl = layoutHomeLevel();
+            if (lvl) return lvl;
+        }
+        if (isSimpleMode()) {
+            return selectedHomeLevel();
+        }
+        if (lastPlanInput) {
+            return homeLevelCovering(lastPlanInput);
+        }
+    } catch (e) {}
+    return (typeof selectedHomeLevel === 'function' ? selectedHomeLevel() : 20) || 20;
 }
 
 function populateHomeLevels() {
@@ -1318,10 +1323,11 @@ function homelandPieces(plan, input) {
         totalWatts += f?.electricRequire || 60;
     });
     if (totalWatts > 0) {
-        const homeLevel = layoutHomeLevel ? layoutHomeLevel() : (isSimpleMode() ? selectedHomeLevel() : homeLevelCovering(lastPlanInput));
+        const homeLevel = activeHomelandLevel();
         const genLevel = CRACKLE_GENERATOR.levelByHomeLevel(homeLevel);
         const wattsPerGen = CRACKLE_GENERATOR.wattsByLevel[genLevel] || 120;
         const generatorsNeeded = Math.ceil(totalWatts / wattsPerGen);
+        const polesNeeded = Math.max(1, Math.ceil(generatorsNeeded / 2));
         const maxEmodeWeight = Math.max(...emodeMembers.map(m => m.weight || 0), 1.0);
         for (let g = 0; g < generatorsNeeded; g++) {
             pieces.push({
@@ -1339,16 +1345,18 @@ function homelandPieces(plan, input) {
             });
             count('Crackle Generator');
         }
-        pieces.push({
-            members: [{
-                x: 0, y: 0, w: 1, h: 1, weight: maxEmodeWeight * 0.98,
-                facility: 'Crackle Power Pole',
-                isPowerPole: true,
-                crop: null,
-                sensitive: false
-            }]
-        });
-        count('Crackle Power Pole');
+        for (let p = 0; p < polesNeeded; p++) {
+            pieces.push({
+                members: [{
+                    x: 0, y: 0, w: 1, h: 1, weight: maxEmodeWeight * 0.98,
+                    facility: 'Crackle Power Pole',
+                    isPowerPole: true,
+                    crop: null,
+                    sensitive: false
+                }]
+            });
+            count('Crackle Power Pole');
+        }
     }
 
     // What's owned but not in the plan at all, such as environment buildings it didn't need.
@@ -2194,7 +2202,7 @@ function renderRosterSummary(plan) {
 
     let emodeBannerHtml = '';
     if (emodeMachineWatts > 0) {
-        const homeLevel = selectedHomeLevel();
+        const homeLevel = activeHomelandLevel();
         const genLevel = CRACKLE_GENERATOR.levelByHomeLevel(homeLevel);
         const wattsPerGen = CRACKLE_GENERATOR.wattsByLevel[genLevel] || 120;
         const generatorsNeeded = Math.ceil(emodeMachineWatts / wattsPerGen);
@@ -3216,7 +3224,7 @@ function aniimoLabel(step) {
         const personality = f?.personality;
         note = `${personality ? `${personality} personality` : 'matching personality'} (+20% speed)`;
     }
-    if (f && f.supportsEMode && selectedHomeLevel() >= 12 && step.status === 'producing') {
+    if (f && f.supportsEMode && activeHomelandLevel() >= 12 && step.status === 'producing') {
         note = note ? `${note} · ผลิตเร็วกว่าโหมด E` : 'ผลิตเร็วกว่าโหมด E';
     }
     return `<span class="ability-dots">${abilityDot(a.ability, a.level, note)}</span>`;
@@ -3392,7 +3400,7 @@ function renderAniimoSummary(plan) {
 
     let emodeBannerHtml = '';
     if (emodeMachineWatts > 0) {
-        const homeLevel = selectedHomeLevel();
+        const homeLevel = activeHomelandLevel();
         const genLevel = CRACKLE_GENERATOR.levelByHomeLevel(homeLevel);
         const wattsPerGen = CRACKLE_GENERATOR.wattsByLevel[genLevel] || 120;
         const generatorsNeeded = Math.ceil(emodeMachineWatts / wattsPerGen);
