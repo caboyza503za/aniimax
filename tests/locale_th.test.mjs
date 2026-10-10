@@ -41,5 +41,14 @@ assert.equal(i18n.translate('Rough Lumber'), 'ไม้แปรรูปดิ�
 assert.equal(i18n.translate('Standard Planks'), 'แผ่นไม้กระดานมาตรฐาน');
 assert.equal(i18n.translate('Home Coins'), 'เหรียญบ้าน');
 assert.equal(i18n.translate('RV level'), 'เลเวล RV');
+assert.equal(i18n.translate('Advanced Wind Chime'), 'กระดิ่งลมขั้นสูง');
+assert.equal(i18n.translate('[E-Mode · 60W in power frame]'), '[โหมด E · 60W ในกรอบเสาไฟ]');
+assert.equal(i18n.translate('⚡ Generator Frame 11×11'), '⚡ กรอบเครื่องกำเนิดไฟ 11×11');
+assert.equal(i18n.translate('⚡ Power Pole Frame 7×7'), '⚡ กรอบเสาไฟ 7×7');
+assert.equal(i18n.translate('Crackle Generator'), 'เสากำเนิดไฟฟ้าเปาะแปะ');
+assert.equal(i18n.translate('Crackle Power Pole'), 'เสาไฟฟ้าเปาะแปะ');
+assert.equal(i18n.translate('E-Mode'), 'โหมด E');
+assert.equal(i18n.translate('Faster than E-Mode'), 'ผลิตเร็วกว่าโหมด E');
+assert.equal(i18n.translate('E-Mode (Electric):'), 'โหมด E (ไฟฟ้า):');
 
 console.log('All Thai locale tests passed successfully!');

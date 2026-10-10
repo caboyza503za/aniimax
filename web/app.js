@@ -1,6 +1,6 @@
 // Aniimax Web Application
 
-import { currentLocale, sourceAttribute, translate } from './i18n.js';
+import { currentLocale, sourceAttribute, translate, translateTree } from './i18n.js';
 import './math-translation.js';
 
 import {
@@ -1411,6 +1411,7 @@ function attachLayoutHandlers() {
 function drawLayout(drawn) {
     const diagram = document.getElementById('layout-diagram');
     diagram.innerHTML = homelandSvg(drawn.layout, drawn.homeLevel);
+    translateTree(diagram);
     // With the simulation off, the layout is drawn on its own.
     const on = document.getElementById('layout-sim-on').checked;
     diagram.classList.toggle('no-sim', !on);
@@ -1560,22 +1561,22 @@ function homelandSvg(layout, homeLevel) {
         `<g class="layout-generator-grid-frame">
             <rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" rx="0.35" fill="none"
                 stroke="#d97706" stroke-opacity="0.9" stroke-width="0.1" stroke-dasharray="0.6,0.25" />
-            <text x="${f.x + 0.2}" y="${f.y + 0.35}" font-size="0.45" fill="#b45309" font-weight="bold" text-anchor="start" dominant-baseline="hanging">⚡ กรอบเครื่องกำเนิดไฟ 11×11</text>
+            <text x="${f.x + 0.2}" y="${f.y + 0.35}" font-size="0.45" fill="#b45309" font-weight="bold" text-anchor="start" dominant-baseline="hanging">${escapeText(translate('⚡ Generator Frame 11×11'))}</text>
         </g>`
     ).join('') + poleFrames.map(f =>
         `<g class="layout-power-grid-frame">
             <rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" rx="0.3" fill="none"
                 stroke="#eab308" stroke-opacity="0.9" stroke-width="0.09" stroke-dasharray="0.5,0.2" />
-            <text x="${f.x + 0.2}" y="${f.y + 0.35}" font-size="0.45" fill="#ca8a04" font-weight="bold" text-anchor="start" dominant-baseline="hanging">⚡ กรอบเสาไฟ 7×7</text>
+            <text x="${f.x + 0.2}" y="${f.y + 0.35}" font-size="0.45" fill="#ca8a04" font-weight="bold" text-anchor="start" dominant-baseline="hanging">${escapeText(translate('⚡ Power Pole Frame 7×7'))}</text>
         </g>`
     ).join('');
 
     const maxTrips = Math.max(...allMembers.filter(m => !m.isGenerator && !m.isPowerPole).map(m => m.weight || 0), 1e-9);
     const shapes = allMembers.map(m => {
         if (m.isGenerator) {
-            const tip = tipAttrs('Crackle Generator', {
-                detail: `เสากำเนิดไฟฟ้าเปาะแปะ Lv.${m.genLevel || 1} (ขนาด 2×2 · กรอบจ่ายไฟ 11×11 · จ่ายไฟ ${m.outputWatts || 120}W / วางได้สูงสุด 1 เสา)`,
-                stats: `รองรับเครื่องโหมด E ได้ ${Math.floor((m.outputWatts || 120) / 60)} เครื่อง (ใช้ไป ${m.totalWatts || 0}W)`,
+            const tip = tipAttrs(m.facility, {
+                detail: `${translate('Crackle Generator')} Lv.${m.genLevel || 1} (${translate('2×2 tiles · 11×11 power frame · outputs {watts}W / max 1 generator)').replace('{watts}', m.outputWatts || 120)})`,
+                stats: translate('Supports up to {count} E-Mode machines (using {used}W)').replace('{count}', Math.floor((m.outputWatts || 120) / 60)).replace('{used}', m.totalWatts || 0),
                 color: '#f59e0b',
             });
             return `<g class="layout-piece crackle-generator" ${tip}><rect x="${m.x + 0.05}" y="${m.y + 0.05}" width="${m.w - 0.1}" height="${m.h - 0.1}" rx="0.3"
@@ -1587,9 +1588,9 @@ function homelandSvg(layout, homeLevel) {
         if (m.isPowerPole) {
             const homeLevel = layout.homeLevel || activeHomelandLevel();
             const maxPoles = CRACKLE_POWER_POLE.maxPolesByHomeLevel(homeLevel);
-            const tip = tipAttrs('Crackle Power Pole', {
-                detail: `เสาไฟฟ้าเปาะแปะ (ขนาด 1.5×1.5 · กรอบเสาไฟ 7×7 · RV ${homeLevel} วางได้สูงสุด ${maxPoles} เสา)`,
-                stats: 'ขยายกรอบเชื่อมต่อพลังงานไฟฟ้า 7×7 สำหรับโหมด E',
+            const tip = tipAttrs(m.facility, {
+                detail: `${translate('Crackle Power Pole')} (${translate('1.5×1.5 tiles · 7×7 power frame · up to {max} poles at RV {level}').replace('{max}', maxPoles).replace('{level}', homeLevel)})`,
+                stats: translate('Expands 7×7 power grid coverage for E-Mode'),
                 color: '#d97706',
             });
             return `<g class="layout-piece crackle-pole" ${tip}><rect x="${m.x + 0.04}" y="${m.y + 0.04}" width="${m.w - 0.08}" height="${m.h - 0.08}" rx="0.2"
@@ -1600,7 +1601,9 @@ function homelandSvg(layout, homeLevel) {
         }
         const color = layoutColor(m);
         const away = Math.hypot(m.x + m.w / 2 - (layout.storage.x + layout.storage.w / 2), m.y + m.h / 2 - (layout.storage.y + layout.storage.h / 2));
-        const detailText = (m.jobs ? m.jobs.map(j => prettyItem(j.item)).join(', ') : m.crop ? prettyItem(m.crop) : m.building && m.mode ? m.mode : 'Idle') + (m.emode ? ' ⚡ [โหมด E · 60W ในกรอบเสาไฟ]' : '');
+        const itemsText = m.jobs ? m.jobs.map(j => prettyItem(j.item)).join(', ') : m.crop ? prettyItem(m.crop) : m.building && m.mode ? translate(m.mode) : translate('Idle');
+        const emodeSuffix = m.emode ? (' ⚡ ' + translate('[E-Mode · 60W in power frame]')) : '';
+        const detailText = itemsText + emodeSuffix;
         const tip = tipAttrs(m.facility, {
             detail: detailText,
             stats: m.weight > 0 ? `${formatRate(m.weight)} trips/hour · ${away.toFixed(1)} tiles from storage` : '',
@@ -2227,15 +2230,22 @@ function renderRosterSummary(plan) {
         const totalProcessing = (plan.coin_items || []).filter(s => s.status === 'producing' && FACILITIES.find(fac => fac.name === s.facility)?.supportsEMode).length;
         const remainingWorkersCount = Math.max(0, totalProcessing - emodeMachineCount);
         const remainingNote = remainingWorkersCount > 0
-            ? ` (เครื่องจักรอีก ${remainingWorkersCount} เครื่องใช้แอนีโมคนงานทำงาน เนื่องจากเสากำเนิดไฟฟ้าจ่ายไฟได้สูงสุด ${maxWatts}W)`
+            ? ` (${translate('another {n} machines use Aniimo workers because the generator output is capped at {watts}W').replace('{n}', remainingWorkersCount).replace('{watts}', maxWatts)})`
+            : '';
+        const countText = translate('{count} machines use a total of {used}W / {max}W (Crackle Generator Lv.{level} quota, max 1 placed) &mdash; uses 1 Crackle Generator (1 Lightning Aniimo)')
+            .replace('{count}', emodeMachineCount)
+            .replace('{used}', emodeMachineWatts)
+            .replace('{max}', maxWatts)
+            .replace('{level}', genLevel);
+        const savedText = netSaved > 0
+            ? ` <strong>${translate('(saves {saved} Aniimo worker slots!)').replace('{saved}', netSaved)}</strong>`
             : '';
         emodeBannerHtml = `
             <div class="emode-savings-banner">
                 <span class="emode-savings-icon">⚡</span>
                 <div class="emode-savings-text">
-                    <strong>โหมด E (ไฟฟ้า):</strong> เครื่องจักร ${emodeMachineCount} เครื่องใช้ไฟฟ้ารวม ${emodeMachineWatts}W / ${maxWatts}W (โควต้าเสากำเนิดไฟ Lv.${genLevel} วางได้สูงสุด 1 เสา) &mdash; 
-                    ใช้เสากำเนิดไฟฟ้าเปาะแปะ 1 เสา (แอนีโมสายฟ้า 1 ตัว)
-                    ${netSaved > 0 ? ` <strong>(ประหยัดคนงานแอนีโมได้ ${netSaved} ตำแหน่ง!)</strong>` : ''}${remainingNote}
+                    <strong>${translate('E-Mode (Electric):')}</strong> ${countText}
+                    ${savedText}${remainingNote}
                 </div>
             </div>
         `;
@@ -2249,10 +2259,12 @@ function renderRosterSummary(plan) {
         const letters = aniimo.personalities.map(personalityLetter).join('');
         return `<tr><td data-label="Aniimo">${rosterLabel(aniimo, i)}<div class="hint small">${abilities} · ${letters}</div></td><td data-label="How many">${aniimo.count}</td><td data-label="Busy on average">${busy[i].toFixed(1)}</td><td data-label="Where">${places || '<span class="hint small">idle</span>'}</td></tr>`;
     }).join('');
-    document.getElementById('aniimo-summary').innerHTML = roster.length
+    const summaryEl = document.getElementById('aniimo-summary');
+    summaryEl.innerHTML = roster.length
         ? `${emodeBannerHtml}<table class="aniimo-table"><thead><tr><th>Aniimo</th><th>How many</th><th>Busy on average</th><th>Where</th></tr></thead><tbody>${rows}</tbody></table>
            <p class="hint small">${working} of your ${have} Aniimo have work in this plan.</p>`
         : `${emodeBannerHtml}<p class="hint">Add the Aniimo you have under My Aniimo to plan with them.</p>`;
+    translateTree(summaryEl);
     document.getElementById('aniimo-collapsed-summary').textContent = '';
     document.getElementById('aniimo-abilities').innerHTML = '';
     const count = document.getElementById('aniimo-count');
@@ -2262,7 +2274,7 @@ function renderRosterSummary(plan) {
     of.hidden = false;
     count.hidden = false;
     count.classList.remove('over');
-    count.title = `${working} of your ${have} Aniimo have work in this plan`;
+    count.title = translate('{n} of your {total} Aniimo have work in this plan').replace('{n}', working).replace('{total}', have);
 }
 
 // --- Season ----------------------------------------------------------------------------
@@ -2386,7 +2398,7 @@ function renderSkippedRecipes() {
         .sort((a, b) => prettyItem(a).localeCompare(prettyItem(b)))
         .map(name => {
             const facility = facilityOf(name);
-            return `<span class="skip-chip">${escapeText(prettyItem(name))}${facility ? ` <span class="skip-chip-facility">${facility}</span>` : ''}<button type="button" data-unskip="${escapeText(name)}" aria-label="Stop skipping ${escapeText(prettyItem(name))}" title="Stop skipping">✕</button></span>`;
+            return `<span class="skip-chip">${escapeText(prettyItem(name))}${facility ? ` <span class="skip-chip-facility">${escapeText(translate(facility))}</span>` : ''}<button type="button" data-unskip="${escapeText(name)}" aria-label="${escapeText(translate('Stop skipping {item}').replace('{item}', prettyItem(name)))}" title="${escapeText(translate('Stop skipping'))}">✕</button></span>`;
         }).join('');
 }
 
@@ -2581,36 +2593,38 @@ function wantsAniipods() {
 
 // A priority's name, with the Aniipod tier the plan would make.
 function priorityLabel(target, aniipod = bestAniipod()) {
-    if (target === 'aniipods') return aniipod ? prettyItem(aniipod) : 'Aniipods';
-    return PRIORITY_TARGETS.find(t => t.id === target)?.label || CURRENCY_LABELS[target] || target;
+    if (target === 'aniipods') return aniipod ? prettyItem(aniipod) : translate('Aniipods');
+    return translate(PRIORITY_TARGETS.find(t => t.id === target)?.label || CURRENCY_LABELS[target] || target);
 }
 
 function renderPriorities() {
     const best = bestAniipod();
     const shown = shownPriorities();
-    document.getElementById('priority-list').innerHTML = shown.map((p, at) => {
+    const list = document.getElementById('priority-list');
+    list.innerHTML = shown.map((p, at) => {
         // Indices into `priorityOrder`, which also holds any priority that isn't shown.
         const i = priorityOrder.indexOf(p);
         const above = at > 0 ? priorityOrder.indexOf(shown[at - 1]) : -1;
         const below = at < shown.length - 1 ? priorityOrder.indexOf(shown[at + 1]) : -1;
         const label = priorityLabel(p.target, best);
-        const note = p.target === 'aniipods' && !best ? ' <span class="hint small">(no Aniipod Maker yet)</span>' : '';
+        const note = p.target === 'aniipods' && !best ? ` <span class="hint small">${translate('(no Aniipod Maker yet)')}</span>` : '';
         return `
         <li class="priority${p.on ? '' : ' off'}" draggable="true" data-index="${i}">
             <span class="drag-handle" aria-hidden="true">⋮⋮</span>
             <span class="priority-rank">${p.on ? shown.slice(0, at + 1).filter(q => q.on).length : ''}</span>
             <span class="priority-name">${label}${note}</span>
-            <label class="priority-switch" title="${p.on ? 'On: the plan goes for this' : 'Off: the plan ignores this'}">
+            <label class="priority-switch" title="${p.on ? translate('On: the plan goes for this') : translate('Off: the plan ignores this')}">
                 <input type="checkbox" role="switch" data-toggle="${i}" aria-label="${label}"${p.on ? ' checked' : ''}>
                 <span class="switch-track" aria-hidden="true"></span>
-                <span class="switch-text">${p.on ? 'On' : 'Off'}</span>
+                <span class="switch-text">${p.on ? translate('On') : translate('Off')}</span>
             </label>
             <span class="priority-move">
-                <button type="button" data-move="${i}" data-to="${above}" data-by="-1" aria-label="Move ${label} up"${above < 0 ? ' disabled' : ''}>${ARROW_UP}</button>
-                <button type="button" data-move="${i}" data-to="${below}" data-by="1" aria-label="Move ${label} down"${below < 0 ? ' disabled' : ''}>${ARROW_DOWN}</button>
+                <button type="button" data-move="${i}" data-to="${above}" data-by="-1" aria-label="${translate('Move {item} up').replace('{item}', label)}"${above < 0 ? ' disabled' : ''}>${ARROW_UP}</button>
+                <button type="button" data-move="${i}" data-to="${below}" data-by="1" aria-label="${translate('Move {item} down').replace('{item}', label)}"${below < 0 ? ' disabled' : ''}>${ARROW_DOWN}</button>
             </span>
         </li>`;
     }).join('');
+    translateTree(list);
 }
 
 function movePriority(from, to) {
@@ -2736,14 +2750,14 @@ function renderStrategy() {
         return;
     }
     const cost = levelUpCost();
-    const chip = (amount, name) => `<div class="chip"><span><span class="chip-count">${formatNumber(amount)}</span> ${ITEM_NAMES[name] || prettyItem(name)}</span></div>`;
+    const chip = (amount, name) => `<div class="chip"><span><span class="chip-count">${formatNumber(amount)}</span> ${prettyItem(name)}</span></div>`;
     costEl.innerHTML = `
         <p class="assume-title">RV ${levelUpTarget()} costs</p>
         <div class="chip-grid">${chip(cost.coins, 'coins')}${cost.items.map(([item, n]) => chip(n, item)).join('')}</div>`;
     stockDetails.style.display = '';
     document.getElementById('level-up-stock-grid').innerHTML = stockNames(cost).map(name => `
         <div class="input-field">
-            <label for="stock-${name}">${ITEM_NAMES[name] || prettyItem(name)}</label>
+            <label for="stock-${name}">${prettyItem(name)}</label>
             <input type="number" id="stock-${name}" data-stock="${name}" min="0" value="${stockAmount(name)}">
         </div>`).join('');
 }
@@ -2844,7 +2858,7 @@ function renderLevelUp(plan) {
         const ready = r.seconds === null ? 'never' : r.seconds === 0 ? 'have it' : formatDuration(r.seconds);
         const isSlowest = r.seconds !== null && r.seconds > 0 && r.seconds >= slowest * (1 - 1e-6);
         return `<tr${isSlowest ? ' class="slowest"' : ''}>
-            <td>${ITEM_NAMES[r.name] || prettyItem(r.name)}</td>
+            <td>${prettyItem(r.name)}</td>
             <td>${formatNumber(r.need)}</td>
             <td>${formatNumber(r.have)}</td>
             <td>${perUnit(r.per_second)}</td>
@@ -2857,7 +2871,7 @@ function renderLevelUp(plan) {
         .map(r => ({ name: r.name, spare: Math.floor(r.have + r.per_second * report.seconds - r.need) }))
         .concat((report.leftovers || []).map(([name, amount]) => ({ name, spare: Math.floor(amount) })))
         .filter(r => r.spare >= 1)
-        .map(r => `${formatNumber(r.spare)} ${r.name === 'coins' ? 'Home Coins' : ITEM_NAMES[r.name] || prettyItem(r.name)}`);
+        .map(r => `${formatNumber(r.spare)} ${prettyItem(r.name)}`);
     const coinsNote = surplus.length
         ? `<p class="level-up-coins"><span>Surplus:</span> <strong>${surplus.join(', ')}</strong></p>`
         : '';
@@ -3008,8 +3022,8 @@ function getPlanInputValues() {
 // "quick_aromathyst" -> "Quick Aromathyst": the data uses snake_case names.
 function prettyItem(name) {
     if (!name) return name;
-    if (ITEM_NAMES[name]) return ITEM_NAMES[name];
-    return name.split('_').map(w => w ? w[0].toUpperCase() + w.slice(1) : w).join(' ');
+    const english = ITEM_NAMES[name] || name.split('_').map(w => w ? w[0].toUpperCase() + w.slice(1) : w).join(' ');
+    return translate(english);
 }
 
 // A plan row's reason with its item names made readable: "Used for dried_strawberries, jam; the
@@ -3202,8 +3216,8 @@ const ENVIRONMENT_BUILDING_ABILITY = {
 // A colored ability tag, like the game's.
 function abilityTag(name) {
     const a = ABILITY_BY_NAME.get(name);
-    if (!a) return name;
-    return `<span class="ability${a.dark ? ' dark' : ''}" style="--ability:${a.color}" title="${a.about}">${name}</span>`;
+    if (!a) return translate(name);
+    return `<span class="ability${a.dark ? ' dark' : ''}" style="--ability:${a.color}" title="${translate(a.about)}">${translate(name)}</span>`;
 }
 
 // A colored circle with the Aniimo level in it, for the facility plan's Aniimo column; the
@@ -3211,13 +3225,13 @@ function abilityTag(name) {
 function abilityDot(name, level, note) {
     const a = ABILITY_BY_NAME.get(name);
     const color = a ? a.color : '#888888';
-    const tip = `${name} Lv.${level}${note ? ` · ${note}` : ''}`;
+    const tip = `${translate(name)} Lv.${level}${note ? ` · ${note}` : ''}`;
     return `<span class="ability-dot${a && a.dark ? ' dark' : ''}${note ? ' bonus' : ''}" style="--ability:${color}" title="${tip}" aria-label="${tip}">${level}</span>`;
 }
 
 function aniimoLabel(step) {
     if (isEModeActive(step) && step.status === 'producing') {
-        return `<span class="emode-badge" title="โหมด E (คำนวณอัตโนมัติ: ประหยัดแอนีโม และประสิทธิภาพไฟฟ้า 120%)">⚡ E-Mode</span>`;
+        return `<span class="emode-badge" title="${escapeText(translate('E-Mode (auto-assigned: saves Aniimo workers and provides 120% grid efficiency)'))}">⚡ ${translate('E-Mode')}</span>`;
     }
     const a = step.aniimo;
     if (!a) {
@@ -3230,10 +3244,12 @@ function aniimoLabel(step) {
     const f = FACILITIES.find(fac => fac.name === step.facility);
     if (a.personality_bonus) {
         const personality = f?.personality;
-        note = `${personality ? `${personality} personality` : 'matching personality'} (+20% speed)`;
+        note = personality
+            ? translate('{personality} personality (+20% speed)').replace('{personality}', translate(personality))
+            : translate('matching personality (+20% speed)');
     }
     if (f && f.supportsEMode && activeHomelandLevel() >= 12 && step.status === 'producing') {
-        note = note ? `${note} · ผลิตเร็วกว่าโหมด E` : 'ผลิตเร็วกว่าโหมด E';
+        note = note ? `${note} · ${translate('Faster than E-Mode')}` : translate('Faster than E-Mode');
     }
     return `<span class="ability-dots">${abilityDot(a.ability, a.level, note)}</span>`;
 }
@@ -3241,14 +3257,14 @@ function aniimoLabel(step) {
 // "Fire Lv.4 · Practical": one kind of Aniimo, with the facility's personality when the plan
 // counts on its bonus. `tagged` shows the ability as a colored tag.
 function taskLabel(task, facility, tagged = false) {
-    const ability = tagged ? abilityTag(task.ability) : task.ability;
+    const ability = tagged ? abilityTag(task.ability) : translate(task.ability);
     if (!task.personality_bonus) return `${ability} Lv.${task.level}`;
     const personality = FACILITIES.find(f => f.name === facility)?.personality;
-    if (!personality) return `${ability} Lv.${task.level} · matching personality`;
+    if (!personality) return `${ability} Lv.${task.level} · ${translate('matching personality')}`;
     // The letter the game shows over an Aniimo's portrait, so a player can read a team off the
     // four it carries.
     const letter = personalityLetter(personality);
-    return `${ability} Lv.${task.level} · ${personality}${letter ? ` (${letter})` : ''}`;
+    return `${ability} Lv.${task.level} · ${translate(personality)}${letter ? ` (${letter})` : ''}`;
 }
 
 function facilityPlanTable(rows) {
@@ -3302,14 +3318,17 @@ function listOf(items) {
 // A growing environment named in its own colour.
 function modeTag(mode) {
     const tint = ENVIRONMENT_MODE_COLORS[mode] || '#9aa0a8';
-    return `<span class="env-mode-tag" style="--tint:${tint}">${mode}</span>`;
+    return `<span class="env-mode-tag" style="--tint:${tint}">${translate(mode)}</span>`;
 }
 
 // What a row's Aniimo work on: each growing job ("Sowing crops" when it covers both Farmland and
 // Woodland, "Reaping farmland" when it's one facility's), then the facilities.
 function whereText(g) {
     return [...g.jobs]
-        .map(([job, at]) => `${job} ${at.size > 1 ? 'crops' : listOf([...at].map(facility => facility.toLowerCase()))}`)
+        .map(([job, at]) => {
+            const raw = `${job} ${at.size > 1 ? 'crops' : listOf([...at].map(facility => facility.toLowerCase()))}`;
+            return translate(raw);
+        })
         .concat([...g.where.entries()].map(([place, n]) => `${n > 1 ? n + '× ' : ''}${place}`))
         .join(', ');
 }
@@ -3318,10 +3337,10 @@ function whereText(g) {
 // with the letter the game shows. "Lv.4 · Judicious (J), Faithful (F)" is one Aniimo working a
 // Nimbus Bed and a Starfall Hammock, which it can because those never want opposites.
 function aniimoNeeds(g) {
-    if (g.environment) return g.label.slice(g.ability.length).trim();
+    if (g.environment) return translate(g.label.slice(g.ability.length).trim());
     const personalities = [...g.personalities]
         .sort()
-        .map(name => `${name} (${personalityLetter(name)})`)
+        .map(name => `${translate(name)} (${personalityLetter(name)})`)
         .join(', ');
     return `Lv.${g.level}${personalities ? ` · ${personalities}` : ''}`;
 }
@@ -3371,7 +3390,7 @@ function renderAniimoSummary(plan) {
                 });
                 return;
             }
-            const place = `${step.facility} (${prettyItem(step.item_name)})`;
+            const place = `${translate(step.facility)} (${prettyItem(step.item_name)})`;
             g.where.set(place, (g.where.get(place) || 0) + step.facility_count);
         });
     });
@@ -3398,12 +3417,12 @@ function renderAniimoSummary(plan) {
             pairUnits.set(key, { units: Math.max(seen ? seen.units : 0, a.units), modes: a.pair_modes || [a.mode, a.mode] });
             return;
         }
-        needsAniimo(a.building, a.units, `${a.building} (${a.mode})`);
+        needsAniimo(a.building, a.units, `${translate(a.building)} (${translate(a.mode)})`);
     });
     pairUnits.forEach(({ units, modes }, key) => {
         const [building, partner] = key.split('|');
-        needsAniimo(building, units, `${building} (${modes[0]})`);
-        needsAniimo(partner, units, `${partner} (${modes[1]})`);
+        needsAniimo(building, units, `${translate(building)} (${translate(modes[0])})`);
+        needsAniimo(partner, units, `${translate(partner)} (${translate(modes[1])})`);
     });
 
     let emodeBannerHtml = '';
@@ -3428,22 +3447,29 @@ function renderAniimoSummary(plan) {
         }
         const g = groups.get(key);
         g.busy += 1;
-        const place = `Crackle Generator Lv.${genLevel} (1×${maxWatts}W for ${emodeMachineWatts}W)`;
+        const place = `${translate('Crackle Generator')} Lv.${genLevel} (${emodeMachineWatts}W / ${maxWatts}W)`;
         g.where.set(place, (g.where.get(place) || 0) + 1);
 
         const netSaved = Math.max(0, Math.round(emodeSavedWorkers) - 1);
         const totalProcessing = (plan.coin_items || []).filter(s => s.status === 'producing' && FACILITIES.find(fac => fac.name === s.facility)?.supportsEMode).length;
         const remainingWorkersCount = Math.max(0, totalProcessing - emodeMachineCount);
         const remainingNote = remainingWorkersCount > 0
-            ? ` (เครื่องจักรอีก ${remainingWorkersCount} เครื่องใช้แอนีโมคนงานทำงาน เนื่องจากเสากำเนิดไฟฟ้าจ่ายไฟได้สูงสุด ${maxWatts}W)`
+            ? ` (${translate('another {n} machines use Aniimo workers because the generator output is capped at {watts}W').replace('{n}', remainingWorkersCount).replace('{watts}', maxWatts)})`
+            : '';
+        const countText = translate('{count} machines use a total of {used}W / {max}W (Crackle Generator Lv.{level} quota, max 1 placed) &mdash; uses 1 Crackle Generator (1 Lightning Aniimo)')
+            .replace('{count}', emodeMachineCount)
+            .replace('{used}', emodeMachineWatts)
+            .replace('{max}', maxWatts)
+            .replace('{level}', genLevel);
+        const savedText = netSaved > 0
+            ? ` <strong>${translate('(saves {saved} Aniimo worker slots!)').replace('{saved}', netSaved)}</strong>`
             : '';
         emodeBannerHtml = `
             <div class="emode-savings-banner">
                 <span class="emode-savings-icon">⚡</span>
                 <div class="emode-savings-text">
-                    <strong>คำนวณโหมด E อัตโนมัติ (เลือกวิธีที่ดีและเร็วที่สุด):</strong> เครื่องจักร ${emodeMachineCount} เครื่องใช้ไฟฟ้ารวม ${emodeMachineWatts}W / ${maxWatts}W (โควต้าเสากำเนิดไฟ Lv.${genLevel} วางได้สูงสุด 1 เสา) &mdash; 
-                    ใช้เสากำเนิดไฟฟ้าเปาะแปะ 1 เสา (แอนีโมสายฟ้า 1 ตัว)
-                    ${netSaved > 0 ? ` <strong>(ประหยัดคนงานแอนีโมได้ ${netSaved} ตำแหน่ง!)</strong>` : ''}${remainingNote}
+                    <strong>${translate('Auto E-Mode (optimal speed):')}</strong> ${countText}
+                    ${savedText}${remainingNote}
                 </div>
             </div>
         `;
@@ -3451,8 +3477,8 @@ function renderAniimoSummary(plan) {
 
     const collapsedSummary = document.getElementById('aniimo-collapsed-summary');
     if (groups.size === 0) {
-        container.innerHTML = (emodeBannerHtml ? emodeBannerHtml : '') + '<p class="hint">Nothing in this plan needs an Aniimo.</p>';
-        collapsedSummary.textContent = 'No Aniimo needed.';
+        container.innerHTML = (emodeBannerHtml ? emodeBannerHtml : '') + `<p class="hint">${translate('Nothing in this plan needs an Aniimo.')}</p>`;
+        collapsedSummary.textContent = translate('No Aniimo needed.');
         const count = document.getElementById('aniimo-count');
         if (count) count.hidden = true;
         document.getElementById('aniimo-abilities').innerHTML = '';
@@ -3509,12 +3535,12 @@ function renderAniimoSummary(plan) {
             return `<tr><td data-label="Aniimo">${abilityTag(g.ability)} ${aniimoNeeds(g)}</td><td data-label="How many">${g.count}</td><td data-label="Busy on average">${g.busy.toFixed(1)}</td><td data-label="Where">${where}</td></tr>`;
         })
         .join('');
-    const haulingRow = `<tr><td data-label="Aniimo">${abilityTag('Hauling')} any level</td><td data-label="How many">1+</td><td data-label="Busy on average">?</td><td data-label="Where">Carries produce to storage. How much work this is isn't known yet; add more if produce piles up.</td></tr>`;
+    const haulingRow = `<tr><td data-label="Aniimo">${abilityTag('Hauling')} ${translate('any level')}</td><td data-label="How many">1+</td><td data-label="Busy on average">?</td><td data-label="Where">${translate("Carries produce to storage. How much work this is isn't known yet; add more if produce piles up.")}</td></tr>`;
 
     // The count above says how many; this is only said when it's more than the homeland holds.
     const cap = homelandHolds;
     const capNote = cap && total > cap
-        ? `<p class="hint small">That's ${total} Aniimo, more than the ${cap} an RV level ${selectedHomeLevel()} homeland holds.</p>`
+        ? `<p class="hint small">${translate("That's {total} Aniimo, more than the {cap} an RV level {level} homeland holds.").replace('{total}', total).replace('{cap}', cap).replace('{level}', selectedHomeLevel())}</p>`
         : '';
     const have = document.getElementById('aniimo-count-have');
     const of = document.getElementById('aniimo-count-of');
@@ -3526,8 +3552,8 @@ function renderAniimoSummary(plan) {
         count.hidden = false;
         count.classList.toggle('over', !!cap && total > cap);
         count.title = cap
-            ? `${total} Aniimo for this plan; an RV level ${selectedHomeLevel()} homeland holds ${cap}`
-            : `${total} Aniimo for this plan`;
+            ? `${translate('{n} Aniimo for this plan').replace('{n}', total)}; ${translate('an RV level {level} homeland holds {n}').replace('{level}', selectedHomeLevel()).replace('{n}', cap)}`
+            : translate('{n} Aniimo for this plan').replace('{n}', total);
     }
     collapsedSummary.textContent = '';
     // How many of each ability the plan needs, in the game's order, like its Abilities screen.
@@ -3542,7 +3568,7 @@ function renderAniimoSummary(plan) {
     };
     const teamDots = g => {
         const where = whereText(g);
-        const tip = `${g.count > 1 ? `${g.count}× ` : ''}${g.label}${g.bonus ? ' (+20% speed)' : ''} · ${where}`;
+        const tip = `${g.count > 1 ? `${g.count}× ` : ''}${translate(g.label)}${g.bonus ? ` (+20% ${translate('speed')})` : ''} · ${where}`;
         const times = g.count > 1 ? `<span class="ability-times">×${g.count}</span>` : '';
         return `<span class="ability-kind">${dot(g.ability, g.environment ? '·' : g.level, g.bonus, tip)}${times}</span>`;
     };
@@ -3554,12 +3580,12 @@ function renderAniimoSummary(plan) {
             .sort((x, y) => y.level - x.level || Number(y.bonus) - Number(x.bonus))
             .map(teamDots);
         if (a.name === 'Hauling') {
-            dots.push(`<span class="ability-kind">${dot('Hauling', '·', false, 'Hauling, any level · carries produce to storage; add more if produce piles up')}</span>`);
+            dots.push(`<span class="ability-kind">${dot('Hauling', '·', false, translate('Hauling, any level · carries produce to storage; add more if produce piles up'))}</span>`);
         }
         const stack = dots.length ? `<div class="ability-stack">${dots.join('')}</div>` : '';
         return `<div class="ability-col" style="--ability:${a.color}">
-            <div class="ability-cell${zero ? ' zero' : ''}" title="${a.name}: ${a.about}">
-                <span class="ability-count">${n}</span><span class="ability-name">${a.name}</span>
+            <div class="ability-cell${zero ? ' zero' : ''}" title="${translate(a.name)}: ${translate(a.about)}">
+                <span class="ability-count">${n}</span><span class="ability-name">${translate(a.name)}</span>
             </div>${stack}</div>`;
     }).join('');
     container.innerHTML = `
@@ -3572,6 +3598,7 @@ function renderAniimoSummary(plan) {
         </div>
         ${capNote}
     `;
+    translateTree(container);
 }
 
 // Splits one environment mode's rows across its individual building units. Unlike the old
@@ -4730,15 +4757,15 @@ function showTip(el) {
     tipCard.replaceChildren();
     tipCard.classList.toggle('has-swatch', !!el.dataset.tipColor);
     if (el.dataset.tip) {
-        const title = line('tip-title', el.dataset.tip);
+        const title = line('tip-title', translate(el.dataset.tip));
         if (el.dataset.tipColor) {
             const swatch = document.createElement('span');
             swatch.className = 'tip-swatch';
             swatch.style.background = el.dataset.tipColor;
             title.prepend(swatch);
         }
-        if (el.dataset.tipDetail) line('tip-detail', el.dataset.tipDetail);
-        if (el.dataset.tipStats) line('tip-stats', el.dataset.tipStats);
+        if (el.dataset.tipDetail) line('tip-detail', translate(el.dataset.tipDetail));
+        if (el.dataset.tipStats) line('tip-stats', translate(el.dataset.tipStats));
     } else {
         line('tip-text', translate(el.dataset.tipText));
     }
