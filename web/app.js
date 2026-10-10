@@ -11,6 +11,7 @@ import {
 } from './facility-config.js';
 import { allocateTurnFacilities, redistributeTurnFacilityRows } from './turn-jobs.js';
 import { createShareUrl, readShareHash, urlWithoutShare } from './share-config.js';
+import { getItemIconUrl, getFacilityGlyphUrl, getRecommendedWorker } from './aniidex-data.js';
 
 let wasmReady = false;
 
@@ -1563,8 +1564,19 @@ function facilityBadge(m) {
     const badgeCy = cy - levelOffset;
     const iconR = r * 0.72;
     
-    const badgeCircle = `<circle class="facility-badge-circle" cx="${cx.toFixed(3)}" cy="${badgeCy.toFixed(3)}" r="${r.toFixed(3)}" fill="rgba(15, 23, 42, 0.74)" stroke="rgba(255, 255, 255, 0.55)" stroke-width="${(r * 0.08).toFixed(3)}" />`;
-    const icon = facilityIconSvg(m.facility || (m.isGenerator ? 'Crackle Generator' : m.isPowerPole ? 'Crackle Power Pole' : ''), cx, badgeCy, iconR);
+    const producedItem = m.jobs?.[0]?.item || m.crop || null;
+    const isWorking = Boolean(producedItem);
+    const itemIcon = producedItem ? getItemIconUrl(producedItem) : null;
+    const facilityGlyph = getFacilityGlyphUrl(m.facility || (m.isGenerator ? 'Crackle Generator' : m.isPowerPole ? 'Crackle Power Pole' : ''));
+    const iconUrl = itemIcon || facilityGlyph;
+
+    const ringColor = isWorking ? '#bcf8ff' : (m.isGenerator || m.isPowerPole ? '#facc15' : 'rgba(255, 255, 255, 0.45)');
+    const badgeCircle = `<circle class="facility-badge-circle" cx="${cx.toFixed(3)}" cy="${badgeCy.toFixed(3)}" r="${r.toFixed(3)}" fill="#333a48" stroke="${ringColor}" stroke-width="${(r * 0.1).toFixed(3)}" />`;
+    
+    const fallback = facilityIconSvg(m.facility || (m.isGenerator ? 'Crackle Generator' : m.isPowerPole ? 'Crackle Power Pole' : ''), cx, badgeCy, iconR);
+    const icon = iconUrl
+        ? `<g class="facility-icon-wrap">${fallback}<image class="facility-item-icon" href="${iconUrl}" x="${(cx - iconR).toFixed(3)}" y="${(badgeCy - iconR).toFixed(3)}" width="${(iconR * 2).toFixed(3)}" height="${(iconR * 2).toFixed(3)}" preserveAspectRatio="xMidYMid meet" /></g>`
+        : fallback;
     
     let levelText = '';
     if (showLevel) {
@@ -1574,6 +1586,42 @@ function facilityBadge(m) {
     }
     
     return `<g class="facility-badge" pointer-events="none">${badgeCircle}${icon}${levelText}</g>`;
+}
+
+function facilityWorkerBadge(m) {
+    if (m.isGenerator || m.isPowerPole || m.facility === 'Storage Unit' || m.building) return '';
+    const minDim = Math.min(m.w, m.h);
+    if (minDim < 1.2) return '';
+
+    if (m.emode) {
+        const bx = m.x + m.w - 0.46;
+        const by = m.y + 0.14;
+        return `<g class="facility-emode-badge" pointer-events="none">
+            <rect x="${bx.toFixed(3)}" y="${by.toFixed(3)}" width="0.32" height="0.32" rx="0.08" fill="#f59e0b" stroke="#ffffff" stroke-width="0.03" />
+            <text x="${(bx + 0.16).toFixed(3)}" y="${(by + 0.18).toFixed(3)}" font-size="0.22" fill="#ffffff" font-weight="bold" text-anchor="middle" dominant-baseline="middle">⚡</text>
+        </g>`;
+    }
+
+    const facConfig = FACILITIES.find(f => f.name === m.facility);
+    if (!facConfig?.hasWorker) return '';
+
+    const worker = getRecommendedWorker(m.facility);
+    if (!worker?.avatar) return '';
+
+    const wr = Math.min(0.42, Math.max(0.24, minDim * 0.16));
+    const wx = m.x + m.w - wr - 0.1;
+    const wy = m.y + wr + 0.1;
+    const clipId = `clip-worker-${Math.round((m.x || 0) * 100)}-${Math.round((m.y || 0) * 100)}`;
+
+    return `<g class="facility-worker-badge" pointer-events="none">
+        <defs>
+            <clipPath id="${clipId}">
+                <circle cx="${wx.toFixed(3)}" cy="${wy.toFixed(3)}" r="${(wr * 0.95).toFixed(3)}" />
+            </clipPath>
+        </defs>
+        <circle cx="${wx.toFixed(3)}" cy="${wy.toFixed(3)}" r="${wr.toFixed(3)}" fill="#1e293b" stroke="#ffffff" stroke-width="0.04" />
+        <image href="${worker.avatar}" x="${(wx - wr * 0.95).toFixed(3)}" y="${(wy - wr * 0.95).toFixed(3)}" width="${(wr * 1.9).toFixed(3)}" height="${(wr * 1.9).toFixed(3)}" clip-path="url(#${clipId})" preserveAspectRatio="xMidYMid slice" />
+    </g>`;
 }
 
 let layoutRunId = 0;
@@ -1698,9 +1746,9 @@ function homelandSvg(layout, homeLevel) {
     // Locked plots last, so where one meets an open plot, the edge between them reads red.
     const plotShapes = [...plots].sort((a, b) => (b.number <= homeLevel) - (a.number <= homeLevel)).map(p => {
         const open = p.number <= homeLevel;
-        // An open plot is named by its number; one still to come by the RV level that opens it.
-        return `<g class="layout-plot${open ? '' : ' locked'}"><rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" />
-            <text x="${p.x + 0.6}" y="${p.y + 0.9}" font-size="0.9">${open ? 'Plot' : 'RV'} ${p.number}</text></g>`;
+        const plotLabel = open ? `${translate('Plot')} ${p.number}` : `${translate('RV')} ${p.number}`;
+        return `<g class="layout-plot${open ? '' : ' locked'}"><rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="0.3" />
+            <text x="${p.x + 0.6}" y="${p.y + 0.9}" font-size="0.85">${plotLabel}</text></g>`;
     }).join('');
     const lines = [];
     for (let x = minX; x <= maxX; x++) lines.push(`<line x1="${x}" y1="${minY}" x2="${x}" y2="${maxY}" />`);
@@ -1795,13 +1843,22 @@ function homelandSvg(layout, homeLevel) {
         const away = Math.hypot(m.x + m.w / 2 - (layout.storage.x + layout.storage.w / 2), m.y + m.h / 2 - (layout.storage.y + layout.storage.h / 2));
         const itemsText = m.jobs ? m.jobs.map(j => prettyItem(j.item)).join(', ') : m.crop ? prettyItem(m.crop) : m.building && m.mode ? translate(m.mode) : translate('Idle');
         const emodeSuffix = m.emode ? (' ⚡ ' + translate('[E-Mode · 60W in power frame]')) : '';
-        const detailText = itemsText + emodeSuffix;
+        const facConfig = FACILITIES.find(f => f.name === m.facility);
+        let workerSuffix = '';
+        if (facConfig?.hasWorker && !m.emode) {
+            const w = getRecommendedWorker(m.facility);
+            if (w) {
+                workerSuffix = ` · 👷 ${translate('Recommended Aniimo')}: ${w.name} (${translate(w.abilityTh)} Lv.${w.level})`;
+            }
+        }
+        const detailText = itemsText + emodeSuffix + workerSuffix;
         const tip = tipAttrs(m.facility, {
             detail: detailText,
             stats: m.weight > 0 ? `${formatRate(m.weight)} trips/hour · ${away.toFixed(1)} tiles from storage` : '',
             color,
         });
         const badge = Math.min(m.w, m.h) >= 1.2 ? facilityBadge(m) : '';
+        const workerBadge = facilityWorkerBadge(m);
         // Busier pieces are filled more solidly; idle ones are an outline.
         const fill = m.building ? 0.9 : m.weight > 0 ? 0.35 + 0.55 * Math.sqrt(m.weight / maxTrips) : 0.08;
         if (m.building) {
@@ -1810,13 +1867,20 @@ function homelandSvg(layout, homeLevel) {
                 fill="${color}" fill-opacity="${m.mode ? 1 : 0.25}" stroke="currentColor" stroke-opacity="0.6" stroke-width="0.08" />
                 ${m.mode ? environmentBuildingIcon(m.facility, m.mode, m.x + m.w / 2, m.y + m.h / 2) : ''}</g>`;
         }
+        const ribbonW = Math.min(m.w * 0.45, 0.75);
+        const ribbon = `<path d="M ${(m.x + 0.04).toFixed(3)} ${(m.y + 0.04).toFixed(3)} L ${(m.x + ribbonW).toFixed(3)} ${(m.y + 0.04).toFixed(3)} L ${(m.x + 0.04).toFixed(3)} ${(m.y + ribbonW).toFixed(3)} Z" fill="${color}" fill-opacity="0.85" />`;
         if (m.emode) {
-            const emodeBadge = `<text x="${m.x + m.w - 0.28}" y="${m.y + 0.32}" font-size="0.42" fill="#f59e0b" font-weight="bold">⚡</text>`;
-            return `<g class="layout-piece emode-facility" ${tip}><rect x="${m.x + 0.04}" y="${m.y + 0.04}" width="${m.w - 0.08}" height="${m.h - 0.08}" rx="0.2"
-                fill="${color}" fill-opacity="${fill.toFixed(2)}" stroke="#f59e0b" stroke-width="0.08" stroke-dasharray="0.6,0.2" />${badge}${emodeBadge}</g>`;
+            return `<g class="layout-piece emode-facility" ${tip}>
+                <rect x="${m.x + 0.04}" y="${m.y + 0.04}" width="${m.w - 0.08}" height="${m.h - 0.08}" rx="0.25"
+                    fill="#f6fcf5" stroke="#f59e0b" stroke-width="0.08" stroke-dasharray="0.6,0.2" />
+                ${ribbon}${badge}${workerBadge}
+            </g>`;
         }
-        return `<g class="layout-piece" ${tip}><rect x="${m.x + 0.04}" y="${m.y + 0.04}" width="${m.w - 0.08}" height="${m.h - 0.08}" rx="0.2"
-            fill="${color}" fill-opacity="${fill.toFixed(2)}" stroke="${color}" stroke-width="0.06" />${badge}</g>`;
+        return `<g class="layout-piece" ${tip}>
+            <rect x="${m.x + 0.04}" y="${m.y + 0.04}" width="${m.w - 0.08}" height="${m.h - 0.08}" rx="0.25"
+                fill="#f6fcf5" stroke="${color}" stroke-width="0.07" />
+            ${ribbon}${badge}${workerBadge}
+        </g>`;
     }).join('');
     const coverageShapes = coverage.map(c => {
         const tint = ENVIRONMENT_MODE_COLORS[c.mode] || '#9aa0a8';
@@ -1841,8 +1905,10 @@ function homelandSvg(layout, homeLevel) {
         ${shapes}
         <g class="layout-coverage-edges" pointer-events="none">${coverageEdges}</g>
         <g class="layout-power-grid-edges" pointer-events="none">${powerGridEdges}</g>
-        <g class="layout-piece layout-storage-unit" ${tipAttrs('Storage Unit', { detail: 'Where everything is carried', stats: totalTrips > 0 ? `${formatRate(totalTrips)} trips/hour` : '' })}><rect x="${s.x + 0.04}" y="${s.y + 0.04}" width="${s.w - 0.08}" height="${s.h - 0.08}" rx="0.2" class="layout-storage" />
-        ${facilityBadge({ ...s, facility: 'Storage Unit' })}</g>
+        <g class="layout-piece layout-storage-unit" ${tipAttrs('Storage Unit', { detail: translate('Home Coins') + ' · ' + translate('Storage Unit'), stats: totalTrips > 0 ? `${formatRate(totalTrips)} trips/hour` : '' })}>
+            <rect x="${s.x + 0.04}" y="${s.y + 0.04}" width="${s.w - 0.08}" height="${s.h - 0.08}" rx="0.25" class="layout-storage" fill="#f6fcf5" stroke="#3b82f6" stroke-width="0.08" />
+            ${facilityBadge({ ...s, facility: 'Storage Unit' })}
+        </g>
     </svg>`;
 }
 

@@ -922,5 +922,9 @@
   "+{n}/day {label}": "{label} +{n}/天",
   "~+{n}/day {label}": "~{label} +{n}/天",
   "Ranked by {measure}. {helpful} of {checked} help. Within RV {level} limits.": "依{measure}排序。已檢查 {checked} 項，其中 {helpful} 項有幫助。在露營車家園 {level} 的限制內。",
-  "Checking {checked} of {total}… Within RV {level} limits.": "正在檢查第 {checked} 項，共 {total} 項…在露營車家園 {level} 的限制內。"
+  "Checking {checked} of {total}… Within RV {level} limits.": "正在檢查第 {checked} 項，共 {total} 項…在露營車家園 {level} 的限制內。",
+  "Plot": "地塊",
+  "Recommended Aniimo": "推薦伊莫",
+  "Recommended Aniimo: {name} ({ability} Lv.{level})": "推薦伊莫：{name}（{ability} Lv.{level}）",
+  "Worker": "工人"
 }
