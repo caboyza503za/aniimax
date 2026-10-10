@@ -1,5 +1,5 @@
 // Register a language here and add its JSON catalog; English phrases are the source keys.
-const languages = { en: 'English', ru: 'Русский', 'zh-TW': '繁體中文' };
+const languages = { en: 'English', ru: 'Русский', 'zh-TW': '繁體中文', th: 'ไทย' };
 const catalogs = { en: {} };
 const templates = {};
 let language = 'en';
@@ -51,6 +51,11 @@ export function translate(value) {
             result = result.replace(slot, value);
         });
         return value.replace(trimmed, result);
+    }
+    if (trimmed.includes(' · ')) {
+        const parts = trimmed.split(' · ');
+        const localized = parts.map(part => translate(part));
+        if (localized.some((part, i) => part !== parts[i])) return value.replace(trimmed, localized.join(' · '));
     }
     if (trimmed.includes('; ')) {
         const parts = trimmed.split('; ');
