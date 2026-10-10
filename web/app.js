@@ -1344,7 +1344,7 @@ function homelandPieces(plan, input) {
         for (let p = 0; p < polesNeeded; p++) {
             pieces.push({
                 members: [{
-                    x: 0, y: 0, w: 1, h: 1, weight: maxEmodeWeight * 0.98,
+                    x: 0, y: 0, w: 1.5, h: 1.5, weight: maxEmodeWeight * 0.98,
                     facility: 'Crackle Power Pole',
                     isPowerPole: true,
                     crop: null,
@@ -1514,6 +1514,13 @@ function homelandSvg(layout, homeLevel) {
     // Facilities using E-Mode must sit within the power pole / generator frame.
     const allMembers = layout.pieces.flatMap(p => p.members);
     const powerMembers = allMembers.filter(m => m.emode || m.isGenerator || m.isPowerPole);
+    const powerPoles = allMembers.filter(m => m.isPowerPole);
+    const poleFrames = powerPoles.map(pole => {
+        const cx = pole.x + pole.w / 2;
+        const cy = pole.y + pole.h / 2;
+        return { x: cx - 3.5, y: cy - 3.5, w: 7, h: 7 };
+    });
+
     const powerBoxes = [];
     if (powerMembers.length > 0) {
         plots.forEach(p => {
@@ -1536,14 +1543,16 @@ function homelandSvg(layout, homeLevel) {
             }
         });
     }
-    const powerGridBgs = powerBoxes.map(b =>
-        `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="0.35" fill="#f59e0b" fill-opacity="0.08" class="layout-power-grid-bg" />`
+    const powerGridBgs = poleFrames.map(f =>
+        `<rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" rx="0.3" fill="#facc15" fill-opacity="0.12" class="layout-power-grid-bg" />`
+    ).join('') + powerBoxes.map(b =>
+        `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="0.35" fill="#f59e0b" fill-opacity="0.04" />`
     ).join('');
-    const powerGridEdges = powerBoxes.map(b =>
+    const powerGridEdges = poleFrames.map(f =>
         `<g class="layout-power-grid-frame">
-            <rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="0.35" fill="none"
-                stroke="#f59e0b" stroke-opacity="0.9" stroke-width="0.09" stroke-dasharray="0.4,0.2" />
-            <text x="${b.x + 0.2}" y="${b.y + 0.35}" font-size="0.45" fill="#f59e0b" font-weight="bold" text-anchor="start" dominant-baseline="hanging">⚡ กรอบเสาไฟ (Power Grid)</text>
+            <rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" rx="0.3" fill="none"
+                stroke="#eab308" stroke-opacity="0.9" stroke-width="0.09" stroke-dasharray="0.5,0.2" />
+            <text x="${f.x + 0.2}" y="${f.y + 0.35}" font-size="0.45" fill="#ca8a04" font-weight="bold" text-anchor="start" dominant-baseline="hanging">⚡ กรอบเสาไฟ 7×7</text>
         </g>`
     ).join('');
 
@@ -1565,13 +1574,14 @@ function homelandSvg(layout, homeLevel) {
             const homeLevel = layout.homeLevel || activeHomelandLevel();
             const maxPoles = CRACKLE_POWER_POLE.maxPolesByHomeLevel(homeLevel);
             const tip = tipAttrs('Crackle Power Pole', {
-                detail: `เสาไฟฟ้าเปาะแปะ (ขยายกรอบเสาไฟสำหรับโหมด E · RV ${homeLevel} วางได้สูงสุด ${maxPoles} เสา)`,
-                stats: 'สร้างกรอบเชื่อมต่อพลังงานไฟฟ้า',
+                detail: `เสาไฟฟ้าเปาะแปะ (ขนาด 1.5×1.5 · กรอบเสาไฟ 7×7 · RV ${homeLevel} วางได้สูงสุด ${maxPoles} เสา)`,
+                stats: 'ขยายกรอบเชื่อมต่อพลังงานไฟฟ้า 7×7 สำหรับโหมด E',
                 color: '#d97706',
             });
             return `<g class="layout-piece crackle-pole" ${tip}><rect x="${m.x + 0.04}" y="${m.y + 0.04}" width="${m.w - 0.08}" height="${m.h - 0.08}" rx="0.2"
                 fill="#d97706" fill-opacity="0.9" stroke="#b45309" stroke-width="0.08" />
-                <text x="${m.x + m.w / 2}" y="${m.y + m.h / 2}" font-size="0.45" font-weight="bold" fill="#ffffff">⚡ PP</text>
+                <text x="${m.x + m.w / 2}" y="${m.y + m.h / 2 - 0.15}" font-size="0.5" font-weight="bold" fill="#ffffff">⚡ PP</text>
+                <text x="${m.x + m.w / 2}" y="${m.y + m.h / 2 + 0.35}" font-size="0.32" fill="#ffffff" opacity="0.95">1.5×1.5</text>
             </g>`;
         }
         const color = layoutColor(m);

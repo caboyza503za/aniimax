@@ -53,7 +53,9 @@ test('Materials Processing facilities support E-Mode with 60W power demand', () 
 
 test('Crackle Generator and Power Pole footprints exist', () => {
     assert.deepEqual(FACILITY_FOOTPRINTS['Crackle Generator'], [2, 2]);
-    assert.deepEqual(FACILITY_FOOTPRINTS['Crackle Power Pole'], [1, 1]);
+    assert.deepEqual(FACILITY_FOOTPRINTS['Crackle Power Pole'], [1.5, 1.5]);
+    assert.deepEqual(CRACKLE_POWER_POLE.footprint, [1.5, 1.5]);
+    assert.deepEqual(CRACKLE_POWER_POLE.range, [7, 7]);
 });
 
 test('Single Crackle Generator wattage capacity and maximum E-Mode facilities', () => {
