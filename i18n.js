@@ -229,7 +229,7 @@ const selector = document.getElementById('language-switch');
 for (const [code, name] of Object.entries(languages)) selector.add(new Option(name, code));
 selector.value = preferredLanguage;
 document.documentElement.lang = language;
-document.title = translate('Aniimax - Aniimo Production Optimizer');
+document.title = translate('Homeland Atlas — Aniimo Production Planner');
 update(document.body);
 let languageRequest = 0;
 async function selectLanguage(code) {
@@ -243,7 +243,7 @@ async function selectLanguage(code) {
     language = code;
     try { localStorage.setItem('aniimax-language', language); } catch (_) { /* Language still changes for this tab. */ }
     document.documentElement.lang = language;
-    document.title = translate('Aniimax - Aniimo Production Optimizer');
+    document.title = translate('Homeland Atlas — Aniimo Production Planner');
     update(document.body);
     document.dispatchEvent(new Event('aniimax-language-change'));
 }
