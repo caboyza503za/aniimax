@@ -3899,8 +3899,12 @@ tbody tr:hover {
     border-radius: 12px;
 }
 .env-grid line {
-    stroke: rgba(255, 255, 255, 0.13);
-    stroke-width: 0.04;
+    stroke: rgba(255, 255, 255, 0.24);
+    stroke-width: 0.045;
+}
+.env-grid line.major {
+    stroke: rgba(255, 255, 255, 0.44);
+    stroke-width: 0.08;
 }
 .layout-storage { fill: #f6fcf5; stroke: #3b82f6; }
 .layout-flow-line { stroke: var(--accent-cool); }

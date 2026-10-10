@@ -2103,9 +2103,17 @@ function homelandSvg(layout, homeLevel) {
             </g>`;
         }
     }).join('');
+    const homelandMaxX = Math.max(...plots.map(p => p.x + p.w));
+    const homelandMaxY = Math.max(...plots.map(p => p.y + p.h));
     const lines = [];
-    for (let x = minX; x <= maxX; x++) lines.push(`<line x1="${x}" y1="${minY}" x2="${x}" y2="${maxY}" />`);
-    for (let y = minY; y <= maxY; y++) lines.push(`<line x1="${minX}" y1="${y}" x2="${maxX}" y2="${y}" />`);
+    for (let x = 0; x <= homelandMaxX; x++) {
+        const isMajor = (x % 5 === 0);
+        lines.push(`<line x1="${x}" y1="0" x2="${x}" y2="${homelandMaxY}" ${isMajor ? 'class="major"' : ''} />`);
+    }
+    for (let y = 0; y <= homelandMaxY; y++) {
+        const isMajor = (y % 5 === 0);
+        lines.push(`<line x1="0" y1="${y}" x2="${homelandMaxX}" y2="${y}" ${isMajor ? 'class="major"' : ''} />`);
+    }
     // Power Grid boundaries ("กรอบเสาไฟ"):
     // Facilities using E-Mode must sit within the power pole / generator frame.
     const allMembers = layout.pieces.flatMap(p => p.members);
@@ -2275,8 +2283,8 @@ function homelandSvg(layout, homeLevel) {
                 <circle cx="0.5" cy="0.5" r="0.5" />
             </clipPath>
         </defs>
-        <g class="env-grid">${lines.join('')}</g>
         <g class="layout-plots" pointer-events="none">${plotShapes}</g>
+        <g class="env-grid" pointer-events="none">${lines.join('')}</g>
         <g class="layout-coverage">${coverageShapes}</g>
         <g class="layout-power-grid-bgs">${powerGridBgs}</g>
         ${shapes}
