@@ -303,6 +303,14 @@ function distributeStorageUnits(primaryStorage, placedPieces, cells, targetCount
     const obstacles = [...allMembers, primaryStorage];
     const productive = allMembers.filter(m => !m.building && !m.isGenerator && !m.isPowerPole);
 
+    const totalWeight = productive.reduce((sum, m) => sum + (m.weight || 1), 0) || 1;
+    const farmMidX = productive.length
+        ? productive.reduce((sum, m) => sum + (m.x + m.w / 2) * (m.weight || 1), 0) / totalWeight
+        : (primaryStorage.x + primaryStorage.w / 2);
+    const farmMidY = productive.length
+        ? productive.reduce((sum, m) => sum + (m.y + m.h / 2) * (m.weight || 1), 0) / totalWeight
+        : (primaryStorage.y + primaryStorage.h / 2);
+
     // Collect candidate spots inside open cells on whole integer grid
     const candidates = [];
     for (const c of cells) {
@@ -345,6 +353,13 @@ function distributeStorageUnits(primaryStorage, placedPieces, cells, targetCount
                 s.x >= cell.x - EPSILON && s.x + s.w <= cell.x + cell.w + EPSILON &&
                 s.y >= cell.y - EPSILON && s.y + s.h <= cell.y + cell.h + EPSILON
             );
+            const distToCellCenter = Math.hypot(rx - (cell.x + cell.w / 2), ry - (cell.y + cell.h / 2));
+            const distToFarm = Math.hypot(rx - farmMidX, ry - farmMidY);
+            const cellMembers = productive.filter(m =>
+                m.x >= cell.x - EPSILON && m.x + m.w <= cell.x + cell.w + EPSILON &&
+                m.y >= cell.y - EPSILON && m.y + m.h <= cell.y + cell.h + EPSILON
+            );
+            const cellHasProductive = cellMembers.length > 0;
 
             let savings = 0;
             for (const m of productive) {
@@ -364,10 +379,14 @@ function distributeStorageUnits(primaryStorage, placedPieces, cells, targetCount
 
             let score = 0;
             if (savings > 0.5) {
-                score = savings + (!cellHasStorage ? 25 : 0) + Math.min(minDistToStorage, 15);
+                score = savings * 5 + (cellHasProductive && !cellHasStorage ? 30 : 0)
+                    - distToCellCenter * 0.5 + Math.min(minDistToStorage, 10) * 0.3;
             } else {
-                const distToCellCenter = Math.hypot(rx - (cell.x + cell.w / 2), ry - (cell.y + cell.h / 2));
-                score = (!cellHasStorage ? 100 : 0) + minDistToStorage * 2 - distToCellCenter * 0.1;
+                score = (cellHasProductive ? 60 : 0)
+                    + (!cellHasStorage ? 20 : 0)
+                    - distToFarm * 1.5
+                    - distToCellCenter * 2.0
+                    + Math.min(minDistToStorage, 10) * 0.5;
             }
 
             if (score > bestScore) {
