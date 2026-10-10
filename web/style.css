@@ -2611,18 +2611,15 @@ tr:hover .skip-row,
     gap: 0.4rem 1rem;
 }
 
+.layout-flows,
+.layout-flow-line,
+.layout-dot,
+.layout-rings,
+.layout-ring,
+.layout-sim,
 .layout-diagram.no-sim .layout-flows,
 .layout-diagram.no-sim .layout-rings {
-    display: none;
-}
-
-.layout-sim {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    font-variant-numeric: tabular-nums;
+    display: none !important;
 }
 
 /* Progress card under the button: each step of working out a plan. */

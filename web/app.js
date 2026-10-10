@@ -489,7 +489,7 @@ function getPersistedFieldIds() {
         'mode-simple', 'mode-advanced', 'home-level',
         'ecological-module-level', 'kitchen-module-level',
         'resource-detector-level', 'crafting-module-level',
-        'rate-unit', 'season-on', 'layout-sim-on', 'season-currency-per-day',
+        'rate-unit', 'season-on', 'season-currency-per-day',
         'aniimo-best', 'aniimo-minimum', 'aniimo-custom'
     ];
 }
@@ -1593,14 +1593,14 @@ function layoutHomeLevel() {
 }
 
 function attachLayoutHandlers() {
-    document.getElementById('layout-whole').addEventListener('change', (e) => {
+    document.getElementById('layout-whole')?.addEventListener('change', (e) => {
         layoutShowsWhole = e.target.checked;
         if (lastLayout) drawLayout(lastLayout);
     });
-    document.getElementById('layout-sim-on').addEventListener('change', () => {
+    document.getElementById('layout-sim-on')?.addEventListener('change', () => {
         if (lastLayout) drawLayout(lastLayout);
     });
-    document.getElementById('layout-replay').addEventListener('click', () => {
+    document.getElementById('layout-replay')?.addEventListener('click', () => {
         if (layoutSim) resetLayoutSim(layoutSim);
     });
 }
@@ -1609,11 +1609,8 @@ function drawLayout(drawn) {
     const diagram = document.getElementById('layout-diagram');
     diagram.innerHTML = homelandSvg(drawn.layout, drawn.homeLevel);
     translateTree(diagram);
-    // With the simulation off, the layout is drawn on its own.
-    const on = document.getElementById('layout-sim-on').checked;
-    diagram.classList.toggle('no-sim', !on);
-    const stock = new Map(planContext?.levelUp ? lastPlanInput?.level_up?.stock || [] : []);
-    startLayoutSim(on ? diagram.querySelector('.layout-svg') : null, layoutFlows(drawn.layout), stock);
+    diagram.classList.add('no-sim');
+    stopLayoutSim();
 }
 
 function renderHomelandLayout(plan) {
@@ -1833,12 +1830,6 @@ function homelandSvg(layout, homeLevel) {
             stroke="${tint}" stroke-opacity="0.8" stroke-dasharray="0.35,0.25" stroke-width="0.08" />`;
     }).join('');
     const s = layout.storage;
-    // A line from everything carried to the Storage Unit, each drawn once its first batch is in,
-    // and a ring for the batch it's on (see "Deliveries"), in the same order as `layoutFlows`.
-    const flowList = layoutFlows(layout);
-    const flows = flowList.map(f => `<line x1="${f.x1}" y1="${f.y1}" x2="${f.x2}" y2="${f.y2}" class="layout-flow-line" />`).join('');
-    const rings = flowList.map(f => `<g class="layout-ring" transform="translate(${f.rx.toFixed(2)} ${f.ry.toFixed(2)})">
-            <circle r="${f.ring.toFixed(2)}" class="ring-track" /><circle r="${f.ring.toFixed(2)}" class="ring-fill" pathLength="1" stroke-dasharray="0 1" transform="rotate(-90)" /></g>`).join('');
     const totalTrips = layout.pieces.flatMap(p => p.members).filter(m => !m.building && !m.isGenerator && !m.isPowerPole).reduce((sum, m) => sum + (m.weight || 0), 0);
     return `<svg class="layout-svg" viewBox="${minX} ${minY} ${maxX - minX} ${maxY - minY}" role="img" aria-label="Homeland layout">
         <defs><pattern id="layout-locked" width="1" height="1" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
@@ -1850,8 +1841,6 @@ function homelandSvg(layout, homeLevel) {
         ${shapes}
         <g class="layout-coverage-edges" pointer-events="none">${coverageEdges}</g>
         <g class="layout-power-grid-edges" pointer-events="none">${powerGridEdges}</g>
-        <g class="layout-rings" pointer-events="none">${rings}</g>
-        <g class="layout-flows" pointer-events="none">${flows}<g class="layout-dots"></g></g>
         <g class="layout-piece layout-storage-unit" ${tipAttrs('Storage Unit', { detail: 'Where everything is carried', stats: totalTrips > 0 ? `${formatRate(totalTrips)} trips/hour` : '' })}><rect x="${s.x + 0.04}" y="${s.y + 0.04}" width="${s.w - 0.08}" height="${s.h - 0.08}" rx="0.2" class="layout-storage" />
         ${facilityBadge({ ...s, facility: 'Storage Unit' })}</g>
     </svg>`;
@@ -1938,37 +1927,8 @@ function firstBatchTimes(flows) {
 
 function startLayoutSim(svg, flows, stock) {
     stopLayoutSim();
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    document.getElementById('layout-sim').hidden = !svg || flows.length === 0 || reduce;
-    if (!svg || flows.length === 0) return;
-    const lines = [...svg.querySelectorAll('.layout-flow-line')];
-    const rings = [...svg.querySelectorAll('.layout-ring')];
-    if (reduce) {
-        lines.forEach(line => line.classList.add('live'));
-        rings.forEach(ring => ring.remove());
-        return;
-    }
-    const first = firstBatchTimes(flows);
-    const latest = Math.max(...flows.flatMap(f => f.jobs).map(j => first(j.item)));
-    const speed = Math.min(3600, Math.max(60, latest / SIM_BUILD_UP));
-    const units = flows.map((flow, k) => ({
-        flow,
-        jobs: flow.jobs.map(job => ({ ...job, terms: recipeTerms(job.item) })),
-        line: lines[k], ring: rings[k], fill: rings[k]?.querySelector('.ring-fill'),
-    }));
-    // Something no piece here makes, and no stock covers, is taken as always there, so a recipe
-    // using it isn't held up forever.
-    const made = new Set(units.flatMap(u => u.jobs).flatMap(j => [j.terms.makes, j.terms.byproduct?.[0]].filter(Boolean)));
-    const sim = { svg, units, speed, stock, made, layer: svg.querySelector('.layout-dots'), dots: [], frame: 0, visible: true };
-    layoutSim = sim;
-    document.getElementById('layout-clock').title = `Game time since everything was set up, at ${formatNumber(Math.round(speed))}× speed`;
-    // Only plays while the diagram is on screen.
-    sim.observer = new IntersectionObserver(([entry]) => {
-        sim.visible = entry.isIntersecting;
-        if (sim.visible && !sim.frame && layoutSim === sim) sim.frame = requestAnimationFrame(now => tickLayoutSim(sim, now));
-    });
-    sim.observer.observe(svg);
-    resetLayoutSim(sim);
+    const simEl = document.getElementById('layout-sim');
+    if (simEl) simEl.hidden = true;
 }
 
 function resetLayoutSim(sim) {
