@@ -828,5 +828,19 @@
   "Faithful or Tenacious": "Верный или Упорный",
   "Playful or Judicious": "Игривый или Разумный",
   "· {n} ms": "· {n} мс",
-  "· {seconds} s": "· {seconds} с"
+  "· {seconds} s": "· {seconds} с",
+  "LIVE PLAN VIEW": "ПРОСМОТР ПЛАНА",
+  "Ready to explore": "Готово к просмотру",
+  "Map controls": "Управление картой",
+  "Zoom out": "Уменьшить масштаб",
+  "Fit map to view": "Уместить карту",
+  "Zoom in": "Увеличить масштаб",
+  "SELECT A BUILDING": "ВЫБЕРИТЕ ПОСТРОЙКУ",
+  "Explore your plan": "Изучите свой план",
+  "Tap a facility on the map to see its job, route and Aniimo recommendation.": "Нажмите на постройку на карте, чтобы увидеть её задачу, маршрут и рекомендацию по Анимо.",
+  "Use the + / − buttons, mouse wheel or pinch-to-zoom.": "Используйте кнопки + / −, колесо мыши или жест масштабирования.",
+  "Facility": "Постройка",
+  "No production assignment.": "Производственная задача не назначена.",
+  "No delivery route is needed.": "Маршрут доставки не требуется.",
+  "Use arrow keys to pan, plus and minus to zoom.": "Используйте стрелки для перемещения, а плюс и минус для масштаба."
 }

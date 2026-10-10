@@ -926,5 +926,19 @@
   "Plot": "地塊",
   "Recommended Aniimo": "推薦伊莫",
   "Recommended Aniimo: {name} ({ability} Lv.{level})": "推薦伊莫：{name}（{ability} Lv.{level}）",
-  "Worker": "工人"
+  "Worker": "工人",
+  "LIVE PLAN VIEW": "即時配置檢視",
+  "Ready to explore": "可開始探索",
+  "Map controls": "地圖控制項",
+  "Zoom out": "縮小",
+  "Fit map to view": "符合檢視範圍",
+  "Zoom in": "放大",
+  "SELECT A BUILDING": "選擇建築",
+  "Explore your plan": "檢視你的配置",
+  "Tap a facility on the map to see its job, route and Aniimo recommendation.": "點選地圖上的設施，即可查看其工作、路線與伊莫建議。",
+  "Use the + / − buttons, mouse wheel or pinch-to-zoom.": "使用 + / − 按鈕、滑鼠滾輪或雙指縮放。",
+  "Facility": "設施",
+  "No production assignment.": "尚未指派生產工作。",
+  "No delivery route is needed.": "不需要配送路線。",
+  "Use arrow keys to pan, plus and minus to zoom.": "使用方向鍵平移，使用加號與減號縮放。"
 }
