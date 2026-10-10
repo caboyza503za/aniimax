@@ -132,3 +132,89 @@ test('clicking or tapping a facility piece selects it and updates the inspector'
     assert.equal(inspectorTitle, 'Stargazing Bed');
     assert.ok(selectedList.has('selected'));
 });
+
+test('clicking a facility highlights all units of same facility type and opens drawer', () => {
+    const listeners = {};
+    const attributes = new Map([['viewBox', '0 0 120 80']]);
+    const svg = {
+        getAttribute: name => attributes.get(name),
+        setAttribute: (name, value) => attributes.set(name, String(value)),
+        getBoundingClientRect: () => ({ left: 0, top: 0, width: 600, height: 400 }),
+        setPointerCapture() {},
+        releasePointerCapture() {},
+        addEventListener: (name, handler) => { listeners[name] = handler; },
+    };
+
+    const makeMockEl = (fac, x, y) => {
+        const classes = new Set(['layout-piece']);
+        const el = {
+            dataset: { facility: fac, x: String(x), y: String(y), tip: fac },
+            classList: {
+                add: c => classes.add(c),
+                remove: c => classes.delete(c),
+                contains: c => classes.has(c),
+            },
+            getAttribute: k => k === 'data-facility' ? fac : null,
+        };
+        el.closest = sel => sel === '.layout-piece' ? el : null;
+        return el;
+    };
+
+    const piece1 = makeMockEl('Cropland', 10, 10);
+    const piece2 = makeMockEl('Cropland', 15, 10);
+    const piece3 = makeMockEl('Kiln', 20, 20);
+    const allPieces = [piece1, piece2, piece3];
+
+    let drawerOpened = false;
+    let drawerContent = '';
+    const drawerEl = {
+        classList: {
+            add: c => { if (c === 'open') drawerOpened = true; },
+            remove: c => { if (c === 'open') drawerOpened = false; },
+            contains: c => c === 'open' ? drawerOpened : false,
+        },
+        hidden: true,
+    };
+    const fdContentEl = {
+        set innerHTML(v) { drawerContent = v; },
+        get innerHTML() { return drawerContent; },
+        querySelectorAll: () => [],
+    };
+    const fdTitleEl = { textContent: '' };
+    const fdIconEl = { innerHTML: '' };
+
+    const context = {
+        document: {
+            querySelector: () => svg,
+            querySelectorAll: sel => sel.includes('.layout-piece') ? allPieces : [],
+            getElementById: id => {
+                if (id === 'facility-detail-drawer') return drawerEl;
+                if (id === 'fd-title') return fdTitleEl;
+                if (id === 'fd-head-icon') return fdIconEl;
+                if (id === 'fd-content') return fdContentEl;
+                return { textContent: '', classList: { add() {}, remove() {} } };
+            },
+            elementFromPoint: () => piece1,
+        },
+        translate: value => value,
+        Math,
+    };
+
+    runInNewContext(`${source.slice(start, end)}\nglobalThis.explorer = { setupInteractiveLayout, setLayoutInspector, state: () => layoutMapState };`, context);
+    context.explorer.setupInteractiveLayout();
+
+    // Select piece 1 (Cropland)
+    context.explorer.setLayoutInspector(piece1);
+    assert.ok(piece1.classList.contains('selected'));
+    assert.ok(piece2.classList.contains('same-facility'));
+    assert.ok(!piece3.classList.contains('same-facility'));
+    assert.equal(drawerOpened, true);
+    assert.equal(drawerEl.hidden, false);
+    assert.equal(fdTitleEl.textContent, 'Cropland');
+
+    // Deselect (click on empty area)
+    context.explorer.setLayoutInspector(null);
+    assert.ok(!piece1.classList.contains('selected'));
+    assert.ok(!piece2.classList.contains('same-facility'));
+    assert.equal(drawerOpened, false);
+});
