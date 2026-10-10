@@ -107,3 +107,24 @@ test('multiple storage units reduce total hauling walking distance compared to 1
 
     assert.ok(totalWalkFour <= totalWalkSingle, '4 storage units should yield less or equal walking distance than 1');
 });
+
+test('storage units stay near the active farm and avoid outer corner coordinates', () => {
+    const cells = [];
+    for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+            cells.push({ x: c * 12, y: r * 12, w: 12, h: 12 });
+        }
+    }
+    const pieces = [
+        { members: [{ x: 0, y: 0, w: 2, h: 2, weight: 100, facility: 'Crafting Table' }] },
+        { members: [{ x: 0, y: 0, w: 2, h: 2, weight: 80, facility: 'Claw Game Cooker' }] },
+        { members: [{ x: 0, y: 0, w: 3, h: 3, weight: 120, facility: 'Mine' }] },
+    ];
+    const res = layOutHomeland(pieces, cells, { w: 2, h: 2 }, 4);
+    assert.equal(res.storages.length, 4);
+
+    for (const s of res.storages) {
+        const isExtremeCorner = (s.x === 0 && s.y === 0) || (s.x === 46 && s.y === 0) || (s.x === 0 && s.y === 46) || (s.x === 46 && s.y === 46);
+        assert.ok(!isExtremeCorner, `Storage at (${s.x}, ${s.y}) should not be in extreme corners`);
+    }
+});
