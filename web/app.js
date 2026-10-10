@@ -7,7 +7,7 @@ import {
     FACILITIES, FACILITY_CATEGORIES, FACILITY_CATEGORY_BY_NAME, FACILITY_FOOTPRINTS, HOMELAND_PLOTS, HOMELAND_PLOT_SIZE,
     MAX_HOME_LEVEL, ANIIMO_MAX, simpleSetup,
     LEVEL_UP_COSTS, LEVEL_UP_CHAINS, SPECIAL_RECIPES, SEASON, ANIIPOD_TIERS, PERSONALITY_PAIRS, personalityLetter, opposedPersonality,
-    CRACKLE_GENERATOR,
+    CRACKLE_GENERATOR, CRACKLE_POWER_POLE,
 } from './facility-config.js';
 import { allocateTurnFacilities, redistributeTurnFacilityRows } from './turn-jobs.js';
 import { createShareUrl, readShareHash, urlWithoutShare } from './share-config.js';
@@ -262,6 +262,9 @@ function calculateOptimalEMode(plan) {
         return { facilities, steps }; // Crackle Generator locked before RV 12
     }
 
+    const genLevel = CRACKLE_GENERATOR.levelByHomeLevel(homeLevel);
+    const maxWatts = CRACKLE_GENERATOR.wattsByLevel[genLevel] || 120;
+
     const producingSteps = (plan.coin_items || []).filter(step => {
         if (step.status !== 'producing') return false;
         const f = FACILITIES.find(fac => fac.name === step.facility);
@@ -270,29 +273,20 @@ function calculateOptimalEMode(plan) {
 
     if (producingSteps.length === 0) return { facilities, steps };
 
-    // In Minimum setup, workers are at minimum level without personality bonus (speed 1.0x).
-    // E-Mode gives 1.2x efficiency buff and saves worker slots, so all processing facilities use E-Mode.
-    if (selectedSetupTab() === 'minimum') {
-        producingSteps.forEach(s => {
-            facilities.add(s.facility);
-            steps.add(`${s.facility}|${s.item_name}`);
-        });
-        return { facilities, steps };
-    }
-
-    // In Best or Custom Roster setup:
-    // Evaluate worker speed vs E-Mode speed (1.2x with generator buff) for each facility
+    const isMin = selectedSetupTab() === 'minimum';
     const candidates = [];
     producingSteps.forEach(step => {
         const recipe = recipeIndex.find(r => r.name === step.item_name);
         const minLevel = recipe?.minLevel ?? (recipe?.aniimo?.[1] ?? 1);
         const worker = step.aniimo;
-        const workerLevel = worker?.level ?? 1;
-        const hasBonus = !!worker?.personality_bonus;
+        const workerLevel = isMin ? 1 : (worker?.level ?? 1);
+        const hasBonus = isMin ? false : !!worker?.personality_bonus;
         const above = Math.max(0, workerLevel - minLevel);
         const baseSpeed = above === 0 ? 1.0 : (2.0 + above);
         const workerSpeed = hasBonus ? baseSpeed * 1.2 : baseSpeed;
         const eModeSpeed = 1.2; // 120% efficiency grid buff
+        const f = FACILITIES.find(fac => fac.name === step.facility);
+        const electricRequire = (f?.electricRequire || 60) * (step.facility_count || 1);
 
         candidates.push({
             facility: step.facility,
@@ -301,23 +295,37 @@ function calculateOptimalEMode(plan) {
             workerSpeed,
             eModeSpeed,
             speedAdvantage: workerSpeed - eModeSpeed, // > 0 means worker is faster
-            facilityCount: step.facility_count
+            facilityCount: step.facility_count || 1,
+            electricRequire,
+            trips: tripsPerUnit(step)
         });
     });
 
-    // 1. Facilities where Aniimo worker has no speed advantage (workerSpeed <= 1.2) automatically use E-Mode
-    candidates.forEach(c => {
-        if (c.speedAdvantage <= 1e-6) {
-            facilities.add(c.facility);
-            steps.add(c.key);
+    // Candidates where E-mode improves or matches speed (speedAdvantage <= 1e-6) come first.
+    // Within that group, sort by lowest speedAdvantage (biggest speed gain), then highest trips.
+    candidates.sort((a, b) => {
+        if (Math.abs(a.speedAdvantage - b.speedAdvantage) > 1e-6) {
+            return a.speedAdvantage - b.speedAdvantage;
         }
+        return b.trips - a.trips;
     });
 
-    // 2. For remaining facilities where worker is faster (workerSpeed > 1.2):
-    // Check if total homeland Aniimo would exceed capacity.
+    let currentWatts = 0;
+
+    // 1. Assign facilities where E-mode is beneficial or equal, strictly capped by 1 generator's maxWatts
+    for (const c of candidates) {
+        if (c.speedAdvantage > 1e-6) break; // Remaining candidates are faster with workers
+        if (currentWatts + c.electricRequire <= maxWatts) {
+            facilities.add(c.facility);
+            steps.add(c.key);
+            currentWatts += c.electricRequire;
+        }
+    }
+
+    // 2. If generator still has spare wattage and homeland capacity is exceeded,
+    // convert remaining candidates to save Aniimo slots
     const homelandCap = isSimpleMode() ? ANIIMO_MAX[homeLevel - 1] : null;
-    if (homelandCap) {
-        // Estimate total Aniimos with current assignment
+    if (homelandCap && currentWatts + 60 <= maxWatts) {
         const estimateTotalAniimo = () => {
             let total = 1; // 1 for hauling
             (plan.coin_items || []).forEach(s => {
@@ -329,31 +337,18 @@ function calculateOptimalEMode(plan) {
             (plan.environment_assignments || []).forEach(a => {
                 total += a.units || 1;
             });
-            let watts = 0;
-            producingSteps.forEach(s => {
-                const key = `${s.facility}|${s.item_name}`;
-                if (steps.has(key)) {
-                    const f = FACILITIES.find(fac => fac.name === s.facility);
-                    watts += s.facility_count * (f?.electricRequire ?? 60);
-                }
-            });
-            if (watts > 0) {
-                const genLevel = CRACKLE_GENERATOR.levelByHomeLevel(homeLevel);
-                const wattsPerGen = CRACKLE_GENERATOR.wattsByLevel[genLevel] || 120;
-                total += Math.ceil(watts / wattsPerGen);
-            }
+            if (currentWatts > 0) total += 1; // Exactly 1 Lightning Aniimo for 1 generator
             return total;
         };
 
-        // If over capacity, sort candidates by speedAdvantage ascending and switch to E-mode
-        const fasterCandidates = candidates
-            .filter(c => !steps.has(c.key))
-            .sort((a, b) => a.speedAdvantage - b.speedAdvantage);
-
-        for (const c of fasterCandidates) {
+        const remaining = candidates.filter(c => !steps.has(c.key));
+        for (const c of remaining) {
             if (estimateTotalAniimo() <= homelandCap) break;
-            facilities.add(c.facility);
-            steps.add(c.key);
+            if (currentWatts + c.electricRequire <= maxWatts) {
+                facilities.add(c.facility);
+                steps.add(c.key);
+                currentWatts += c.electricRequire;
+            }
         }
     }
 
@@ -1314,7 +1309,7 @@ function homelandPieces(plan, input) {
     });
 
     // If facilities are running in E-Mode, they must sit within the power grid frame.
-    // Place Crackle Generator(s) and a Crackle Power Pole to supply and cover them.
+    // Place exactly 1 Crackle Generator (Homeland limit) and Crackle Power Pole(s) (capped by RV limit).
     const emodeMembers = pieces.flatMap(p => p.members || []).filter(m => m.emode);
     let totalWatts = 0;
     emodeMembers.forEach(m => {
@@ -1324,26 +1319,28 @@ function homelandPieces(plan, input) {
     if (totalWatts > 0) {
         const homeLevel = activeHomelandLevel();
         const genLevel = CRACKLE_GENERATOR.levelByHomeLevel(homeLevel);
-        const wattsPerGen = CRACKLE_GENERATOR.wattsByLevel[genLevel] || 120;
-        const generatorsNeeded = Math.ceil(totalWatts / wattsPerGen);
-        const polesNeeded = Math.max(1, Math.ceil(generatorsNeeded / 2));
+        const maxWatts = CRACKLE_GENERATOR.wattsByLevel[genLevel] || 120;
+        const maxPoles = CRACKLE_POWER_POLE.maxPolesByHomeLevel(homeLevel);
         const maxEmodeWeight = Math.max(...emodeMembers.map(m => m.weight || 0), 1.0);
-        for (let g = 0; g < generatorsNeeded; g++) {
-            pieces.push({
-                members: [{
-                    x: 0, y: 0, w: 2, h: 2, weight: maxEmodeWeight * 0.99,
-                    facility: 'Crackle Generator',
-                    isGenerator: true,
-                    genLevel,
-                    outputWatts: wattsPerGen,
-                    totalWatts,
-                    generatorsNeeded,
-                    crop: null,
-                    sensitive: false
-                }]
-            });
-            count('Crackle Generator');
-        }
+
+        // Exactly 1 Crackle Generator can be placed in Homeland
+        pieces.push({
+            members: [{
+                x: 0, y: 0, w: 2, h: 2, weight: maxEmodeWeight * 0.99,
+                facility: 'Crackle Generator',
+                isGenerator: true,
+                genLevel,
+                outputWatts: maxWatts,
+                totalWatts,
+                generatorsNeeded: 1,
+                crop: null,
+                sensitive: false
+            }]
+        });
+        count('Crackle Generator');
+
+        // Place Crackle Power Pole(s) respecting RV level limit (e.g. 6 at RV 12)
+        const polesNeeded = Math.min(maxPoles, Math.max(1, Math.ceil(emodeMembers.length / 2)));
         for (let p = 0; p < polesNeeded; p++) {
             pieces.push({
                 members: [{
@@ -1554,8 +1551,8 @@ function homelandSvg(layout, homeLevel) {
     const shapes = allMembers.map(m => {
         if (m.isGenerator) {
             const tip = tipAttrs('Crackle Generator', {
-                detail: `เสากำเนิดไฟฟ้าเปาะแปะ Lv.${m.genLevel || 1} (จ่ายไฟ ${m.outputWatts || 120}W)`,
-                stats: `รองรับเครื่องโหมด E ได้ ${Math.floor((m.outputWatts || 120) / 60)} เครื่อง`,
+                detail: `เสากำเนิดไฟฟ้าเปาะแปะ Lv.${m.genLevel || 1} (จ่ายไฟ ${m.outputWatts || 120}W / วางได้สูงสุด 1 เสา)`,
+                stats: `รองรับเครื่องโหมด E ได้ ${Math.floor((m.outputWatts || 120) / 60)} เครื่อง (ใช้ไป ${m.totalWatts || 0}W)`,
                 color: '#f59e0b',
             });
             return `<g class="layout-piece crackle-generator" ${tip}><rect x="${m.x + 0.05}" y="${m.y + 0.05}" width="${m.w - 0.1}" height="${m.h - 0.1}" rx="0.3"
@@ -1565,8 +1562,10 @@ function homelandSvg(layout, homeLevel) {
             </g>`;
         }
         if (m.isPowerPole) {
+            const homeLevel = layout.homeLevel || activeHomelandLevel();
+            const maxPoles = CRACKLE_POWER_POLE.maxPolesByHomeLevel(homeLevel);
             const tip = tipAttrs('Crackle Power Pole', {
-                detail: 'เสาไฟฟ้าเปาะแปะ (ขยายกรอบเสาไฟสำหรับโหมด E)',
+                detail: `เสาไฟฟ้าเปาะแปะ (ขยายกรอบเสาไฟสำหรับโหมด E · RV ${homeLevel} วางได้สูงสุด ${maxPoles} เสา)`,
                 stats: 'สร้างกรอบเชื่อมต่อพลังงานไฟฟ้า',
                 color: '#d97706',
             });
@@ -2189,30 +2188,30 @@ function renderRosterSummary(plan) {
     if (emodeMachineWatts > 0) {
         const homeLevel = activeHomelandLevel();
         const genLevel = CRACKLE_GENERATOR.levelByHomeLevel(homeLevel);
-        const wattsPerGen = CRACKLE_GENERATOR.wattsByLevel[genLevel] || 120;
-        const generatorsNeeded = Math.ceil(emodeMachineWatts / wattsPerGen);
+        const maxWatts = CRACKLE_GENERATOR.wattsByLevel[genLevel] || 120;
+        const place = `Crackle Generator Lv.${genLevel} (1×${maxWatts}W for ${emodeMachineWatts}W)`;
 
-        let neededGens = generatorsNeeded;
-        const place = `Crackle Generator Lv.${genLevel} (${generatorsNeeded}×${wattsPerGen}W for ${emodeMachineWatts}W)`;
-
-        while (neededGens > 0) {
-            const able = roster.map((a, i) => i).filter(i => (roster[i].abilities['Lightning'] || 0) >= 1 && busy[i] < roster[i].count);
-            if (!able.length) break;
+        // Exactly 1 Crackle Generator staffed by 1 Lightning Aniimo
+        const able = roster.map((a, i) => i).filter(i => (roster[i].abilities['Lightning'] || 0) >= 1 && busy[i] < roster[i].count);
+        if (able.length) {
             const pick = able.reduce((a, b) => (busy[b] / roster[b].count < busy[a] / roster[a].count ? b : a));
-            const take = Math.min(neededGens, roster[pick].count - busy[pick]);
-            busy[pick] += take;
-            where[pick].set(place, (where[pick].get(place) || 0) + take);
-            neededGens -= take;
+            busy[pick] += 1;
+            where[pick].set(place, (where[pick].get(place) || 0) + 1);
         }
 
-        const netSaved = Math.max(0, Math.round(emodeSavedWorkers) - generatorsNeeded);
+        const netSaved = Math.max(0, Math.round(emodeSavedWorkers) - 1);
+        const totalProcessing = (plan.coin_items || []).filter(s => s.status === 'producing' && FACILITIES.find(fac => fac.name === s.facility)?.supportsEMode).length;
+        const remainingWorkersCount = Math.max(0, totalProcessing - emodeMachineCount);
+        const remainingNote = remainingWorkersCount > 0
+            ? ` (เครื่องจักรอีก ${remainingWorkersCount} เครื่องใช้แอนีโมคนงานทำงาน เนื่องจากเสากำเนิดไฟฟ้าจ่ายไฟได้สูงสุด ${maxWatts}W)`
+            : '';
         emodeBannerHtml = `
             <div class="emode-savings-banner">
                 <span class="emode-savings-icon">⚡</span>
                 <div class="emode-savings-text">
-                    <strong>โหมด E (ไฟฟ้า):</strong> เครื่องจักร ${emodeMachineCount} เครื่องใช้ไฟฟ้ารวม ${emodeMachineWatts}W &mdash; 
-                    ใช้เสากำเนิดไฟฟ้าเปาะแปะ Lv.${genLevel} จำนวน ${generatorsNeeded} เสา (แอนีโมสายฟ้า ${generatorsNeeded} ตัว)
-                    ${netSaved > 0 ? ` <strong>(ประหยัดคนงานแอนีโมได้ ${netSaved} ตำแหน่ง!)</strong>` : ''}
+                    <strong>โหมด E (ไฟฟ้า):</strong> เครื่องจักร ${emodeMachineCount} เครื่องใช้ไฟฟ้ารวม ${emodeMachineWatts}W / ${maxWatts}W (โควต้าเสากำเนิดไฟ Lv.${genLevel} วางได้สูงสุด 1 เสา) &mdash; 
+                    ใช้เสากำเนิดไฟฟ้าเปาะแปะ 1 เสา (แอนีโมสายฟ้า 1 ตัว)
+                    ${netSaved > 0 ? ` <strong>(ประหยัดคนงานแอนีโมได้ ${netSaved} ตำแหน่ง!)</strong>` : ''}${remainingNote}
                 </div>
             </div>
         `;
@@ -3387,8 +3386,7 @@ function renderAniimoSummary(plan) {
     if (emodeMachineWatts > 0) {
         const homeLevel = activeHomelandLevel();
         const genLevel = CRACKLE_GENERATOR.levelByHomeLevel(homeLevel);
-        const wattsPerGen = CRACKLE_GENERATOR.wattsByLevel[genLevel] || 120;
-        const generatorsNeeded = Math.ceil(emodeMachineWatts / wattsPerGen);
+        const maxWatts = CRACKLE_GENERATOR.wattsByLevel[genLevel] || 120;
 
         const key = `Lightning any level (Crackle Generator)`;
         if (!groups.has(key)) {
@@ -3405,23 +3403,23 @@ function renderAniimoSummary(plan) {
             });
         }
         const g = groups.get(key);
-        g.busy += generatorsNeeded;
-        const place = `Crackle Generator Lv.${genLevel} (${generatorsNeeded}×${wattsPerGen}W for ${emodeMachineWatts}W)`;
-        g.where.set(place, (g.where.get(place) || 0) + generatorsNeeded);
+        g.busy += 1;
+        const place = `Crackle Generator Lv.${genLevel} (1×${maxWatts}W for ${emodeMachineWatts}W)`;
+        g.where.set(place, (g.where.get(place) || 0) + 1);
 
-        const netSaved = Math.max(0, Math.round(emodeSavedWorkers) - generatorsNeeded);
+        const netSaved = Math.max(0, Math.round(emodeSavedWorkers) - 1);
         const totalProcessing = (plan.coin_items || []).filter(s => s.status === 'producing' && FACILITIES.find(fac => fac.name === s.facility)?.supportsEMode).length;
-        const fasterAniimoCount = Math.max(0, totalProcessing - emodeMachineCount);
-        const fasterNote = fasterAniimoCount > 0
-            ? ` (เครื่องจักรอีก ${fasterAniimoCount} เครื่องใช้แอนีโม เพราะมีเลเวลสูงและผลิตได้เร็วกว่า)`
+        const remainingWorkersCount = Math.max(0, totalProcessing - emodeMachineCount);
+        const remainingNote = remainingWorkersCount > 0
+            ? ` (เครื่องจักรอีก ${remainingWorkersCount} เครื่องใช้แอนีโมคนงานทำงาน เนื่องจากเสากำเนิดไฟฟ้าจ่ายไฟได้สูงสุด ${maxWatts}W)`
             : '';
         emodeBannerHtml = `
             <div class="emode-savings-banner">
                 <span class="emode-savings-icon">⚡</span>
                 <div class="emode-savings-text">
-                    <strong>คำนวณโหมด E อัตโนมัติ (เลือกวิธีที่ดีและเร็วที่สุด):</strong> เครื่องจักร ${emodeMachineCount} เครื่องใช้ไฟฟ้ารวม ${emodeMachineWatts}W &mdash; 
-                    ใช้เสากำเนิดไฟฟ้าเปาะแปะ Lv.${genLevel} จำนวน ${generatorsNeeded} เสา (แอนีโมสายฟ้า ${generatorsNeeded} ตัว)
-                    ${netSaved > 0 ? ` <strong>(ประหยัดคนงานแอนีโมได้ ${netSaved} ตำแหน่ง!)</strong>` : ''}${fasterNote}
+                    <strong>คำนวณโหมด E อัตโนมัติ (เลือกวิธีที่ดีและเร็วที่สุด):</strong> เครื่องจักร ${emodeMachineCount} เครื่องใช้ไฟฟ้ารวม ${emodeMachineWatts}W / ${maxWatts}W (โควต้าเสากำเนิดไฟ Lv.${genLevel} วางได้สูงสุด 1 เสา) &mdash; 
+                    ใช้เสากำเนิดไฟฟ้าเปาะแปะ 1 เสา (แอนีโมสายฟ้า 1 ตัว)
+                    ${netSaved > 0 ? ` <strong>(ประหยัดคนงานแอนีโมได้ ${netSaved} ตำแหน่ง!)</strong>` : ''}${remainingNote}
                 </div>
             </div>
         `;

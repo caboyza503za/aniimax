@@ -183,6 +183,7 @@ export const CRACKLE_GENERATOR = {
     name: 'Crackle Generator',
     slug: 'crackle-generator',
     unlockHomeLevel: 12,
+    maxPlaced: 1, // Only 1 Crackle Generator can be placed in Homeland
     ability: 'Lightning',
     footprint: [2, 2],
     wattsByLevel: { 1: 120, 2: 240, 3: 360, 4: 480, 5: 600 },
@@ -194,6 +195,22 @@ export const CRACKLE_GENERATOR = {
         return 1;
     }
 };
+
+export const CRACKLE_POWER_POLE = {
+    name: 'Crackle Power Pole',
+    slug: 'crackle-power-pole',
+    unlockHomeLevel: 12,
+    footprint: [1, 1],
+    maxPolesByHomeLevel: (homeLevel) => {
+        if (!homeLevel || homeLevel < 12) return 0;
+        if (homeLevel >= 20) return 20;
+        if (homeLevel >= 18) return 16;
+        if (homeLevel >= 16) return 12;
+        if (homeLevel >= 14) return 8;
+        return 6; // RV 12-13 allows at most 6 Crackle Power Poles
+    }
+};
+
 
 // Aniipod tiers in Aniipod Maker level order: each level adds a better one for catching Aniimo.
 // The "Most Aniipods" strategy makes only the best tier the player's Maker can reach.

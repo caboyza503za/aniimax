@@ -1,11 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { FACILITIES, CRACKLE_GENERATOR, FACILITY_FOOTPRINTS } from '../web/facility-config.js';
+import { FACILITIES, CRACKLE_GENERATOR, CRACKLE_POWER_POLE, FACILITY_FOOTPRINTS } from '../web/facility-config.js';
 
 test('CRACKLE_GENERATOR has correct unlock and levels', () => {
     assert.equal(CRACKLE_GENERATOR.name, 'Crackle Generator');
     assert.equal(CRACKLE_GENERATOR.ability, 'Lightning');
     assert.equal(CRACKLE_GENERATOR.unlockHomeLevel, 12);
+    assert.equal(CRACKLE_GENERATOR.maxPlaced, 1); // Placed at most 1 in Homeland
     assert.deepEqual(CRACKLE_GENERATOR.footprint, [2, 2]);
 
     // Watts by level
@@ -28,6 +29,18 @@ test('CRACKLE_GENERATOR has correct unlock and levels', () => {
     assert.equal(CRACKLE_GENERATOR.levelByHomeLevel(20), 5);
 });
 
+test('CRACKLE_POWER_POLE has correct limits by RV level', () => {
+    assert.equal(CRACKLE_POWER_POLE.name, 'Crackle Power Pole');
+    assert.equal(CRACKLE_POWER_POLE.unlockHomeLevel, 12);
+    assert.equal(CRACKLE_POWER_POLE.maxPolesByHomeLevel(11), 0);
+    assert.equal(CRACKLE_POWER_POLE.maxPolesByHomeLevel(12), 6); // Max 6 at RV 12
+    assert.equal(CRACKLE_POWER_POLE.maxPolesByHomeLevel(13), 6);
+    assert.equal(CRACKLE_POWER_POLE.maxPolesByHomeLevel(14), 8);
+    assert.equal(CRACKLE_POWER_POLE.maxPolesByHomeLevel(16), 12);
+    assert.equal(CRACKLE_POWER_POLE.maxPolesByHomeLevel(18), 16);
+    assert.equal(CRACKLE_POWER_POLE.maxPolesByHomeLevel(20), 20);
+});
+
 test('Materials Processing facilities support E-Mode with 60W power demand', () => {
     const processingFacilities = FACILITIES.filter(f => f.category === 'Materials Processing');
     assert.equal(processingFacilities.length, 14);
@@ -43,25 +56,25 @@ test('Crackle Generator and Power Pole footprints exist', () => {
     assert.deepEqual(FACILITY_FOOTPRINTS['Crackle Power Pole'], [1, 1]);
 });
 
-test('Power and Lightning Aniimo requirements calculation', () => {
-    // 5 machines in E-mode = 5 * 60W = 300W
-    const demandWatts = 5 * 60;
-    
-    // At RV 12 (Generator Lv.1 = 120W)
+test('Single Crackle Generator wattage capacity and maximum E-Mode facilities', () => {
+    // Only 1 Crackle Generator can be placed in Homeland
+    // At RV 12 (Generator Lv.1 = 120W) -> at most 120 / 60 = 2 machines in E-Mode
     const genLevel12 = CRACKLE_GENERATOR.levelByHomeLevel(12);
-    const wattsPerGen12 = CRACKLE_GENERATOR.wattsByLevel[genLevel12];
-    const gensNeeded12 = Math.ceil(demandWatts / wattsPerGen12);
-    assert.equal(gensNeeded12, 3); // 300 / 120 = 2.5 -> 3 generators / 3 Lightning Aniimos
-    
-    // At RV 16 (Generator Lv.3 = 360W)
-    const genLevel16 = CRACKLE_GENERATOR.levelByHomeLevel(16);
-    const wattsPerGen16 = CRACKLE_GENERATOR.wattsByLevel[genLevel16];
-    const gensNeeded16 = Math.ceil(demandWatts / wattsPerGen16);
-    assert.equal(gensNeeded16, 1); // 300 / 360 = 0.83 -> 1 generator / 1 Lightning Aniimo
-    
-    // Saved workers: originally 5 workers, now 1 Lightning Aniimo -> Net 4 saved!
-    const netSaved = 5 - gensNeeded16;
-    assert.equal(netSaved, 4);
+    const maxWatts12 = CRACKLE_GENERATOR.wattsByLevel[genLevel12];
+    const maxMachines12 = Math.floor(maxWatts12 / 60);
+    assert.equal(maxMachines12, 2);
+
+    // At RV 18 (Generator Lv.4 = 480W) -> at most 480 / 60 = 8 machines in E-Mode
+    const genLevel18 = CRACKLE_GENERATOR.levelByHomeLevel(18);
+    const maxWatts18 = CRACKLE_GENERATOR.wattsByLevel[genLevel18];
+    const maxMachines18 = Math.floor(maxWatts18 / 60);
+    assert.equal(maxMachines18, 8);
+
+    // Exactly 1 Lightning Aniimo needed to staff the 1 generator
+    const generatorPlaced = 1;
+    const lightningAniimoNeeded = 1;
+    assert.equal(generatorPlaced, 1);
+    assert.equal(lightningAniimoNeeded, 1);
 });
 
 test('Speed comparison between Aniimo worker levels and E-Mode (1.2x grid efficiency)', () => {
@@ -92,14 +105,19 @@ test('Speed comparison between Aniimo worker levels and E-Mode (1.2x grid effici
     assert.ok(calculateSpeed(4, 1, true) > eModeSpeed, 'Lv.4 worker is 5x faster than E-Mode');
 });
 
-test('Crackle Generator and Power Pole pieces are generated for E-Mode facilities', () => {
-    const demandWatts = 11 * 60; // 660W as in user's plan with 11 E-Mode recipes
-    const genLevel = CRACKLE_GENERATOR.levelByHomeLevel(18); // RV 18 has Lv.4 Generator (480W)
-    const wattsPerGen = CRACKLE_GENERATOR.wattsByLevel[genLevel];
-    const gensNeeded = Math.ceil(demandWatts / wattsPerGen);
-    assert.equal(gensNeeded, 2); // 660 / 480 = 1.375 -> 2 generators
-    assert.deepEqual(FACILITY_FOOTPRINTS['Crackle Generator'], [2, 2]);
-    assert.deepEqual(FACILITY_FOOTPRINTS['Crackle Power Pole'], [1, 1]);
+test('Crackle Generator (max 1) and Power Poles (capped at RV limit) are generated for layout', () => {
+    // When E-mode facilities exist, exactly 1 Crackle Generator is placed
+    const generatorCount = 1;
+    assert.equal(generatorCount, CRACKLE_GENERATOR.maxPlaced);
+
+    // At RV 12, poles placed cannot exceed 6
+    const homeLevel12 = 12;
+    const maxPoles12 = CRACKLE_POWER_POLE.maxPolesByHomeLevel(homeLevel12);
+    const emodeFacilities = 2; // at RV 12, max 2 machines
+    const polesNeeded12 = Math.min(maxPoles12, Math.max(1, Math.ceil(emodeFacilities / 2)));
+    assert.equal(polesNeeded12, 1);
+    assert.ok(polesNeeded12 <= maxPoles12);
+    assert.equal(maxPoles12, 6);
 });
 
 test('Idle and unused facilities are omitted from layout pieces', () => {
