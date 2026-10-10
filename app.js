@@ -1258,7 +1258,8 @@ function homelandPieces(plan, input) {
         }
         allocations.forEach(jobs => {
             const weight = jobs.reduce((sum, j) => sum + j.rate * 3600, 0);
-            pieces.push({ members: [{ x: 0, y: 0, w: footprint[0], h: footprint[1], weight, jobs: jobs.length ? jobs : undefined, cycle: jobs[0]?.cycle, facility, crop: jobs[0]?.item ?? null, sensitive: false }] });
+            const emode = jobs.some(j => isEModeActive({ facility, item_name: j.item }));
+            pieces.push({ members: [{ x: 0, y: 0, w: footprint[0], h: footprint[1], weight, jobs: jobs.length ? jobs : undefined, cycle: jobs[0]?.cycle, facility, crop: jobs[0]?.item ?? null, sensitive: false, emode }] });
         });
         count(facility, allocations.length);
     });
@@ -1282,10 +1283,53 @@ function homelandPieces(plan, input) {
             // A crop that needs an environment but is grown without one stays out of every
             // coverage square, so no building's temperature changes it.
             const growing = step.status === 'producing';
-            pieces.push({ members: [{ x: 0, y: 0, w: footprint[0], h: footprint[1], weight: tripsPerUnit(step), cycle: step.cycle_time, facility: step.facility, crop: growing ? step.item_name : null, sensitive: growing && needsEnvironment(step.item_name) }] });
+            const emode = growing && isEModeActive(step);
+            pieces.push({ members: [{ x: 0, y: 0, w: footprint[0], h: footprint[1], weight: tripsPerUnit(step), cycle: step.cycle_time, facility: step.facility, crop: growing ? step.item_name : null, sensitive: growing && needsEnvironment(step.item_name), emode }] });
         }
         count(step.facility, n);
     });
+
+    // If facilities are running in E-Mode, they must sit within the power grid frame.
+    // Place Crackle Generator(s) and a Crackle Power Pole to supply and cover them.
+    const emodeMembers = pieces.flatMap(p => p.members || []).filter(m => m.emode);
+    let totalWatts = 0;
+    emodeMembers.forEach(m => {
+        const f = FACILITIES.find(fac => fac.name === m.facility);
+        totalWatts += f?.electricRequire || 60;
+    });
+    if (totalWatts > 0) {
+        const homeLevel = layoutHomeLevel ? layoutHomeLevel() : (isSimpleMode() ? selectedHomeLevel() : homeLevelCovering(lastPlanInput));
+        const genLevel = CRACKLE_GENERATOR.levelByHomeLevel(homeLevel);
+        const wattsPerGen = CRACKLE_GENERATOR.wattsByLevel[genLevel] || 120;
+        const generatorsNeeded = Math.ceil(totalWatts / wattsPerGen);
+        const maxEmodeWeight = Math.max(...emodeMembers.map(m => m.weight || 0), 1.0);
+        for (let g = 0; g < generatorsNeeded; g++) {
+            pieces.push({
+                members: [{
+                    x: 0, y: 0, w: 2, h: 2, weight: maxEmodeWeight * 0.99,
+                    facility: 'Crackle Generator',
+                    isGenerator: true,
+                    genLevel,
+                    outputWatts: wattsPerGen,
+                    totalWatts,
+                    generatorsNeeded,
+                    crop: null,
+                    sensitive: false
+                }]
+            });
+            count('Crackle Generator');
+        }
+        pieces.push({
+            members: [{
+                x: 0, y: 0, w: 1, h: 1, weight: maxEmodeWeight * 0.98,
+                facility: 'Crackle Power Pole',
+                isPowerPole: true,
+                crop: null,
+                sensitive: false
+            }]
+        });
+        count('Crackle Power Pole');
+    }
 
     // What's owned but not in the plan at all, such as environment buildings it didn't need.
     FACILITIES.forEach(f => {
@@ -1313,10 +1357,17 @@ const LAYOUT_CATEGORY_COLORS = {
     'Materials Processing': '#8a7fc4',
     'Environment': '#9aa0a8',
 };
-const layoutColor = m => m.building
-    ? (ENVIRONMENT_MODE_COLORS[m.mode] || '#9aa0a8')
-    : ENVIRONMENT_FACILITY_COLORS[m.facility] || LAYOUT_CATEGORY_COLORS[FACILITY_CATEGORY_BY_NAME.get(m.facility)] || '#888888';
-const initialsOf = name => name.split(/[\s-]+/).map(w => w[0]).join('').toUpperCase();
+const layoutColor = m => {
+    if (m.isGenerator) return '#f59e0b';
+    if (m.isPowerPole) return '#d97706';
+    if (m.building) return (ENVIRONMENT_MODE_COLORS[m.mode] || '#9aa0a8');
+    return ENVIRONMENT_FACILITY_COLORS[m.facility] || LAYOUT_CATEGORY_COLORS[FACILITY_CATEGORY_BY_NAME.get(m.facility)] || '#888888';
+};
+const initialsOf = name => {
+    if (name === 'Crackle Generator') return 'CG';
+    if (name === 'Crackle Power Pole') return 'PP';
+    return name.split(/[\s-]+/).map(w => w[0]).join('').toUpperCase();
+};
 
 let layoutRunId = 0;
 let layoutWorker = null;
@@ -1382,8 +1433,8 @@ function renderHomelandLayout(plan) {
         if (runId !== layoutRunId) return;
         const layout = event.data;
         const at = layout.storageAt;
-        // Buildings carry nothing themselves.
-        const members = layout.pieces.flatMap(p => p.members).map(m => ({ ...m, weight: m.weight || 0 }));
+        // Buildings and power equipment carry nothing themselves.
+        const members = layout.pieces.flatMap(p => p.members).map(m => ({ ...m, weight: (m.building || m.isGenerator || m.isPowerPole) ? 0 : (m.weight || 0) }));
         const trips = members.reduce((sum, m) => sum + m.weight, 0);
         const walked = members.reduce((sum, m) => sum + m.weight * Math.hypot(m.x + m.w / 2 - at.x, m.y + m.h / 2 - at.y), 0);
         const noRoom = [...new Set(layout.unplaced.map(i => {
@@ -1449,12 +1500,69 @@ function homelandSvg(layout, homeLevel) {
     const lines = [];
     for (let x = minX; x <= maxX; x++) lines.push(`<line x1="${x}" y1="${minY}" x2="${x}" y2="${maxY}" />`);
     for (let y = minY; y <= maxY; y++) lines.push(`<line x1="${minX}" y1="${y}" x2="${maxX}" y2="${y}" />`);
-    const maxTrips = Math.max(...layout.pieces.flatMap(p => p.members.map(m => m.weight || 0)), 1e-9);
-    const shapes = layout.pieces.flatMap(p => p.members).map(m => {
+    // Power Grid boundaries ("กรอบเสาไฟ"):
+    // Facilities using E-Mode must sit within the power pole / generator frame.
+    const allMembers = layout.pieces.flatMap(p => p.members);
+    const powerMembers = allMembers.filter(m => m.emode || m.isGenerator || m.isPowerPole);
+    const powerBoxes = [];
+    if (powerMembers.length > 0) {
+        plots.forEach(p => {
+            const inPlot = powerMembers.filter(m => m.x >= p.x - 0.05 && m.x + m.w <= p.x + p.w + 0.05 && m.y >= p.y - 0.05 && m.y + m.h <= p.y + p.h + 0.05);
+            if (inPlot.length > 0) {
+                const minX = Math.min(...inPlot.map(m => m.x));
+                const minY = Math.min(...inPlot.map(m => m.y));
+                const maxX = Math.max(...inPlot.map(m => m.x + m.w));
+                const maxY = Math.max(...inPlot.map(m => m.y + m.h));
+                const pad = 0.35;
+                const bx = Math.max(p.x, minX - pad);
+                const by = Math.max(p.y, minY - pad);
+                const bw = Math.min(p.x + p.w - bx, (maxX - minX) + pad * 2);
+                const bh = Math.min(p.y + p.h - by, (maxY - minY) + pad * 2);
+                powerBoxes.push({ x: bx, y: by, w: bw, h: bh, emodeCount: inPlot.filter(m => m.emode).length });
+            }
+        });
+    }
+    const powerGridBgs = powerBoxes.map(b =>
+        `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="0.35" fill="#f59e0b" fill-opacity="0.08" class="layout-power-grid-bg" />`
+    ).join('');
+    const powerGridEdges = powerBoxes.map(b =>
+        `<g class="layout-power-grid-frame">
+            <rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="0.35" fill="none"
+                stroke="#f59e0b" stroke-opacity="0.9" stroke-width="0.09" stroke-dasharray="0.4,0.2" />
+            <text x="${b.x + 0.2}" y="${b.y + 0.35}" font-size="0.45" fill="#f59e0b" font-weight="bold" text-anchor="start" dominant-baseline="hanging">⚡ กรอบเสาไฟ (Power Grid)</text>
+        </g>`
+    ).join('');
+
+    const maxTrips = Math.max(...allMembers.filter(m => !m.isGenerator && !m.isPowerPole).map(m => m.weight || 0), 1e-9);
+    const shapes = allMembers.map(m => {
+        if (m.isGenerator) {
+            const tip = tipAttrs('Crackle Generator', {
+                detail: `เสากำเนิดไฟฟ้าเปาะแปะ Lv.${m.genLevel || 1} (จ่ายไฟ ${m.outputWatts || 120}W)`,
+                stats: `รองรับเครื่องโหมด E ได้ ${Math.floor((m.outputWatts || 120) / 60)} เครื่อง`,
+                color: '#f59e0b',
+            });
+            return `<g class="layout-piece crackle-generator" ${tip}><rect x="${m.x + 0.05}" y="${m.y + 0.05}" width="${m.w - 0.1}" height="${m.h - 0.1}" rx="0.3"
+                fill="#f59e0b" fill-opacity="0.88" stroke="#d97706" stroke-width="0.08" />
+                <text x="${m.x + m.w / 2}" y="${m.y + m.h / 2 - 0.22}" font-size="0.6" font-weight="bold" fill="#ffffff">⚡ CG</text>
+                <text x="${m.x + m.w / 2}" y="${m.y + m.h / 2 + 0.4}" font-size="0.35" fill="#ffffff" opacity="0.95">Lv.${m.genLevel || 1} · ${m.outputWatts || 120}W</text>
+            </g>`;
+        }
+        if (m.isPowerPole) {
+            const tip = tipAttrs('Crackle Power Pole', {
+                detail: 'เสาไฟฟ้าเปาะแปะ (ขยายกรอบเสาไฟสำหรับโหมด E)',
+                stats: 'สร้างกรอบเชื่อมต่อพลังงานไฟฟ้า',
+                color: '#d97706',
+            });
+            return `<g class="layout-piece crackle-pole" ${tip}><rect x="${m.x + 0.04}" y="${m.y + 0.04}" width="${m.w - 0.08}" height="${m.h - 0.08}" rx="0.2"
+                fill="#d97706" fill-opacity="0.9" stroke="#b45309" stroke-width="0.08" />
+                <text x="${m.x + m.w / 2}" y="${m.y + m.h / 2}" font-size="0.45" font-weight="bold" fill="#ffffff">⚡ PP</text>
+            </g>`;
+        }
         const color = layoutColor(m);
         const away = Math.hypot(m.x + m.w / 2 - (layout.storage.x + layout.storage.w / 2), m.y + m.h / 2 - (layout.storage.y + layout.storage.h / 2));
+        const detailText = (m.jobs ? m.jobs.map(j => prettyItem(j.item)).join(', ') : m.crop ? prettyItem(m.crop) : m.building && m.mode ? m.mode : 'Idle') + (m.emode ? ' ⚡ [โหมด E · 60W ในกรอบเสาไฟ]' : '');
         const tip = tipAttrs(m.facility, {
-            detail: m.jobs ? m.jobs.map(j => prettyItem(j.item)).join(', ') : m.crop ? prettyItem(m.crop) : m.building && m.mode ? m.mode : 'Idle',
+            detail: detailText,
             stats: m.weight > 0 ? `${formatRate(m.weight)} trips/hour · ${away.toFixed(1)} tiles from storage` : '',
             color,
         });
@@ -1466,6 +1574,11 @@ function homelandSvg(layout, homeLevel) {
             return `<g class="env-building" ${tip}><rect x="${m.x + 0.05}" y="${m.y + 0.05}" width="${m.w - 0.1}" height="${m.h - 0.1}" rx="0.3"
                 fill="${color}" fill-opacity="${m.mode ? 1 : 0.25}" stroke="currentColor" stroke-opacity="0.6" stroke-width="0.08" />
                 ${m.mode ? environmentBuildingIcon(m.facility, m.mode, m.x + m.w / 2, m.y + m.h / 2) : ''}</g>`;
+        }
+        if (m.emode) {
+            const emodeBadge = `<text x="${m.x + m.w - 0.28}" y="${m.y + 0.32}" font-size="0.42" fill="#f59e0b" font-weight="bold">⚡</text>`;
+            return `<g class="layout-piece emode-facility" ${tip}><rect x="${m.x + 0.04}" y="${m.y + 0.04}" width="${m.w - 0.08}" height="${m.h - 0.08}" rx="0.2"
+                fill="${color}" fill-opacity="${fill.toFixed(2)}" stroke="#f59e0b" stroke-width="0.08" stroke-dasharray="0.6,0.2" />${label}${emodeBadge}</g>`;
         }
         return `<g class="layout-piece" ${tip}><rect x="${m.x + 0.04}" y="${m.y + 0.04}" width="${m.w - 0.08}" height="${m.h - 0.08}" rx="0.2"
             fill="${color}" fill-opacity="${fill.toFixed(2)}" stroke="${color}" stroke-width="0.06" />${label}</g>`;
@@ -1488,15 +1601,17 @@ function homelandSvg(layout, homeLevel) {
     const flows = flowList.map(f => `<line x1="${f.x1}" y1="${f.y1}" x2="${f.x2}" y2="${f.y2}" class="layout-flow-line" />`).join('');
     const rings = flowList.map(f => `<g class="layout-ring" transform="translate(${f.rx.toFixed(2)} ${f.ry.toFixed(2)})">
             <circle r="${f.ring.toFixed(2)}" class="ring-track" /><circle r="${f.ring.toFixed(2)}" class="ring-fill" pathLength="1" stroke-dasharray="0 1" transform="rotate(-90)" /></g>`).join('');
-    const totalTrips = layout.pieces.flatMap(p => p.members).reduce((sum, m) => sum + (m.weight || 0), 0);
+    const totalTrips = layout.pieces.flatMap(p => p.members).filter(m => !m.building && !m.isGenerator && !m.isPowerPole).reduce((sum, m) => sum + (m.weight || 0), 0);
     return `<svg class="layout-svg" viewBox="${minX} ${minY} ${maxX - minX} ${maxY - minY}" role="img" aria-label="Homeland layout">
         <defs><pattern id="layout-locked" width="1" height="1" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
             <line x1="0" y1="0" x2="0" y2="1" class="layout-hatch" /></pattern></defs>
         <g class="env-grid">${lines.join('')}</g>
-        <g class="layout-plots">${plotShapes}</g>
+        <g class="layout-plots" pointer-events="none">${plotShapes}</g>
         <g class="layout-coverage">${coverageShapes}</g>
+        <g class="layout-power-grid-bgs">${powerGridBgs}</g>
         ${shapes}
         <g class="layout-coverage-edges" pointer-events="none">${coverageEdges}</g>
+        <g class="layout-power-grid-edges" pointer-events="none">${powerGridEdges}</g>
         <g class="layout-rings" pointer-events="none">${rings}</g>
         <g class="layout-flows" pointer-events="none">${flows}<g class="layout-dots"></g></g>
         <g class="layout-piece layout-storage-unit" ${tipAttrs('Storage Unit', { detail: 'Where everything is carried', stats: totalTrips > 0 ? `${formatRate(totalTrips)} trips/hour` : '' })}><rect x="${s.x + 0.04}" y="${s.y + 0.04}" width="${s.w - 0.08}" height="${s.h - 0.08}" rx="0.2" class="layout-storage" />
@@ -1532,7 +1647,7 @@ function layoutFlows(layout) {
     const s = layout.storage;
     const x2 = s.x + s.w / 2;
     const y2 = s.y + s.h / 2;
-    return layout.pieces.flatMap(p => p.members).filter(m => m.weight > 0 && m.crop && m.cycle > 0).map(m => {
+    return layout.pieces.flatMap(p => p.members).filter(m => m.weight > 0 && m.crop && m.cycle > 0 && !m.isGenerator && !m.isPowerPole).map(m => {
         const x1 = m.x + m.w / 2;
         const y1 = m.y + m.h / 2;
         const ring = Math.min(0.45, Math.min(m.w, m.h) * 0.22);
