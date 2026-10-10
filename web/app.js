@@ -1273,7 +1273,7 @@ function homelandPieces(plan, input) {
     });
 
     // For every facility type, recipes allowed to take turns share a unit only when there are not
-    // enough owned units to give each recipe its own. No facility names are special-cased here.
+    // enough owned units to give each recipe its own. Idle units are omitted from the layout.
     const turnAllocations = allocateTurnFacilities(steps, facility => tierCount(input.facilities[facility]), takesTurns);
     turnAllocations.forEach((allocations, facility) => {
         const footprint = FACILITY_FOOTPRINTS[facility];
@@ -1281,19 +1281,21 @@ function homelandPieces(plan, input) {
             unplaced.add(facility);
             return;
         }
+        let activeUnits = 0;
         allocations.forEach(jobs => {
+            if (!jobs || jobs.length === 0) return; // Skip idle turn-sharing units
             const weight = jobs.reduce((sum, j) => sum + j.rate * 3600, 0);
             const emode = jobs.some(j => isEModeActive({ facility, item_name: j.item }));
             pieces.push({ members: [{ x: 0, y: 0, w: footprint[0], h: footprint[1], weight, jobs: jobs.length ? jobs : undefined, cycle: jobs[0]?.cycle, facility, crop: jobs[0]?.item ?? null, sensitive: false, emode }] });
+            activeUnits++;
         });
-        count(facility, allocations.length);
+        if (activeUnits > 0) count(facility, activeUnits);
     });
 
-    // Everything else, one unit at a time; environment crops no map took count here too. Rows for
-    // a turn facility are already represented above, including its idle row and physical units.
-    steps.filter(step => !turnAllocations.has(step.facility)).forEach(step => {
+    // Everything else, one unit at a time; only place producing facilities, skip idle ones
+    steps.filter(step => !turnAllocations.has(step.facility) && step.status === 'producing').forEach(step => {
         let n = step.facility_count;
-        if (step.environment && step.status === 'producing') {
+        if (step.environment) {
             const key = `${step.facility}|${step.item_name}`;
             const taken = Math.min(n, placedInBlocks[key] || 0);
             placedInBlocks[key] = (placedInBlocks[key] || 0) - taken;
@@ -1305,11 +1307,8 @@ function homelandPieces(plan, input) {
             return;
         }
         for (let i = 0; i < n; i++) {
-            // A crop that needs an environment but is grown without one stays out of every
-            // coverage square, so no building's temperature changes it.
-            const growing = step.status === 'producing';
-            const emode = growing && isEModeActive(step);
-            pieces.push({ members: [{ x: 0, y: 0, w: footprint[0], h: footprint[1], weight: tripsPerUnit(step), cycle: step.cycle_time, facility: step.facility, crop: growing ? step.item_name : null, sensitive: growing && needsEnvironment(step.item_name), emode }] });
+            const emode = isEModeActive(step);
+            pieces.push({ members: [{ x: 0, y: 0, w: footprint[0], h: footprint[1], weight: tripsPerUnit(step), cycle: step.cycle_time, facility: step.facility, crop: step.item_name, sensitive: needsEnvironment(step.item_name), emode }] });
         }
         count(step.facility, n);
     });
@@ -1359,21 +1358,7 @@ function homelandPieces(plan, input) {
         }
     }
 
-    // What's owned but not in the plan at all, such as environment buildings it didn't need.
-    FACILITIES.forEach(f => {
-        const owned = tierCount(input.facilities[f.name]);
-        const extra = owned - (placed[f.name] || 0);
-        if (extra <= 0) return;
-        const footprint = f.name in ENVIRONMENT_BUILDING_SIZES
-            ? [environmentBuildingSize(f.name), environmentBuildingSize(f.name)]
-            : FACILITY_FOOTPRINTS[f.name];
-        if (!footprint) {
-            unplaced.add(f.name);
-            return;
-        }
-        const building = f.name in ENVIRONMENT_BUILDING_SIZES;
-        for (let i = 0; i < extra; i++) pieces.push({ members: [{ x: 0, y: 0, w: footprint[0], h: footprint[1], weight: 0, facility: f.name, crop: null, building, mode: null }] });
-    });
+    // Unused and idle facilities are completely omitted from the layout so they do not take up space.
     return { pieces, unplaced: [...unplaced] };
 }
 

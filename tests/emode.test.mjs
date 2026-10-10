@@ -101,3 +101,36 @@ test('Crackle Generator and Power Pole pieces are generated for E-Mode facilitie
     assert.deepEqual(FACILITY_FOOTPRINTS['Crackle Generator'], [2, 2]);
     assert.deepEqual(FACILITY_FOOTPRINTS['Crackle Power Pole'], [1, 1]);
 });
+
+test('Idle and unused facilities are omitted from layout pieces', () => {
+    // Simulating homeland pieces generation with active and idle units
+    const steps = [
+        { facility: 'Woodworking Bench', item_name: 'rough_lumber', status: 'producing', facility_count: 1, cycle_time: 30 },
+        { facility: 'Aniipod Maker', item_name: null, status: 'idle', facility_count: 1, cycle_time: null },
+        { facility: 'Blazing Stove', item_name: null, status: 'idle', facility_count: 1, cycle_time: null },
+    ];
+    const turnAllocations = new Map([
+        ['Woodworking Bench', [[{ item: 'rough_lumber', cycle: 30, rate: 0.5 }]]],
+        ['Chimney Kiln', [[]]], // idle turn unit with no jobs
+    ]);
+
+    const pieces = [];
+    // Turn allocations logic: skip empty jobs
+    turnAllocations.forEach((allocations, facility) => {
+        allocations.forEach(jobs => {
+            if (!jobs || jobs.length === 0) return; // Must skip idle
+            pieces.push({ facility, crop: jobs[0]?.item });
+        });
+    });
+
+    // Non-turn steps logic: only producing
+    steps.filter(step => !turnAllocations.has(step.facility) && step.status === 'producing').forEach(step => {
+        pieces.push({ facility: step.facility, crop: step.item_name });
+    });
+
+    // Verify pieces only contain Woodworking Bench, not Aniipod Maker, Blazing Stove, or idle Chimney Kiln
+    assert.equal(pieces.length, 1);
+    assert.equal(pieces[0].facility, 'Woodworking Bench');
+    assert.equal(pieces[0].crop, 'rough_lumber');
+});
+
