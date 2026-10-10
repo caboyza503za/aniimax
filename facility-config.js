@@ -186,6 +186,7 @@ export const CRACKLE_GENERATOR = {
     maxPlaced: 1, // Only 1 Crackle Generator can be placed in Homeland
     ability: 'Lightning',
     footprint: [2, 2],
+    range: [11, 11], // 11x11 tiles coverage frame centered on generator
     wattsByLevel: { 1: 120, 2: 240, 3: 360, 4: 480, 5: 600 },
     levelByHomeLevel: (homeLevel) => {
         if (homeLevel >= 20) return 5;
