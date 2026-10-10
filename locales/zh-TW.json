@@ -940,5 +940,12 @@
   "Facility": "設施",
   "No production assignment.": "尚未指派生產工作。",
   "No delivery route is needed.": "不需要配送路線。",
-  "Use arrow keys to pan, plus and minus to zoom.": "使用方向鍵平移，使用加號與減號縮放。"
+  "Use arrow keys to pan, plus and minus to zoom.": "使用方向鍵平移，使用加號與減號縮放。",
+  "All Plots": "所有地塊",
+  "Facilities in Plot": "在此地塊內",
+  "Daily Output": "每日產量",
+  "Aniimo Workforce Assignment": "伊莫勞動力指派",
+  "Concrete Aniimo workers assigned to facilities and plots based on live abilities and optimal output.": "根據實際技能與最佳產出，將具體的伊莫工人指派至設施與地塊。",
+  "Workshop": "工作坊",
+  "No facilities in this plot": "此地塊內沒有設施"
 }

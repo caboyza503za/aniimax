@@ -842,5 +842,12 @@
   "Facility",
   "No production assignment.",
   "No delivery route is needed.",
-  "Use arrow keys to pan, plus and minus to zoom."
+  "Use arrow keys to pan, plus and minus to zoom.",
+  "All Plots",
+  "Facilities in Plot",
+  "Daily Output",
+  "Aniimo Workforce Assignment",
+  "Concrete Aniimo workers assigned to facilities and plots based on live abilities and optimal output.",
+  "Workshop",
+  "No facilities in this plot"
 ]

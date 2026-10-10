@@ -842,5 +842,12 @@
   "Facility": "Постройка",
   "No production assignment.": "Производственная задача не назначена.",
   "No delivery route is needed.": "Маршрут доставки не требуется.",
-  "Use arrow keys to pan, plus and minus to zoom.": "Используйте стрелки для перемещения, а плюс и минус для масштаба."
+  "Use arrow keys to pan, plus and minus to zoom.": "Используйте стрелки для перемещения, а плюс и минус для масштаба.",
+  "All Plots": "Все участки",
+  "Facilities in Plot": "В этом участке",
+  "Daily Output": "Производство в день",
+  "Aniimo Workforce Assignment": "Назначение рабочих Анимо",
+  "Concrete Aniimo workers assigned to facilities and plots based on live abilities and optimal output.": "Конкретные рабочие Анимо назначены на постройки и участки на основе реальных навыков и максимальной отдачи.",
+  "Workshop": "Мастерская",
+  "No facilities in this plot": "На этом участке нет построек"
 }

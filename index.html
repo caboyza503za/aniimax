@@ -229,7 +229,17 @@
                         </div>
                         <p class="aniimo-count" id="aniimo-count" hidden><span id="aniimo-count-have">0</span><span class="aniimo-count-of" id="aniimo-count-of"></span></p>
                         <p class="collapsed-summary" id="aniimo-collapsed-summary"></p>
-                        <div class="ability-strip" id="aniimo-abilities" aria-label="Aniimo needed per ability"></div>
+                        <!-- Concrete Workforce Section with Real Aniimo Cards -->
+                        <div class="aniimo-workforce-section" id="aniimo-workforce-section">
+                            <div class="aniimo-workforce-head">
+                                <h3>ทีมแอนีโมตัวจริงที่ต้องใช้ในบ้าน</h3>
+                                <span class="aniimo-workforce-badge" id="aniimo-workforce-badge">คำนวณอัตโนมัติ</span>
+                            </div>
+                            <div class="aniimo-workforce-grid" id="aniimo-workforce-grid">
+                                <!-- Populated dynamically with concrete Aniimo cards -->
+                            </div>
+                        </div>
+                        <div class="ability-strip" id="aniimo-abilities" aria-label="Aniimo needed per ability" style="display: none;"></div>
                         <p class="hint small" id="aniimo-pending" style="display: none;">Still working this setup out...</p>
                         <div id="aniimo-body">
                             <details class="explain">
@@ -298,30 +308,49 @@
                         <div id="facility-plan-container" class="facilities-container"></div>
                     </div>
 
-                    <div class="card production-steps" id="layout-card" style="display: none;">
-                        <div class="map-card-head">
-                            <div>
-                                <span class="section-kicker">LIVE PLAN VIEW</span>
-                                <h2>Homeland Layout</h2>
+                    <div class="card production-steps hp-frame" id="layout-card" style="display: none;">
+                        <div class="hp-frame__head" id="layout-frame-head">
+                            <div class="hp-frame__left">
+                                <button type="button" class="hp-back" id="layout-back-btn" style="display: none;" title="กลับไปยังภาพรวมทั้งหมด">
+                                    <span class="hp-back__icon">‹</span>
+                                    <span class="hp-back__label">แปลงที่ดินทั้งหมด</span>
+                                </button>
+                                <div class="hp-frame__title">
+                                    <h2 id="layout-current-plot-title">แปลงที่ดินทั้งหมด</h2>
+                                    <div class="hp-listdrop" id="layout-plot-dropdown-wrap">
+                                        <button type="button" class="hp-listbtn" id="layout-plot-dropdown-btn" aria-expanded="false" title="ดูรายการสิ่งก่อสร้างในแปลงนี้">
+                                            <span class="hp-listbtn__icon">📋</span>
+                                            <span class="hp-listbtn__text">ในแปลงที่ดินนี้</span>
+                                            <span class="hp-listbtn__n" id="layout-plot-facility-count">0</span>
+                                            <span class="hp-listbtn__caret">▼</span>
+                                        </button>
+                                        <div class="hp-listpanel" id="layout-plot-dropdown-panel" hidden>
+                                            <div class="hp-listpanel__content" id="layout-plot-facility-list"></div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <span class="map-status"><i></i> Ready to explore</span>
+                            <div class="hp-frame__right">
+                                <div class="hp-strip" id="layout-daily-output-strip">
+                                    <span class="hp-strip__lab">ผลิตต่อวัน</span>
+                                    <div class="hp-strip__items" id="layout-daily-output-items"></div>
+                                </div>
+                                <div class="layout-zoom-controls" role="group" aria-label="Map controls">
+                                    <button type="button" class="map-control" id="layout-zoom-out" title="Zoom out" aria-label="Zoom out">−</button>
+                                    <button type="button" class="map-control map-control-fit" id="layout-zoom-fit" title="Fit map to view">Fit</button>
+                                    <button type="button" class="map-control" id="layout-zoom-in" title="Zoom in" aria-label="Zoom in">+</button>
+                                </div>
+                            </div>
                         </div>
                         <p class="hint" id="layout-summary"></p>
                         <details class="explain">
                             <summary>How it's laid out</summary>
                             <p>Every finished batch is carried to the Storage Unit (SU), so each facility is placed by its trips per hour times its straight-line distance to it: the busiest sit closest, idle ones go to the edge. Each environment building's plots can go anywhere its coverage still reaches them, so they sit on its Storage Unit side. No covered plot reaches another building's coverage, and a crop that needs an environment but is grown without one stays out of all of it, so every crop keeps the temperature the plan gave it. Crops that need no environment can go anywhere. Everything stays within the plots your RV level has open (each 20 by 15 tiles; in Advanced mode, the lowest RV level that allows what you entered), and the Storage Unit goes wherever the walking comes out least. Hover or tap a facility for its trips and distance. The diagram plays the homeland out in sped-up game time from when everything is set up: each finished batch goes to the Storage Unit (carrying takes no time here), and a recipe starts only once what it takes is there. A ring on each facility shows its batch, amber while it waits for materials. This is a close-packed arrangement worked out step by step, not a proven shortest one.</p>
                         </details>
-                        <div class="layout-controls">
-                            <span class="layout-toggles">
-                                <label class="layout-whole"><input type="checkbox" id="layout-whole"> Show the whole homeland</label>
-                            </span>
-                            <div class="layout-zoom-controls" role="group" aria-label="Map controls">
-                                <button type="button" class="map-control" id="layout-zoom-out" title="Zoom out" aria-label="Zoom out">−</button>
-                                <button type="button" class="map-control map-control-fit" id="layout-zoom-fit" title="Fit map to view">Fit</button>
-                                <button type="button" class="map-control" id="layout-zoom-in" title="Zoom in" aria-label="Zoom in">+</button>
-                            </div>
-                            <input type="checkbox" id="layout-sim-on" style="display: none;">
-                            <span class="layout-sim" id="layout-sim" style="display: none;" hidden><span id="layout-clock">0h 00m</span><button type="button" class="toggle-button small" id="layout-replay">Replay</button></span>
+                        <div class="layout-controls" style="display: none;">
+                            <input type="checkbox" id="layout-whole" checked>
+                            <input type="checkbox" id="layout-sim-on">
+                            <span class="layout-sim" id="layout-sim" hidden><span id="layout-clock">0h 00m</span><button type="button" class="toggle-button small" id="layout-replay">Replay</button></span>
                         </div>
                         <div class="layout-workspace">
                             <div class="layout-diagram" id="layout-diagram" aria-live="polite"></div>

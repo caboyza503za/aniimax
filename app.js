@@ -1621,6 +1621,22 @@ let layoutRunId = 0;
 let layoutWorker = null;
 
 // Every plot of the homeland, `{ number, x, y, w, h }` in tiles, with the top left at the origin.
+
+function getPlotForCoordinate(x, y) {
+    const col = Math.min(3, Math.max(0, Math.floor(x / HOMELAND_PLOT_SIZE.w)));
+    const row = Math.min(3, Math.max(0, Math.floor(y / HOMELAND_PLOT_SIZE.h)));
+    return HOMELAND_PLOTS[row]?.[col] || 1;
+}
+
+function getPlotCategory(members = []) {
+    if (!members.length) return translate('Workshop');
+    const hasProcessing = members.some(m => !m.isGenerator && !m.isPowerPole && !m.building && m.recipe);
+    const hasEnvironment = members.some(m => m.building);
+    if (hasProcessing) return translate('Workshop');
+    if (hasEnvironment) return translate('Farmland');
+    return translate('Workshop');
+}
+
 function homelandPlots() {
     return HOMELAND_PLOTS.flatMap((row, r) => row.map((number, c) => ({
         number, x: c * HOMELAND_PLOT_SIZE.w, y: r * HOMELAND_PLOT_SIZE.h, w: HOMELAND_PLOT_SIZE.w, h: HOMELAND_PLOT_SIZE.h,
@@ -1687,11 +1703,47 @@ function writeLayoutViewBox() {
     state.svg.setAttribute('viewBox', `${v.x} ${v.y} ${v.width} ${v.height}`);
 }
 
+function animateCameraTo(target, duration = 300) {
+    const state = layoutMapState;
+    if (!state) return;
+    if (typeof requestAnimationFrame === 'undefined') {
+        state.viewBox = { ...target };
+        writeLayoutViewBox();
+        return;
+    }
+    const start = { ...state.viewBox };
+    const startTime = performance.now();
+    function step(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(1, elapsed / duration);
+        const ease = 1 - Math.pow(1 - progress, 3);
+        state.viewBox = {
+            x: start.x + (target.x - start.x) * ease,
+            y: start.y + (target.y - start.y) * ease,
+            width: start.width + (target.width - start.width) * ease,
+            height: start.height + (target.height - start.height) * ease,
+        };
+        writeLayoutViewBox();
+        if (progress < 1) {
+            requestAnimationFrame(step);
+        }
+    }
+    requestAnimationFrame(step);
+}
+
 function resetLayoutViewport() {
     const state = layoutMapState;
     if (!state) return;
     state.viewBox = { ...state.baseViewBox };
     writeLayoutViewBox();
+    const title = document.getElementById('layout-current-plot-title');
+    if (title) title.textContent = translate('All Plots');
+    const backBtn = document.getElementById('layout-back-btn');
+    if (backBtn?.style) backBtn.style.display = 'none';
+    const allMembers = (typeof lastLayout !== 'undefined' && lastLayout?.layout?.pieces?.flatMap(p => p.members)) || [];
+    const countEl = document.getElementById('layout-plot-facility-count');
+    if (countEl) countEl.textContent = allMembers.length;
+    updatePlotDropdownContent(null);
 }
 
 function zoomLayout(factor, clientX = null, clientY = null) {
@@ -1719,6 +1771,90 @@ function panLayout(dx, dy) {
     writeLayoutViewBox();
 }
 
+function updateDailyOutputStrip(plan) {
+    const container = document.getElementById('layout-daily-output-items');
+    if (!container || !plan) return;
+    const items = (plan.coin_items || [])
+        .filter(step => step.status === 'producing' && step.rate_per_second > 0)
+        .sort((a, b) => (b.rate_per_second * b.sell_value) - (a.rate_per_second * a.sell_value))
+        .slice(0, 5);
+
+    container.innerHTML = items.map(it => {
+        const icon = typeof getItemIconUrl === 'function' ? getItemIconUrl(it.item_name) : null;
+        const perDay = Math.round(it.rate_per_second * 86400);
+        return `<span class="hp-chip" title="${prettyItem(it.item_name)}: ${formatNumber(perDay)}/วัน">${icon ? `<img src="${icon}" alt="" loading="lazy">` : ''} <b>${formatNumber(perDay)}</b></span>`;
+    }).join('');
+}
+
+function updatePlotDropdownContent(plotNumber = null) {
+    const listEl = document.getElementById('layout-plot-facility-list');
+    if (!listEl) return;
+    const allMembers = (typeof lastLayout !== 'undefined' && lastLayout?.layout?.pieces?.flatMap(p => p.members)) || [];
+    const members = plotNumber == null
+        ? allMembers
+        : allMembers.filter(m => (typeof getPlotForCoordinate === 'function' ? getPlotForCoordinate(m.x + m.w / 2, m.y + m.h / 2) : 1) === plotNumber);
+
+    if (members.length === 0) {
+        listEl.innerHTML = `<p class="hint small" style="padding:0.75rem;margin:0;">${translate('No facilities in this plot')}</p>`;
+        return;
+    }
+
+    listEl.innerHTML = members.map(m => {
+        const facName = m.facility || (m.isGenerator ? translate('Crackle Generator') : m.isPowerPole ? translate('Crackle Power Pole') : translate('Storage Unit'));
+        const worker = typeof getRecommendedWorker === 'function' ? getRecommendedWorker(m.facility) : null;
+        const iconUrl = typeof getItemIconUrl === 'function' ? getItemIconUrl(m.recipe) : null;
+        const prodRate = m.weight ? `${formatRate(m.weight * 24)}/วัน` : '';
+        return `<div class="hp-listpanel-item" data-x="${m.x}" data-y="${m.y}">
+            <div class="hp-listpanel-icon">
+                ${iconUrl ? `<img src="${iconUrl}" alt="" loading="lazy">` : ''}
+            </div>
+            <div class="hp-listpanel-info">
+                <span class="hp-listpanel-name">${translate(facName)}</span>
+                <span class="hp-listpanel-sub">${m.recipe ? `${prettyItem(m.recipe)} ${prodRate}` : ''}</span>
+            </div>
+            ${worker ? `<div class="hp-listpanel-worker"><img src="${worker.avatar}" title="${worker.name} (${worker.abilityTh} Lv.${worker.level})" loading="lazy"></div>` : ''}
+        </div>`;
+    }).join('');
+
+    if (typeof listEl.querySelectorAll === 'function') {
+        listEl.querySelectorAll('.hp-listpanel-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const x = Number(item.dataset.x);
+                const y = Number(item.dataset.y);
+                animateCameraTo({ x: x - 4, y: y - 3, width: 10, height: 8 }, 280);
+                const panel = document.getElementById('layout-plot-dropdown-panel');
+                if (panel) panel.hidden = true;
+                const btn = document.getElementById('layout-plot-dropdown-btn');
+                if (btn) btn.setAttribute('aria-expanded', 'false');
+            });
+        });
+    }
+}
+
+function focusPlot(plotNumber) {
+    if (typeof homelandPlots !== 'function') return;
+    const plots = homelandPlots();
+    const p = plots.find(pl => pl.number === plotNumber);
+    if (!p) return;
+
+    const allMembers = (typeof lastLayout !== 'undefined' && lastLayout?.layout?.pieces?.flatMap(pc => pc.members)) || [];
+    const inPlot = allMembers.filter(m => (typeof getPlotForCoordinate === 'function' ? getPlotForCoordinate(m.x + m.w / 2, m.y + m.h / 2) : 1) === plotNumber);
+    const categoryTh = typeof getPlotCategory === 'function' ? getPlotCategory(inPlot) : translate('Workshop');
+
+    animateCameraTo({ x: p.x - 1, y: p.y - 1, width: p.w + 2, height: p.h + 2 }, 320);
+
+    const title = document.getElementById('layout-current-plot-title');
+    if (title) title.textContent = `${translate('Plot')} ${plotNumber} • ${categoryTh}`;
+
+    const backBtn = document.getElementById('layout-back-btn');
+    if (backBtn?.style) backBtn.style.display = 'inline-flex';
+
+    const countEl = document.getElementById('layout-plot-facility-count');
+    if (countEl) countEl.textContent = inPlot.length;
+
+    updatePlotDropdownContent(plotNumber);
+}
+
 function setupInteractiveLayout() {
     const svg = document.querySelector('#layout-diagram .layout-svg');
     if (!svg) return;
@@ -1727,14 +1863,43 @@ function setupInteractiveLayout() {
     svg.setAttribute('tabindex', '0');
     svg.setAttribute('aria-label', `${translate('Homeland layout')}. ${translate('Use arrow keys to pan, plus and minus to zoom.')}`);
     setLayoutInspector();
+
+    if (typeof lastPlan !== 'undefined' && lastPlan) updateDailyOutputStrip(lastPlan);
+    updatePlotDropdownContent(null);
+
+    // Dropdown toggle
+    const dropBtn = document.getElementById('layout-plot-dropdown-btn');
+    const dropPanel = document.getElementById('layout-plot-dropdown-panel');
+    if (dropBtn && dropPanel) {
+        dropBtn.onclick = (e) => {
+            e.stopPropagation();
+            const isOpen = !dropPanel.hidden;
+            dropPanel.hidden = isOpen;
+            dropBtn.setAttribute('aria-expanded', String(!isOpen));
+        };
+        if (typeof document.addEventListener === 'function') document.addEventListener('click', (e) => {
+            if (!dropPanel.hidden && !e.target.closest('#layout-plot-dropdown-wrap')) {
+                dropPanel.hidden = true;
+                dropBtn.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
+
+    const backBtn = document.getElementById('layout-back-btn');
+    if (backBtn) {
+        backBtn.onclick = resetLayoutViewport;
+    }
+
     svg.addEventListener('wheel', event => {
         event.preventDefault();
         zoomLayout(event.deltaY < 0 ? 1.18 : 1 / 1.18, event.clientX, event.clientY);
     }, { passive: false });
+
     svg.addEventListener('pointerdown', event => {
         layoutMapState.pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, moved: false };
         svg.setPointerCapture(event.pointerId);
     });
+
     svg.addEventListener('pointermove', event => {
         const pointer = layoutMapState?.pointer;
         if (!pointer || pointer.id !== event.pointerId) return;
@@ -1747,13 +1912,27 @@ function setupInteractiveLayout() {
             pointer.y = event.clientY;
         }
     });
+
     svg.addEventListener('pointerup', event => {
         const pointer = layoutMapState?.pointer;
         if (!pointer || pointer.id !== event.pointerId) return;
-        if (!pointer.moved) setLayoutInspector(event.target.closest('.layout-piece'));
+        if (!pointer.moved) {
+            const piece = event.target.closest('.layout-piece');
+            if (piece) {
+                setLayoutInspector(piece);
+            } else {
+                const plot = event.target.closest('.layout-plot');
+                if (plot) {
+                    const plotNum = Number(plot.dataset.plotNumber);
+                    if (plotNum) focusPlot(plotNum);
+                }
+            }
+        }
         layoutMapState.pointer = null;
     });
+
     svg.addEventListener('pointercancel', () => { if (layoutMapState) layoutMapState.pointer = null; });
+
     svg.addEventListener('keydown', event => {
         const pan = Math.max(1, layoutMapState.viewBox.width * 0.15);
         const moves = {
@@ -1863,9 +2042,23 @@ function homelandSvg(layout, homeLevel) {
     // Locked plots last, so where one meets an open plot, the edge between them reads red.
     const plotShapes = [...plots].sort((a, b) => (b.number <= homeLevel) - (a.number <= homeLevel)).map(p => {
         const open = p.number <= homeLevel;
-        const plotLabel = open ? `${translate('Plot')} ${p.number}` : `${translate('RV')} ${p.number}`;
-        return `<g class="layout-plot${open ? '' : ' locked'}"><rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="0.3" />
-            <text x="${p.x + 0.6}" y="${p.y + 0.9}" font-size="0.85">${plotLabel}</text></g>`;
+        const cx = (p.x + p.w / 2).toFixed(2);
+        const cy = (p.y + p.h / 2).toFixed(2);
+        const unlockInfo = PLOT_UNLOCK_INFO[p.number] || { rv: p.number, price: 0 };
+        if (open) {
+            return `<g class="layout-plot open" data-plot-number="${p.number}">
+                <rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="0.35" />
+                <text class="plot-title-label" x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central" font-size="2.0">แปลงที่ดิน ${p.number}</text>
+            </g>`;
+        } else {
+            return `<g class="layout-plot locked" data-plot-number="${p.number}">
+                <rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="0.35" />
+                <g class="plot-lock-wrap" transform="translate(${(cx - 0.75).toFixed(2)}, ${(cy - 1.4).toFixed(2)})">
+                    <path fill="#ffffff" fill-opacity="0.85" d="M0.75 0C0.34 0 0 0.34 0 0.75v0.5h1.5v-0.5c0-0.41-0.34-0.75-0.75-0.75zm-0.75 1.25v1.5c0 0.14 0.11 0.25 0.25 0.25h1c0.14 0 0.25-0.11 0.25-0.25v-1.5H0z" />
+                </g>
+                <text class="plot-lock-text" x="${cx}" y="${(Number(cy) + 1.2).toFixed(2)}" text-anchor="middle" font-size="0.85">RV Lv. ${unlockInfo.rv} • ${unlockInfo.price.toLocaleString()}</text>
+            </g>`;
+        }
     }).join('');
     const lines = [];
     for (let x = minX; x <= maxX; x++) lines.push(`<line x1="${x}" y1="${minY}" x2="${x}" y2="${maxY}" />`);
@@ -5158,3 +5351,89 @@ document.addEventListener('focusin', (e) => {
 });
 document.addEventListener('focusout', hideTip);
 window.addEventListener('scroll', hideTip, { passive: true, capture: true });
+
+
+function renderConcreteWorkforce(plan, kept = []) {
+    const grid = document.getElementById('aniimo-workforce-grid');
+    const badge = document.getElementById('aniimo-workforce-badge');
+    if (!grid) return;
+
+    const assignedWorkers = [];
+
+    // Map each kept role to the best concrete Aniimo character
+    kept.forEach(g => {
+        const facNames = [...g.where.keys()].map(k => k.split(' (')[0]);
+        const primaryFac = facNames[0] || '';
+        const worker = getBestAniimoForFacility(primaryFac, g.ability, g.level);
+        if (!worker) return;
+
+        const key = `${worker.name}|${g.label}`;
+        const whereStr = whereText(g);
+        assignedWorkers.push({
+            name: worker.name,
+            nameEn: worker.nameEn,
+            avatar: worker.avatar,
+            ability: g.ability,
+            abilityTh: ABILITY_TH_MAP[g.ability] || g.ability,
+            level: g.level,
+            count: g.count,
+            places: whereStr,
+            personalityBonus: g.bonus,
+        });
+    });
+
+    // Hauling (carrying produce to storage)
+    const haulingWorker = getBestAniimoForFacility('Storage Unit', 'Hauling', 1) || {
+        name: 'ปูหน่ออ่อน',
+        avatar: 'https://aniidex.com/images/aniimo/UI_PetHead_10161.webp',
+        ability: 'Hauling',
+        abilityTh: 'แบก',
+        level: 1,
+    };
+    assignedWorkers.push({
+        name: haulingWorker.name,
+        avatar: haulingWorker.avatar,
+        ability: 'Hauling',
+        abilityTh: 'แบก',
+        level: 1,
+        count: 1,
+        places: translate('ขนส่งผลผลิตไปยังที่จัดเก็บ'),
+        personalityBonus: false,
+    });
+
+    const totalCount = assignedWorkers.reduce((sum, w) => sum + w.count, 0);
+    if (badge) {
+        const homeLevel = activeHomelandLevel();
+        const maxCap = ANIIMO_MAX[homeLevel - 1] || 32;
+        badge.textContent = `ใช้ ${totalCount} / ${maxCap} ตัว`;
+    }
+
+    // Sort by level descending then name
+    assignedWorkers.sort((a, b) => b.level - a.level || a.name.localeCompare(b.name));
+
+    grid.innerHTML = assignedWorkers.map(w => {
+        const aInfo = ABILITY_BY_NAME.get(w.ability);
+        const abilityColor = aInfo ? aInfo.color : '#3b82f6';
+        const bonusTag = w.personalityBonus
+            ? `<span class="aniimo-worker-bonus">✨ ${translate('โบนัสนิสัย (+20% ความเร็ว)')}</span>`
+            : '';
+        const countBadge = w.count > 1 ? ` <span class="aniimo-worker-count">×${w.count}</span>` : '';
+        return `
+            <div class="aniimo-worker-card">
+                <div class="aniimo-worker-avatar">
+                    <img src="${w.avatar}" alt="${w.name}" loading="lazy">
+                </div>
+                <div class="aniimo-worker-info">
+                    <div class="aniimo-worker-top">
+                        <strong class="aniimo-worker-name">${w.name}${countBadge}</strong>
+                        <span class="aniimo-worker-ability" style="--ability:${abilityColor}">${w.abilityTh} Lv.${w.level}</span>
+                    </div>
+                    <div class="aniimo-worker-places" title="${w.places}">
+                        📍 ${w.places}
+                    </div>
+                    ${bonusTag}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
