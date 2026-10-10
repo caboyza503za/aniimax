@@ -2191,13 +2191,11 @@ function homelandSvg(layout, homeLevel) {
         `<g class="layout-generator-grid-frame">
             <rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" rx="0.35" fill="none"
                 stroke="#d97706" stroke-opacity="0.9" stroke-width="0.1" stroke-dasharray="0.6,0.25" />
-            <text x="${f.x + 0.2}" y="${f.y + 0.35}" font-size="0.45" fill="#fbbf24" font-weight="bold" text-anchor="start" dominant-baseline="hanging">${escapeText(translate('⚡ Generator Frame 11×11'))}</text>
         </g>`
     ).join('') + poleFrames.map(f =>
         `<g class="layout-power-grid-frame">
             <rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" rx="0.3" fill="none"
                 stroke="#eab308" stroke-opacity="0.9" stroke-width="0.09" stroke-dasharray="0.5,0.2" />
-            <text x="${f.x + 0.2}" y="${f.y + 0.35}" font-size="0.45" fill="#fde047" font-weight="bold" text-anchor="start" dominant-baseline="hanging">${escapeText(translate('⚡ Power Pole Frame 7×7'))}</text>
         </g>`
     ).join('');
 
