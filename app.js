@@ -1839,21 +1839,48 @@ function updatePlotDropdownContent(plotNumber = null) {
         return;
     }
 
+    const countEl = document.getElementById('layout-plot-facility-count');
+    if (countEl) countEl.textContent = members.length;
+
     listEl.innerHTML = members.map(m => {
         const facName = m.storageNumber
             ? `${translate('Storage Unit')} #${m.storageNumber}`
             : (m.facility || (m.isGenerator ? translate('Crackle Generator') : m.isPowerPole ? translate('Crackle Power Pole') : translate('Storage Unit')));
         const worker = typeof getRecommendedWorker === 'function' ? getRecommendedWorker(m.facility) : null;
-        const iconUrl = typeof getItemIconUrl === 'function' ? getItemIconUrl(m.recipe || m.facility) : null;
-        const prodRate = m.weight ? `${formatRate(m.weight * 24)}/วัน` : '';
+        const producedItem = m.jobs?.[0]?.item || m.crop || null;
+        const itemIcon = producedItem && typeof getItemIconUrl === 'function' ? getItemIconUrl(producedItem) : null;
+        const facilityGlyph = typeof getFacilityGlyphUrl === 'function' ? getFacilityGlyphUrl(m.facility || (m.isGenerator ? 'Crackle Generator' : m.isPowerPole ? 'Crackle Power Pole' : (m.storageNumber ? 'Storage Unit' : ''))) : null;
+        const iconUrl = itemIcon || facilityGlyph;
+        const prodRate = m.weight && typeof formatRate === 'function' ? `${formatRate(m.weight * 24)}/วัน` : (m.weight ? `${Math.round(m.weight * 24)}/วัน` : '');
         const exclText = (worker?.exclusive || m.facility === 'Dewy House') ? ` - ${translate('Exclusively requires Fragrancier')}` : '';
+
+        let subText = '';
+        if (m.storageNumber) {
+            subText = translate('Shared inventory connected to all Storage Units');
+        } else if (m.building && m.mode) {
+            subText = `${translate(m.mode)} · ${translate('Coverage radius')} 9×9`;
+        } else if (m.isGenerator) {
+            subText = `Lv.${m.genLevel || 1} · ${m.totalWatts || 0}W / ${m.outputWatts || 120}W`;
+        } else if (m.isPowerPole) {
+            subText = `${translate('Power Grid')} 7×7`;
+        } else if (producedItem) {
+            const itemLabel = m.jobs
+                ? m.jobs.map(j => (typeof prettyItem === 'function' ? prettyItem(j.item) : j.item)).join(', ')
+                : (typeof prettyItem === 'function' ? prettyItem(producedItem) : producedItem);
+            subText = prodRate ? `${itemLabel} (${prodRate})` : itemLabel;
+        } else {
+            subText = translate('Idle');
+        }
+
+        const fallbackIcon = m.isGenerator ? '⚡' : (m.storageNumber ? '📦' : (m.building ? '🌡️' : '🌾'));
+
         return `<div class="hp-listpanel-item" data-x="${m.x}" data-y="${m.y}">
             <div class="hp-listpanel-icon">
-                ${iconUrl ? `<img src="${iconUrl}" alt="" loading="lazy">` : ''}
+                ${iconUrl ? `<img src="${iconUrl}" alt="" loading="lazy">` : `<span style="font-size:1.1rem;">${fallbackIcon}</span>`}
             </div>
             <div class="hp-listpanel-info">
                 <span class="hp-listpanel-name">${translate(facName)}</span>
-                <span class="hp-listpanel-sub">${m.recipe ? `${prettyItem(m.recipe)} ${prodRate}` : (m.storageNumber ? translate('Shared inventory connected to all Storage Units') : '')}</span>
+                <span class="hp-listpanel-sub">${subText}</span>
             </div>
             ${worker ? `<div class="hp-listpanel-worker"><img src="${worker.avatar}" title="${worker.name} (${worker.abilityTh} Lv.${worker.level}${exclText})" loading="lazy"></div>` : ''}
         </div>`;
