@@ -63,3 +63,31 @@ test('Power and Lightning Aniimo requirements calculation', () => {
     const netSaved = 5 - gensNeeded16;
     assert.equal(netSaved, 4);
 });
+
+test('Speed comparison between Aniimo worker levels and E-Mode (1.2x grid efficiency)', () => {
+    // Speed helper function matching the game mechanics and app.js
+    const calculateSpeed = (workerLevel, minLevel, hasPersonality) => {
+        const above = Math.max(0, workerLevel - minLevel);
+        const baseSpeed = above === 0 ? 1.0 : (2.0 + above);
+        return hasPersonality ? baseSpeed * 1.2 : baseSpeed;
+    };
+    const eModeSpeed = 1.2; // 120% efficiency buff with stable electrical grid
+
+    // Level = minLevel without bonus: 1.0x (E-Mode is faster with 1.2x buff)
+    assert.equal(calculateSpeed(1, 1, false), 1.0);
+    assert.ok(calculateSpeed(1, 1, false) < eModeSpeed, 'E-Mode is faster than Lv.1 without bonus');
+
+    // Level = minLevel with bonus: 1.2x (E-Mode equals speed and frees the worker)
+    assert.equal(calculateSpeed(1, 1, true), 1.2);
+    assert.equal(calculateSpeed(1, 1, true), eModeSpeed, 'E-Mode equals Lv.1 with bonus');
+
+    // Level 2 on Level 1 (above = 1): 3.0x without bonus, 3.6x with bonus
+    assert.equal(calculateSpeed(2, 1, false), 3.0);
+    assert.ok(Math.abs(calculateSpeed(2, 1, true) - 3.6) < 1e-9);
+    assert.ok(calculateSpeed(2, 1, false) > eModeSpeed, 'Lv.2 worker is faster than E-Mode');
+
+    // Level 4 on Level 1 (above = 3): 5.0x without bonus, 6.0x with bonus
+    assert.equal(calculateSpeed(4, 1, false), 5.0);
+    assert.equal(calculateSpeed(4, 1, true), 6.0);
+    assert.ok(calculateSpeed(4, 1, true) > eModeSpeed, 'Lv.4 worker is 5x faster than E-Mode');
+});
