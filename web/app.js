@@ -1831,6 +1831,7 @@ function updatePlotDropdownContent(plotNumber = null) {
         const worker = typeof getRecommendedWorker === 'function' ? getRecommendedWorker(m.facility) : null;
         const iconUrl = typeof getItemIconUrl === 'function' ? getItemIconUrl(m.recipe || m.facility) : null;
         const prodRate = m.weight ? `${formatRate(m.weight * 24)}/วัน` : '';
+        const exclText = (worker?.exclusive || m.facility === 'Dewy House') ? ` - ${translate('Exclusively requires Fragrancier')}` : '';
         return `<div class="hp-listpanel-item" data-x="${m.x}" data-y="${m.y}">
             <div class="hp-listpanel-icon">
                 ${iconUrl ? `<img src="${iconUrl}" alt="" loading="lazy">` : ''}
@@ -1839,7 +1840,7 @@ function updatePlotDropdownContent(plotNumber = null) {
                 <span class="hp-listpanel-name">${translate(facName)}</span>
                 <span class="hp-listpanel-sub">${m.recipe ? `${prettyItem(m.recipe)} ${prodRate}` : (m.storageNumber ? translate('Shared inventory connected to all Storage Units') : '')}</span>
             </div>
-            ${worker ? `<div class="hp-listpanel-worker"><img src="${worker.avatar}" title="${worker.name} (${worker.abilityTh} Lv.${worker.level})" loading="lazy"></div>` : ''}
+            ${worker ? `<div class="hp-listpanel-worker"><img src="${worker.avatar}" title="${worker.name} (${worker.abilityTh} Lv.${worker.level}${exclText})" loading="lazy"></div>` : ''}
         </div>`;
     }).join('');
 
@@ -2200,7 +2201,8 @@ function homelandSvg(layout, homeLevel) {
         if (facConfig?.hasWorker && !m.emode) {
             const w = getRecommendedWorker(m.facility);
             if (w) {
-                workerSuffix = ` · 👷 ${translate('Recommended Aniimo')}: ${w.name} (${translate(w.abilityTh)} Lv.${w.level})`;
+                const exclNote = (w.exclusive || m.facility === 'Dewy House') ? ` [${translate('Exclusively requires Fragrancier')}]` : '';
+                workerSuffix = ` · 👷 ${translate('Recommended Aniimo')}: ${w.name} (${translate(w.abilityTh)} Lv.${w.level})${exclNote}`;
             }
         }
         const detailText = itemsText + emodeSuffix + workerSuffix;
@@ -5464,8 +5466,15 @@ function renderConcreteWorkforce(plan, kept = []) {
         const worker = getBestAniimoForFacility(primaryFac, g.ability, g.level);
         if (!worker) return;
 
-        const candidates = typeof findAniimosByAbility === 'function' ? findAniimosByAbility(g.ability, g.level) : [];
-        const alts = candidates.filter(c => c.name !== worker.name).slice(0, 3).map(c => c.name);
+        const isDewy = primaryFac === 'Dewy House' || primaryFac === 'บ้านน้ำค้าง' || worker.exclusive;
+        let candidates = [];
+        let alts = [];
+        if (isDewy) {
+            alts = ['นกน้ำดอกไม้'];
+        } else {
+            candidates = typeof findAniimosByAbility === 'function' ? findAniimosByAbility(g.ability, g.level) : [];
+            alts = candidates.filter(c => c.name !== worker.name).slice(0, 3).map(c => c.name);
+        }
         const whereStr = whereText(g);
 
         assignedWorkers.push({
@@ -5478,6 +5487,7 @@ function renderConcreteWorkforce(plan, kept = []) {
             count: g.count,
             places: whereStr,
             personalityBonus: g.bonus,
+            exclusive: isDewy,
             alts: alts.join(', '),
         });
     });
@@ -5502,6 +5512,7 @@ function renderConcreteWorkforce(plan, kept = []) {
         count: 1,
         places: translate("Carries produce to storage. How much work this is isn't known yet; add more if produce piles up."),
         personalityBonus: false,
+        exclusive: false,
         alts: haulingAlts.join(', '),
     });
 
@@ -5521,8 +5532,12 @@ function renderConcreteWorkforce(plan, kept = []) {
         const bonusTag = w.personalityBonus
             ? `<span class="aniimo-worker-bonus">✨ ${translate('Personality match (+20% speed)')}</span>`
             : '';
+        const exclusiveTag = w.exclusive
+            ? `<span class="aniimo-worker-exclusive">🔒 ${translate('Exclusively requires Fragrancier')}</span>`
+            : '';
         const countBadge = `<span class="aniimo-worker-count-pill">×${w.count}</span>`;
-        const altHtml = w.alts ? `<div class="aniimo-worker-alts">💡 ${translate('Or use:')} <b>${w.alts}</b></div>` : '';
+        const altLabel = w.exclusive ? translate('Or earlier tier:') : translate('Or use:');
+        const altHtml = w.alts ? `<div class="aniimo-worker-alts">💡 ${altLabel} <b>${w.alts}</b></div>` : '';
         return `
             <div class="aniimo-worker-card">
                 <div class="aniimo-worker-avatar" style="--elem-color:${abilityColor}">
@@ -5535,6 +5550,7 @@ function renderConcreteWorkforce(plan, kept = []) {
                     </div>
                     <div class="aniimo-worker-meta">
                         <span class="aniimo-worker-ability" style="--ability:${abilityColor}">${w.abilityTh} Lv.${w.level}</span>
+                        ${exclusiveTag}
                         ${bonusTag}
                     </div>
                     <div class="aniimo-worker-places" title="${w.places}">

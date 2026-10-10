@@ -51,7 +51,7 @@ export const FACILITIES = [
         tooltip: "Lv.1: Sea Salt&#10;Lv.2: Quick Sea Salt&#10;Lv.3: Pearl (needs Warm)"
     },
     {
-        name: 'Dewy House', slug: 'dewy-house', defaultCount: 0, category: 'Aniimo Materials', hasWorker: true, ability: 'Leisure', personality: 'Instinctive',
+        name: 'Dewy House', slug: 'dewy-house', defaultCount: 0, category: 'Aniimo Materials', hasWorker: true, exclusiveWorker: 'นกน้ำหอม', ability: 'Leisure', personality: 'Instinctive',
         unlocks: { 1: 6, 2: 11 },
         counts: [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
         tooltip: "Lv.1: Aromathyst&#10;Lv.2: Quick Aromathyst"

@@ -896,12 +896,14 @@ export const RECOMMENDED_WORKERS = {
     "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10213.webp"
   },
   "Dewy House": {
-    "name": "กระรอกจ้าวเวหา",
-    "nameEn": "Celestis",
+    "name": "นกน้ำหอม",
+    "nameEn": "Fragrancier",
     "ability": "Leisure",
     "abilityTh": "ไม่รีบร้อน",
-    "level": 4,
-    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10011.webp"
+    "level": 3,
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10352.webp",
+    "exclusive": true,
+    "note": "บังคับใช้เฉพาะนกน้ำหอม"
   },
   "Nimbus Bed": {
     "name": "แกะปุยเมฆ",
@@ -4328,6 +4330,9 @@ export function findAniimosByAbility(ability, minLevel = 1) {
 }
 
 export function getBestAniimoForFacility(facilityName, ability, minLevel = 1) {
+    if (facilityName === 'Dewy House' || facilityName === 'บ้านน้ำค้าง' || facilityName === 'dewy-house') {
+        return RECOMMENDED_WORKERS['Dewy House'];
+    }
     if (RECOMMENDED_WORKERS[facilityName]) {
         return RECOMMENDED_WORKERS[facilityName];
     }

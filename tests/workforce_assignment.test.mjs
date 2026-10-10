@@ -43,3 +43,21 @@ test('workforce recommendation provides matching Aniimo and alternatives', () =>
     assert.ok(alts.length > 0);
     assert.ok(alts.includes('เจ้าหมีขี้เซา') || alts.includes('ปูไม้พุ่ม'));
 });
+
+test('Dewy House exclusively mandates Fragrancier (นกน้ำหอม)', () => {
+    const worker = getBestAniimoForFacility('Dewy House', 'Leisure', 1);
+    assert.ok(worker);
+    assert.equal(worker.name, 'นกน้ำหอม');
+    assert.equal(worker.nameEn, 'Fragrancier');
+    assert.equal(worker.level, 3);
+    assert.equal(worker.exclusive, true);
+    assert.ok(worker.avatar.includes('UI_PetHead_10352.webp'));
+
+    // Also works with Thai name and slug alias
+    const thWorker = getBestAniimoForFacility('บ้านน้ำค้าง');
+    assert.equal(thWorker.name, 'นกน้ำหอม');
+    assert.equal(thWorker.exclusive, true);
+
+    const slugWorker = getBestAniimoForFacility('dewy-house');
+    assert.equal(slugWorker.name, 'นกน้ำหอม');
+});

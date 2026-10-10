@@ -859,5 +859,7 @@
   "3 Storage Units": "3 склада",
   "2 Storage Units": "2 склада",
   "1 Storage Unit": "1 склад",
-  "Storage Unit #{n}": "Склад #{n}"
+  "Storage Unit #{n}": "Склад #{n}",
+  "Exclusively requires Fragrancier": "Требуется исключительно Анимо Птица-парфюмер",
+  "Or earlier tier:": "Или предыдущая стадия:"
 }

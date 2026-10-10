@@ -859,5 +859,7 @@
   "3 Storage Units",
   "2 Storage Units",
   "1 Storage Unit",
-  "Storage Unit #{n}"
+  "Storage Unit #{n}",
+  "Exclusively requires Fragrancier",
+  "Or earlier tier:"
 ]

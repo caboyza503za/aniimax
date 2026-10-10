@@ -957,5 +957,7 @@
   "3 Storage Units": "3 座倉庫",
   "2 Storage Units": "2 座倉庫",
   "1 Storage Unit": "1 座倉庫",
-  "Storage Unit #{n}": "倉庫 #{n}"
+  "Storage Unit #{n}": "倉庫 #{n}",
+  "Exclusively requires Fragrancier": "僅限使用香氛鳥",
+  "Or earlier tier:": "或先前的階級:"
 }
