@@ -245,9 +245,10 @@ function isEModeActive(stepOrFacility) {
     const facility = typeof stepOrFacility === 'string' ? stepOrFacility : stepOrFacility.facility;
     const f = FACILITIES.find(fac => fac.name === facility);
     if (!f || !f.supportsEMode) return false;
-    if (typeof stepOrFacility === 'object' && stepOrFacility.item_name) {
-        const key = `${facility}|${stepOrFacility.item_name}`;
-        return currentEModeSteps.has(key);
+    const itemName = typeof stepOrFacility === 'object' ? (stepOrFacility.item_name || stepOrFacility.item || stepOrFacility.crop) : null;
+    if (itemName) {
+        const key = `${facility}|${itemName}`;
+        if (currentEModeSteps.has(key)) return true;
     }
     return currentEModeFacilities.has(facility);
 }
@@ -255,8 +256,20 @@ function isEModeActive(stepOrFacility) {
 function calculateOptimalEMode(plan) {
     const facilities = new Set();
     const steps = new Set();
-    const homeLevel = selectedHomeLevel();
-    if (homeLevel < CRACKLE_GENERATOR.unlockHomeLevel || !plan) {
+    if (!plan) return { facilities, steps };
+    let homeLevel = 20;
+    try {
+        if (typeof layoutHomeLevel === 'function') {
+            homeLevel = layoutHomeLevel();
+        } else if (isSimpleMode()) {
+            homeLevel = selectedHomeLevel();
+        } else if (lastPlanInput) {
+            homeLevel = homeLevelCovering(lastPlanInput);
+        }
+    } catch (e) {
+        homeLevel = selectedHomeLevel?.() || 20;
+    }
+    if (!homeLevel || homeLevel < CRACKLE_GENERATOR.unlockHomeLevel) {
         return { facilities, steps }; // Crackle Generator locked before RV 12
     }
 
@@ -1193,6 +1206,13 @@ const takesTurns = step => step.status === 'producing' && !!recipeIndex.find(r =
 // The plan as pieces for `layOut`: environment blocks, then one piece per other facility unit,
 // then whatever the player owns that the plan doesn't use.
 function homelandPieces(plan, input) {
+    if (!plan) return { pieces: [], unplaced: [] };
+
+    // Always ensure optimal E-Mode is computed for this plan so power equipment and E-Mode flags are accurate
+    const optimalEMode = calculateOptimalEMode(plan);
+    currentEModeFacilities = optimalEMode.facilities;
+    currentEModeSteps = optimalEMode.steps;
+
     const pieces = [];
     const placed = {};
     const count = (facility, n = 1) => { placed[facility] = (placed[facility] || 0) + n; };
@@ -1507,17 +1527,21 @@ function homelandSvg(layout, homeLevel) {
     const powerBoxes = [];
     if (powerMembers.length > 0) {
         plots.forEach(p => {
-            const inPlot = powerMembers.filter(m => m.x >= p.x - 0.05 && m.x + m.w <= p.x + p.w + 0.05 && m.y >= p.y - 0.05 && m.y + m.h <= p.y + p.h + 0.05);
+            const inPlot = powerMembers.filter(m => {
+                const cx = m.x + m.w / 2;
+                const cy = m.y + m.h / 2;
+                return cx >= p.x && cx < p.x + p.w && cy >= p.y && cy < p.y + p.h;
+            });
             if (inPlot.length > 0) {
                 const minX = Math.min(...inPlot.map(m => m.x));
                 const minY = Math.min(...inPlot.map(m => m.y));
                 const maxX = Math.max(...inPlot.map(m => m.x + m.w));
                 const maxY = Math.max(...inPlot.map(m => m.y + m.h));
                 const pad = 0.35;
-                const bx = Math.max(p.x, minX - pad);
-                const by = Math.max(p.y, minY - pad);
-                const bw = Math.min(p.x + p.w - bx, (maxX - minX) + pad * 2);
-                const bh = Math.min(p.y + p.h - by, (maxY - minY) + pad * 2);
+                const bx = minX - pad;
+                const by = minY - pad;
+                const bw = (maxX - minX) + pad * 2;
+                const bh = (maxY - minY) + pad * 2;
                 powerBoxes.push({ x: bx, y: by, w: bw, h: bh, emodeCount: inPlot.filter(m => m.emode).length });
             }
         });
@@ -4111,6 +4135,10 @@ function displayPlan(plan) {
     // A level-up plan's own card says how long it takes; the goal is for coin plans.
     goalSection.style.display = plan.level_up ? 'none' : 'block';
 
+    const optimalEMode = calculateOptimalEMode(plan);
+    currentEModeFacilities = optimalEMode.facilities;
+    currentEModeSteps = optimalEMode.steps;
+
     updateRateDisplay(!rateUnitChosen);
     renderGoalTargets(plan);
     renderHomelandLayout(plan);
@@ -4147,9 +4175,6 @@ function displayPlan(plan) {
     renderSeedTable(plan);
     renderLevelUp(plan);
     renderProfitBreakdown(plan);
-    const optimalEMode = calculateOptimalEMode(plan);
-    currentEModeFacilities = optimalEMode.facilities;
-    currentEModeSteps = optimalEMode.steps;
     renderFacilityPlan(plan);
     renderAniimoSummary(plan);
     // The page stays where the player is; the results appear without scrolling to them.

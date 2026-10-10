@@ -91,3 +91,13 @@ test('Speed comparison between Aniimo worker levels and E-Mode (1.2x grid effici
     assert.equal(calculateSpeed(4, 1, true), 6.0);
     assert.ok(calculateSpeed(4, 1, true) > eModeSpeed, 'Lv.4 worker is 5x faster than E-Mode');
 });
+
+test('Crackle Generator and Power Pole pieces are generated for E-Mode facilities', () => {
+    const demandWatts = 11 * 60; // 660W as in user's plan with 11 E-Mode recipes
+    const genLevel = CRACKLE_GENERATOR.levelByHomeLevel(18); // RV 18 has Lv.4 Generator (480W)
+    const wattsPerGen = CRACKLE_GENERATOR.wattsByLevel[genLevel];
+    const gensNeeded = Math.ceil(demandWatts / wattsPerGen);
+    assert.equal(gensNeeded, 2); // 660 / 480 = 1.375 -> 2 generators
+    assert.deepEqual(FACILITY_FOOTPRINTS['Crackle Generator'], [2, 2]);
+    assert.deepEqual(FACILITY_FOOTPRINTS['Crackle Power Pole'], [1, 1]);
+});
