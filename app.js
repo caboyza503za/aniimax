@@ -494,7 +494,8 @@ function getPersistedFieldIds() {
         'ecological-module-level', 'kitchen-module-level',
         'resource-detector-level', 'crafting-module-level',
         'rate-unit', 'season-on', 'season-currency-per-day',
-        'aniimo-best', 'aniimo-minimum', 'aniimo-custom'
+        'aniimo-best', 'aniimo-minimum', 'aniimo-custom',
+        'layout-storage-count'
     ];
 }
 
@@ -1652,7 +1653,19 @@ function layoutHomeLevel() {
     return isSimpleMode() ? selectedHomeLevel() : homeLevelCovering(lastPlanInput);
 }
 
+function selectedStorageCount() {
+    const el = document.getElementById('layout-storage-count');
+    const val = parseInt(el?.value, 10);
+    return Number.isInteger(val) && val >= 1 && val <= 4 ? val : 4;
+}
+
 function attachLayoutHandlers() {
+    document.getElementById('layout-storage-count')?.addEventListener('change', () => {
+        saveInputsToStorage();
+        if (lastPlan && lastPlan.success) {
+            renderHomelandLayout(lastPlan);
+        }
+    });
     document.getElementById('layout-whole')?.addEventListener('change', (e) => {
         layoutShowsWhole = e.target.checked;
         if (lastLayout) drawLayout(lastLayout);
@@ -1743,7 +1756,9 @@ function resetLayoutViewport() {
     if (title) title.textContent = translate('All Plots');
     const backBtn = document.getElementById('layout-back-btn');
     if (backBtn?.style) backBtn.style.display = 'none';
-    const allMembers = (typeof lastLayout !== 'undefined' && lastLayout?.layout?.pieces?.flatMap(p => p.members)) || [];
+    const pieceMembers = (typeof lastLayout !== 'undefined' && lastLayout?.layout?.pieces?.flatMap(p => p.members)) || [];
+    const storages = (typeof lastLayout !== 'undefined' && (lastLayout?.layout?.storages || (lastLayout?.layout?.storage ? [lastLayout.layout.storage] : []))) || [];
+    const allMembers = [...pieceMembers, ...storages.map((s, idx) => ({ ...s, facility: 'Storage Unit', storageNumber: idx + 1 }))];
     const countEl = document.getElementById('layout-plot-facility-count');
     if (countEl) countEl.textContent = allMembers.length;
     updatePlotDropdownContent(null);
@@ -1792,7 +1807,14 @@ function updateDailyOutputStrip(plan) {
 function updatePlotDropdownContent(plotNumber = null) {
     const listEl = document.getElementById('layout-plot-facility-list');
     if (!listEl) return;
-    const allMembers = (typeof lastLayout !== 'undefined' && lastLayout?.layout?.pieces?.flatMap(p => p.members)) || [];
+    const pieceMembers = (typeof lastLayout !== 'undefined' && lastLayout?.layout?.pieces?.flatMap(p => p.members)) || [];
+    const storages = (typeof lastLayout !== 'undefined' && (lastLayout?.layout?.storages || (lastLayout?.layout?.storage ? [lastLayout.layout.storage] : []))) || [];
+    const storageMembers = storages.map((s, idx) => ({
+        ...s,
+        facility: 'Storage Unit',
+        storageNumber: idx + 1,
+    }));
+    const allMembers = [...pieceMembers, ...storageMembers];
     const members = plotNumber == null
         ? allMembers
         : allMembers.filter(m => (typeof getPlotForCoordinate === 'function' ? getPlotForCoordinate(m.x + m.w / 2, m.y + m.h / 2) : 1) === plotNumber);
@@ -1803,9 +1825,11 @@ function updatePlotDropdownContent(plotNumber = null) {
     }
 
     listEl.innerHTML = members.map(m => {
-        const facName = m.facility || (m.isGenerator ? translate('Crackle Generator') : m.isPowerPole ? translate('Crackle Power Pole') : translate('Storage Unit'));
+        const facName = m.storageNumber
+            ? `${translate('Storage Unit')} #${m.storageNumber}`
+            : (m.facility || (m.isGenerator ? translate('Crackle Generator') : m.isPowerPole ? translate('Crackle Power Pole') : translate('Storage Unit')));
         const worker = typeof getRecommendedWorker === 'function' ? getRecommendedWorker(m.facility) : null;
-        const iconUrl = typeof getItemIconUrl === 'function' ? getItemIconUrl(m.recipe) : null;
+        const iconUrl = typeof getItemIconUrl === 'function' ? getItemIconUrl(m.recipe || m.facility) : null;
         const prodRate = m.weight ? `${formatRate(m.weight * 24)}/วัน` : '';
         return `<div class="hp-listpanel-item" data-x="${m.x}" data-y="${m.y}">
             <div class="hp-listpanel-icon">
@@ -1813,7 +1837,7 @@ function updatePlotDropdownContent(plotNumber = null) {
             </div>
             <div class="hp-listpanel-info">
                 <span class="hp-listpanel-name">${translate(facName)}</span>
-                <span class="hp-listpanel-sub">${m.recipe ? `${prettyItem(m.recipe)} ${prodRate}` : ''}</span>
+                <span class="hp-listpanel-sub">${m.recipe ? `${prettyItem(m.recipe)} ${prodRate}` : (m.storageNumber ? translate('Shared inventory connected to all Storage Units') : '')}</span>
             </div>
             ${worker ? `<div class="hp-listpanel-worker"><img src="${worker.avatar}" title="${worker.name} (${worker.abilityTh} Lv.${worker.level})" loading="lazy"></div>` : ''}
         </div>`;
@@ -1977,6 +2001,7 @@ function renderHomelandLayout(plan) {
     const { pieces, unplaced } = homelandPieces(plan, lastPlanInput);
     const homeLevel = layoutHomeLevel();
     const cells = homelandPlots().filter(p => p.number <= homeLevel);
+    const storageCount = selectedStorageCount();
     if (layoutWorker) layoutWorker.terminate();
     layoutWorker = new Worker(WORKER_URL.replace('worker.js', 'layout-worker.js'), { type: 'module' });
     layoutWorker.onmessage = (event) => {
@@ -1984,11 +2009,17 @@ function renderHomelandLayout(plan) {
         layoutWorker = null;
         if (runId !== layoutRunId) return;
         const layout = event.data;
-        const at = layout.storageAt;
+        const storages = layout.storages || (layout.storage ? [layout.storage] : []);
         // Buildings and power equipment carry nothing themselves.
         const members = layout.pieces.flatMap(p => p.members).map(m => ({ ...m, weight: (m.building || m.isGenerator || m.isPowerPole) ? 0 : (m.weight || 0) }));
         const trips = members.reduce((sum, m) => sum + m.weight, 0);
-        const walked = members.reduce((sum, m) => sum + m.weight * Math.hypot(m.x + m.w / 2 - at.x, m.y + m.h / 2 - at.y), 0);
+        const distToNearestStorage = m => {
+            if (!storages.length) return 0;
+            const mx = m.x + m.w / 2;
+            const my = m.y + m.h / 2;
+            return Math.min(...storages.map(s => Math.hypot(mx - (s.x + s.w / 2), my - (s.y + s.h / 2))));
+        };
+        const walked = members.reduce((sum, m) => sum + m.weight * distToNearestStorage(m), 0);
         const noRoom = [...new Set(layout.unplaced.map(i => {
             const piece = pieces[i];
             return piece.cluster ? `${piece.buildings[0].facility} and its plots` : piece.members[0].facility;
@@ -1997,9 +2028,12 @@ function renderHomelandLayout(plan) {
             noRoom.length ? `No room found in RV ${homeLevel}'s plots for: ${noRoom.join(', ')}.` : '',
             unplaced.length ? `Not placed, size unknown: ${unplaced.join(', ')}.` : '',
         ].filter(Boolean).join(' ');
-        document.getElementById('layout-summary').textContent = `${trips > 0
-            ? `${formatNumber(Math.round(trips))} trips/hour to the Storage Unit, ${(walked / trips).toFixed(1)} tiles each on average, in the ${cells.length} plot${cells.length === 1 ? '' : 's'} open at RV ${homeLevel}.`
-            : 'Nothing in this plan is carried to the Storage Unit.'}${notes ? ` ${notes}` : ''}`;
+        const summaryText = trips > 0
+            ? (storages.length > 1
+                ? `${formatNumber(Math.round(trips))} trips/hour across ${storages.length} Storage Units, ${(walked / trips).toFixed(1)} tiles each on average, in the ${cells.length} plot${cells.length === 1 ? '' : 's'} open at RV ${homeLevel}.`
+                : `${formatNumber(Math.round(trips))} trips/hour to the Storage Unit, ${(walked / trips).toFixed(1)} tiles each on average, in the ${cells.length} plot${cells.length === 1 ? '' : 's'} open at RV ${homeLevel}.`)
+            : 'Nothing in this plan is carried to the Storage Unit.';
+        document.getElementById('layout-summary').textContent = `${summaryText}${notes ? ` ${notes}` : ''}`;
         lastLayout = { layout, homeLevel };
         drawLayout(lastLayout);
         setStep('layout', 'done');
@@ -2011,7 +2045,11 @@ function renderHomelandLayout(plan) {
         document.getElementById('layout-summary').textContent = 'The layout couldn\'t be worked out.';
         setStep('layout', 'fail');
     };
-    layoutWorker.postMessage({ pieces, cells: cells.map(({ x, y, w, h }) => ({ x, y, w, h })) });
+    layoutWorker.postMessage({
+        pieces,
+        cells: cells.map(({ x, y, w, h }) => ({ x, y, w, h })),
+        storageCount,
+    });
 }
 
 // Stops a layout still being worked out, so it can't land over a newer plan.
@@ -2035,8 +2073,9 @@ function homelandSvg(layout, homeLevel) {
         .map(m => ({ x: m.x + m.w / 2 - ENVIRONMENT_COVERAGE_RADIUS, y: m.y + m.h / 2 - ENVIRONMENT_COVERAGE_RADIUS, w: ENVIRONMENT_COVERAGE_RADIUS * 2, h: ENVIRONMENT_COVERAGE_RADIUS * 2, mode: m.mode }));
     // The whole homeland, its plots marked out and the ones not open yet shaded.
     const plots = homelandPlots();
+    const storages = layout.storages || (layout.storage ? [layout.storage] : []);
     // Zoomed to what's placed, a couple of tiles around it, unless the whole homeland is asked for.
-    const placed = [layout.storage, ...layout.pieces.flatMap(p => p.members)];
+    const placed = [...storages, ...layout.pieces.flatMap(p => p.members)];
     const whole = layoutShowsWhole;
     const minX = whole ? -1 : Math.floor(Math.min(...placed.map(r => r.x))) - 2;
     const minY = whole ? -1 : Math.floor(Math.min(...placed.map(r => r.y))) - 2;
@@ -2153,7 +2192,7 @@ function homelandSvg(layout, homeLevel) {
             </g>`;
         }
         const color = layoutColor(m);
-        const away = Math.hypot(m.x + m.w / 2 - (layout.storage.x + layout.storage.w / 2), m.y + m.h / 2 - (layout.storage.y + layout.storage.h / 2));
+        const away = Math.min(...storages.map(s => Math.hypot(m.x + m.w / 2 - (s.x + s.w / 2), m.y + m.h / 2 - (s.y + s.h / 2))));
         const itemsText = m.jobs ? m.jobs.map(j => prettyItem(j.item)).join(', ') : m.crop ? prettyItem(m.crop) : m.building && m.mode ? translate(m.mode) : translate('Idle');
         const emodeSuffix = m.emode ? (' ⚡ ' + translate('[E-Mode · 60W in power frame]')) : '';
         const facConfig = FACILITIES.find(f => f.name === m.facility);
@@ -2206,8 +2245,25 @@ function homelandSvg(layout, homeLevel) {
         return `<rect x="${c.x}" y="${c.y}" width="${c.w}" height="${c.h}" fill="none"
             stroke="${tint}" stroke-opacity="0.8" stroke-dasharray="0.35,0.25" stroke-width="0.08" />`;
     }).join('');
-    const s = layout.storage;
     const totalTrips = layout.pieces.flatMap(p => p.members).filter(m => !m.building && !m.isGenerator && !m.isPowerPole).reduce((sum, m) => sum + (m.weight || 0), 0);
+    const storageShapes = storages.map((s, idx) => {
+        const num = idx + 1;
+        const tripsToThis = allMembers
+            .filter(m => !m.building && !m.isGenerator && !m.isPowerPole && m.weight > 0 && nearestStorageIndex(m, storages) === idx)
+            .reduce((sum, m) => sum + m.weight, 0);
+        const tip = tipAttrs('Storage Unit', {
+            detail: `${translate('Storage Unit')} #${num} (2×2)`,
+            stats: tripsToThis > 0 ? `${formatRate(tripsToThis)} trips/hour` : translate('Idle'),
+            color: '#3b82f6',
+        });
+        return `<g class="layout-piece layout-storage-unit" data-storage-index="${idx}" ${tip}>
+            <rect x="${s.x + 0.04}" y="${s.y + 0.04}" width="${s.w - 0.08}" height="${s.h - 0.08}" rx="0.25" class="layout-storage" fill="#f6fcf5" stroke="#3b82f6" stroke-width="0.08" />
+            ${facilityBadge({ ...s, facility: 'Storage Unit' })}
+            <rect x="${(s.x + 0.08).toFixed(2)}" y="${(s.y + 0.08).toFixed(2)}" width="0.72" height="0.42" rx="0.1" fill="#1d4ed8" fill-opacity="0.92" />
+            <text x="${(s.x + 0.44).toFixed(2)}" y="${(s.y + 0.32).toFixed(2)}" text-anchor="middle" font-size="0.30" font-weight="bold" fill="#ffffff">#${num}</text>
+        </g>`;
+    }).join('');
+
     return `<svg class="layout-svg" viewBox="${minX} ${minY} ${maxX - minX} ${maxY - minY}" role="img" aria-label="Homeland layout">
         <defs>
             <pattern id="layout-locked" width="1" height="1" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
@@ -2224,10 +2280,7 @@ function homelandSvg(layout, homeLevel) {
         ${shapes}
         <g class="layout-coverage-edges" pointer-events="none">${coverageEdges}</g>
         <g class="layout-power-grid-edges" pointer-events="none">${powerGridEdges}</g>
-        <g class="layout-piece layout-storage-unit" ${tipAttrs('Storage Unit', { detail: translate('Home Coins') + ' · ' + translate('Storage Unit'), stats: totalTrips > 0 ? `${formatRate(totalTrips)} trips/hour` : '' })}>
-            <rect x="${s.x + 0.04}" y="${s.y + 0.04}" width="${s.w - 0.08}" height="${s.h - 0.08}" rx="0.25" class="layout-storage" fill="#f6fcf5" stroke="#3b82f6" stroke-width="0.08" />
-            ${facilityBadge({ ...s, facility: 'Storage Unit' })}
-        </g>
+        ${storageShapes}
     </svg>`;
 }
 
@@ -2252,16 +2305,34 @@ const SIM_STEP = 2;
 const SIM_DOT_GAP = 0.12;
 let layoutSim = null;
 
+function nearestStorageIndex(m, storages) {
+    if (!storages || !storages.length) return 0;
+    const mx = m.x + m.w / 2;
+    const my = m.y + m.h / 2;
+    let bestIdx = 0;
+    let bestDist = Infinity;
+    for (let i = 0; i < storages.length; i++) {
+        const s = storages[i];
+        const d = Math.hypot(mx - (s.x + s.w / 2), my - (s.y + s.h / 2));
+        if (d < bestDist) {
+            bestDist = d;
+            bestIdx = i;
+        }
+    }
+    return bestIdx;
+}
+
 // Each piece carried to the Storage Unit: its line and ring, and its jobs: what it makes, how
 // long a batch takes and its pace in the plan (batches a second). Most pieces have one; a Bench
 // or Kiln unit has one per tier it takes turns on (see `homelandPieces`).
 function layoutFlows(layout) {
-    const s = layout.storage;
-    const x2 = s.x + s.w / 2;
-    const y2 = s.y + s.h / 2;
+    const storages = layout.storages || (layout.storage ? [layout.storage] : []);
     return layout.pieces.flatMap(p => p.members).filter(m => m.weight > 0 && m.crop && m.cycle > 0 && !m.isGenerator && !m.isPowerPole).map(m => {
         const x1 = m.x + m.w / 2;
         const y1 = m.y + m.h / 2;
+        const s = storages[nearestStorageIndex(m, storages)] || storages[0];
+        const x2 = s.x + s.w / 2;
+        const y2 = s.y + s.h / 2;
         const ring = Math.min(0.45, Math.min(m.w, m.h) * 0.22);
         return {
             x1, y1, x2, y2, length: Math.hypot(x2 - x1, y2 - y1),

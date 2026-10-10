@@ -949,5 +949,13 @@
   "Workshop": "工作坊",
   "No facilities in this plot": "此地塊內沒有設施",
   "Or use:": "或使用：",
-  "Personality match (+20% speed)": "符合性格（速度 +20%）"
+  "Personality match (+20% speed)": "符合性格（速度 +20%）",
+  "{trips} trips/hour across {n} Storage Units, {distance} tiles each on average, in the {plots} plot open at RV {level}.": "每小時往返 {n} 座倉庫共 {trips} 趟，平均每趟 {distance} 格，範圍為露營車家園 {level} 開放的 {plots} 塊地塊。",
+  "{trips} trips/hour across {n} Storage Units, {distance} tiles each on average, in the {plots} plots open at RV {level}.": "每小時往返 {n} 座倉庫共 {trips} 趟，平均每趟 {distance} 格，範圍為露營車家園 {level} 開放的 {plots} 塊地塊。",
+  "Storage Units": "倉庫",
+  "4 Storage Units (Max)": "4 座倉庫（上限）",
+  "3 Storage Units": "3 座倉庫",
+  "2 Storage Units": "2 座倉庫",
+  "1 Storage Unit": "1 座倉庫",
+  "Storage Unit #{n}": "倉庫 #{n}"
 }
