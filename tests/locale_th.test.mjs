@@ -22,6 +22,7 @@ globalThis.document = {
 globalThis.MutationObserver = class { observe() {} };
 
 const i18n = await import('../web/i18n.js');
+await i18n.languageReady;
 const catalog = JSON.parse(await readFile(new URL('../web/locales/th.json', import.meta.url)));
 
 // Check slots matching

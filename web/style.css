@@ -2877,3 +2877,105 @@ tr:hover .skip-row,
         animation: none;
     }
 }
+
+/* E-Mode styles */
+.emode-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    background: #fbc02d;
+    color: #1d1f22;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1.3;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.facility-category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.emode-toggle-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    user-select: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.emode-toggle-label input {
+    cursor: pointer;
+}
+
+.emode-pill {
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    transition: all 0.15s ease;
+}
+
+.emode-toggle-label input:checked + .emode-pill,
+.card-emode-toggle input:checked + .card-emode-pill {
+    background: #fbc02d;
+    color: #1a1a1a;
+    border-color: #f57f17;
+    font-weight: 700;
+}
+
+.card-emode-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.4rem;
+    cursor: pointer;
+    user-select: none;
+    font-size: 0.75rem;
+}
+
+.card-emode-toggle input {
+    cursor: pointer;
+}
+
+.card-emode-pill {
+    padding: 0.15rem 0.45rem;
+    border-radius: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    transition: all 0.15s ease;
+}
+
+.emode-savings-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 0.85rem;
+    margin: 0.75rem 0;
+    border-radius: 8px;
+    background: color-mix(in srgb, #fbc02d 15%, var(--surface-2));
+    border: 1px solid color-mix(in srgb, #fbc02d 40%, var(--border));
+    font-size: 0.82rem;
+    line-height: 1.4;
+    color: var(--text);
+}
+
+.emode-savings-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.emode-savings-text strong {
+    color: #fbc02d;
+}
+
