@@ -1707,9 +1707,12 @@ function setLayoutInspector(piece = null) {
         return;
     }
     piece.classList.add('selected');
-    title.textContent = translate(piece.dataset.tip || 'Facility');
-    detail.textContent = translate(piece.dataset.tipDetail || 'No production assignment.');
-    stat.textContent = translate(piece.dataset.tipStats || 'No delivery route is needed.');
+    const rawTitle = piece.dataset?.tip || piece.getAttribute?.('data-tip') || 'Facility';
+    const rawDetail = piece.dataset?.tipDetail || piece.getAttribute?.('data-tip-detail') || translate('No production assignment.');
+    const rawStats = piece.dataset?.tipStats || piece.getAttribute?.('data-tip-stats') || translate('No delivery route is needed.');
+    title.textContent = translate(rawTitle);
+    detail.textContent = rawDetail;
+    stat.textContent = rawStats;
 }
 
 function writeLayoutViewBox() {
@@ -1924,17 +1927,30 @@ function setupInteractiveLayout() {
     }, { passive: false });
 
     svg.addEventListener('pointerdown', event => {
-        layoutMapState.pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, moved: false };
-        svg.setPointerCapture(event.pointerId);
+        const hitPiece = event.target?.closest?.('.layout-piece');
+        const hitPlot = event.target?.closest?.('.layout-plot');
+        layoutMapState.pointer = {
+            id: event.pointerId,
+            startX: event.clientX,
+            startY: event.clientY,
+            x: event.clientX,
+            y: event.clientY,
+            moved: false,
+            initialTarget: event.target,
+            targetPiece: hitPiece,
+            targetPlot: hitPlot,
+        };
+        try { svg.setPointerCapture?.(event.pointerId); } catch {}
     });
 
     svg.addEventListener('pointermove', event => {
         const pointer = layoutMapState?.pointer;
         if (!pointer || pointer.id !== event.pointerId) return;
-        const dx = event.clientX - pointer.x;
-        const dy = event.clientY - pointer.y;
-        if (Math.abs(dx) + Math.abs(dy) > 3) pointer.moved = true;
+        const totalDist = Math.hypot(event.clientX - pointer.startX, event.clientY - pointer.startY);
+        if (totalDist > 5) pointer.moved = true;
         if (pointer.moved) {
+            const dx = event.clientX - pointer.x;
+            const dy = event.clientY - pointer.y;
             panLayout(dx, dy);
             pointer.x = event.clientX;
             pointer.y = event.clientY;
@@ -1944,15 +1960,19 @@ function setupInteractiveLayout() {
     svg.addEventListener('pointerup', event => {
         const pointer = layoutMapState?.pointer;
         if (!pointer || pointer.id !== event.pointerId) return;
+        try { svg.releasePointerCapture?.(event.pointerId); } catch {}
         if (!pointer.moved) {
-            const piece = event.target.closest('.layout-piece');
+            const hitEl = typeof document.elementFromPoint === 'function' ? document.elementFromPoint(event.clientX, event.clientY) : null;
+            const piece = pointer.targetPiece || hitEl?.closest?.('.layout-piece') || pointer.initialTarget?.closest?.('.layout-piece') || event.target?.closest?.('.layout-piece');
             if (piece) {
                 setLayoutInspector(piece);
             } else {
-                const plot = event.target.closest('.layout-plot');
+                const plot = pointer.targetPlot || hitEl?.closest?.('.layout-plot') || pointer.initialTarget?.closest?.('.layout-plot') || event.target?.closest?.('.layout-plot');
                 if (plot) {
-                    const plotNum = Number(plot.dataset.plotNumber);
+                    const plotNum = Number(plot.dataset?.plotNumber || plot.getAttribute?.('data-plot-number'));
                     if (plotNum) focusPlot(plotNum);
+                } else {
+                    setLayoutInspector(null);
                 }
             }
         }
@@ -1960,6 +1980,14 @@ function setupInteractiveLayout() {
     });
 
     svg.addEventListener('pointercancel', () => { if (layoutMapState) layoutMapState.pointer = null; });
+
+    svg.addEventListener('click', event => {
+        const hitEl = (typeof document.elementFromPoint === 'function' ? document.elementFromPoint(event.clientX, event.clientY) : null) || event.target;
+        const piece = hitEl?.closest?.('.layout-piece');
+        if (piece) {
+            setLayoutInspector(piece);
+        }
+    });
 
     svg.addEventListener('keydown', event => {
         const pan = Math.max(1, layoutMapState.viewBox.width * 0.15);
@@ -2164,13 +2192,13 @@ function homelandSvg(layout, homeLevel) {
         `<g class="layout-generator-grid-frame">
             <rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" rx="0.35" fill="none"
                 stroke="#d97706" stroke-opacity="0.9" stroke-width="0.1" stroke-dasharray="0.6,0.25" />
-            <text x="${f.x + 0.2}" y="${f.y + 0.35}" font-size="0.45" fill="#b45309" font-weight="bold" text-anchor="start" dominant-baseline="hanging">${escapeText(translate('⚡ Generator Frame 11×11'))}</text>
+            <text x="${f.x + 0.2}" y="${f.y + 0.35}" font-size="0.45" fill="#fbbf24" font-weight="bold" text-anchor="start" dominant-baseline="hanging">${escapeText(translate('⚡ Generator Frame 11×11'))}</text>
         </g>`
     ).join('') + poleFrames.map(f =>
         `<g class="layout-power-grid-frame">
             <rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" rx="0.3" fill="none"
                 stroke="#eab308" stroke-opacity="0.9" stroke-width="0.09" stroke-dasharray="0.5,0.2" />
-            <text x="${f.x + 0.2}" y="${f.y + 0.35}" font-size="0.45" fill="#ca8a04" font-weight="bold" text-anchor="start" dominant-baseline="hanging">${escapeText(translate('⚡ Power Pole Frame 7×7'))}</text>
+            <text x="${f.x + 0.2}" y="${f.y + 0.35}" font-size="0.45" fill="#fde047" font-weight="bold" text-anchor="start" dominant-baseline="hanging">${escapeText(translate('⚡ Power Pole Frame 7×7'))}</text>
         </g>`
     ).join('');
 
@@ -2275,6 +2303,7 @@ function homelandSvg(layout, homeLevel) {
     return `<svg class="layout-svg" viewBox="${minX} ${minY} ${maxX - minX} ${maxY - minY}" role="img" aria-label="Homeland layout">
         <defs>
             <pattern id="layout-locked" width="1" height="1" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <rect width="1" height="1" fill="#141114" />
                 <line x1="0" y1="0" x2="0" y2="1" class="layout-hatch" />
             </pattern>
             <clipPath id="circle-avatar-clip" clipPathUnits="objectBoundingBox">

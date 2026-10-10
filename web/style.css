@@ -2775,9 +2775,8 @@ tr:hover .skip-row,
     padding: .65rem;
     overflow: hidden;
     border-radius: 15px;
-    background:
-        linear-gradient(180deg, rgba(255,255,255,.09), transparent 20%),
-        #557b52;
+    background: #000000;
+    border: 1px solid var(--border);
     touch-action: none;
 }
 
@@ -2787,7 +2786,7 @@ tr:hover .skip-row,
     height: 100%;
     max-height: none;
     border-radius: 10px;
-    background-color: #7fa662;
+    background-color: #000000;
     cursor: grab;
     user-select: none;
 }
@@ -2888,26 +2887,27 @@ tr:hover .skip-row,
     .aniimo-card .card-head { align-items: flex-start; }
 }
 
-/* Homeland plots in the layout: open ones have lush green turf, locked ones are dark with hatch. */
+/* Homeland plots in the layout: black background with crisp borders. */
 .layout-plot rect {
-    fill: #8fbd6d;
-    fill-opacity: 0.65;
-    stroke: #739b56;
+    fill: #000000;
+    fill-opacity: 1;
+    stroke: rgba(255, 255, 255, 0.50);
     stroke-opacity: 0.85;
-    stroke-width: 0.08;
+    stroke-width: 0.16;
 }
 
-/* Locked plots: dark turf, hatched, outlined and labelled in red. */
+/* Locked plots: dark background, hatched, outlined and labelled in red. */
 .layout-plot.locked rect {
     fill: url(#layout-locked);
-    fill-opacity: 0.8;
+    fill-opacity: 1;
     stroke: #ef4444;
-    stroke-opacity: 1;
+    stroke-opacity: 0.85;
+    stroke-width: 0.16;
 }
 
 .layout-svg .layout-plot.locked text {
     fill: #fca5a5;
-    opacity: 0.9;
+    opacity: 0.95;
 }
 
 .layout-svg .layout-plot text {
@@ -2922,8 +2922,8 @@ tr:hover .skip-row,
 
 .layout-hatch {
     stroke: #ef4444;
-    stroke-opacity: 0.3;
-    stroke-width: 0.12;
+    stroke-opacity: 0.35;
+    stroke-width: 0.10;
 }
 
 /* My Aniimo: one card per kind of Aniimo the player has. */
@@ -3891,20 +3891,23 @@ tbody tr:hover {
     padding: .85rem;
     border: 1px solid var(--border);
     border-radius: 14px;
-    background-color: color-mix(in srgb, var(--bg) 55%, var(--surface));
+    background-color: #000000;
 }
 .layout-svg {
     min-width: 560px;
-    background-color: #7fa662;
+    background-color: #000000;
     border-radius: 12px;
 }
+.layout-svg .env-grid line,
 .env-grid line {
-    stroke: rgba(255, 255, 255, 0.24);
-    stroke-width: 0.045;
+    stroke: rgba(255, 255, 255, 0.78);
+    stroke-width: 0.07;
 }
+.layout-svg .env-grid line.major,
 .env-grid line.major {
-    stroke: rgba(255, 255, 255, 0.44);
-    stroke-width: 0.08;
+    stroke: #ffffff;
+    stroke-opacity: 0.98;
+    stroke-width: 0.12;
 }
 .layout-storage { fill: #2563eb; fill-opacity: 0.92; stroke: #1d4ed8; }
 .layout-flow-line { stroke: var(--accent-cool); }
@@ -4547,27 +4550,29 @@ footer p { margin: 0; }
 }
 
 .layout-plot rect {
-    fill: #8fbd6d;
-    stroke: rgba(255, 255, 255, 0.45);
-    stroke-width: 0.15;
+    fill: #000000;
+    stroke: rgba(255, 255, 255, 0.50);
+    stroke-width: 0.16;
     transition: fill 0.15s ease;
 }
 
 .layout-plot:hover rect {
-    fill: #97c874;
+    fill: #141720;
 }
 
 .layout-plot.locked rect {
-    fill: #557b52;
-    stroke: rgba(255, 255, 255, 0.15);
+    fill: #151114;
+    stroke: #ef4444;
+    stroke-opacity: 0.85;
+    stroke-width: 0.16;
 }
 
 .layout-plot.locked:hover rect {
-    fill: #5d875a;
+    fill: #1c151a;
 }
 
 .plot-title-label {
-    fill: rgba(255, 255, 255, 0.38);
+    fill: rgba(255, 255, 255, 0.18);
     font-family: var(--font-body, system-ui, sans-serif);
     font-weight: 800;
     letter-spacing: 0.04em;
@@ -4576,10 +4581,10 @@ footer p { margin: 0; }
 }
 
 .plot-lock-text {
-    fill: #ffffff;
+    fill: #fca5a5;
     font-family: var(--font-body, system-ui, sans-serif);
     font-weight: 700;
     pointer-events: none;
     user-select: none;
-    opacity: 0.88;
+    opacity: 0.92;
 }
