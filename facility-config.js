@@ -200,7 +200,8 @@ export const CRACKLE_POWER_POLE = {
     name: 'Crackle Power Pole',
     slug: 'crackle-power-pole',
     unlockHomeLevel: 12,
-    footprint: [1, 1],
+    footprint: [1.5, 1.5],
+    range: [7, 7], // 7x7 tiles coverage frame
     maxPolesByHomeLevel: (homeLevel) => {
         if (!homeLevel || homeLevel < 12) return 0;
         if (homeLevel >= 20) return 20;
@@ -309,7 +310,7 @@ export const FACILITY_FOOTPRINTS = {
     'Aniipod Maker': [4.5, 4.5],
     'Storage Unit': [2, 2],
     'Crackle Generator': [2, 2],
-    'Crackle Power Pole': [1, 1],
+    'Crackle Power Pole': [1.5, 1.5],
 };
 
 // The homeland: a 4x4 grid of plots, each 20 tiles wide and 15 tall, plot n opening at RV n (and
