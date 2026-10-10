@@ -3717,6 +3717,20 @@ tbody tr:hover {
     filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.4));
 }
 
+/* In-game style facility badge and level in Homeland layout */
+.facility-badge {
+    pointer-events: none;
+}
+.facility-badge-circle {
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
+}
+.facility-badge-level {
+    font-family: var(--font-body, system-ui, sans-serif);
+    font-weight: 700;
+    fill: #ffffff;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.95));
+}
+
 /* Modals */
 .modal-content {
     border: 1px solid var(--border-strong);

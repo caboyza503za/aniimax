@@ -1258,7 +1258,8 @@ function homelandPieces(plan, input) {
             });
             layout.forEach(p => {
                 const crop = (crops[p.facility] || []).shift() || { crop: null, trips: 0 };
-                plots.push({ w: p.size, h: p.size, weight: crop.trips, cycle: crop.cycle, zone: unit.partner ? zone : 0, facility: p.facility, crop: crop.crop });
+                const facLevel = input?.facilities?.[p.facility]?.[0]?.level;
+                plots.push({ w: p.size, h: p.size, weight: crop.trips, cycle: crop.cycle, zone: unit.partner ? zone : 0, facility: p.facility, facilityLevel: facLevel, crop: crop.crop });
                 planned.push({ x: p.x, y: p.y });
                 count(p.facility);
                 placedInBlocks[`${p.facility}|${crop.crop}`] = (placedInBlocks[`${p.facility}|${crop.crop}`] || 0) + 1;
@@ -1277,11 +1278,12 @@ function homelandPieces(plan, input) {
             return;
         }
         let activeUnits = 0;
+        const facLevel = input?.facilities?.[facility]?.[0]?.level;
         allocations.forEach(jobs => {
             if (!jobs || jobs.length === 0) return; // Skip idle turn-sharing units
             const weight = jobs.reduce((sum, j) => sum + j.rate * 3600, 0);
             const emode = jobs.some(j => isEModeActive({ facility, item_name: j.item }));
-            pieces.push({ members: [{ x: 0, y: 0, w: footprint[0], h: footprint[1], weight, jobs: jobs.length ? jobs : undefined, cycle: jobs[0]?.cycle, facility, crop: jobs[0]?.item ?? null, sensitive: false, emode }] });
+            pieces.push({ members: [{ x: 0, y: 0, w: footprint[0], h: footprint[1], weight, jobs: jobs.length ? jobs : undefined, cycle: jobs[0]?.cycle, facility, facilityLevel: facLevel, crop: jobs[0]?.item ?? null, sensitive: false, emode }] });
             activeUnits++;
         });
         if (activeUnits > 0) count(facility, activeUnits);
@@ -1301,9 +1303,10 @@ function homelandPieces(plan, input) {
             if (n > 0) unplaced.add(step.facility);
             return;
         }
+        const facLevel = step.facility_level || input?.facilities?.[step.facility]?.[0]?.level;
         for (let i = 0; i < n; i++) {
             const emode = isEModeActive(step);
-            pieces.push({ members: [{ x: 0, y: 0, w: footprint[0], h: footprint[1], weight: tripsPerUnit(step), cycle: step.cycle_time, facility: step.facility, crop: step.item_name, sensitive: needsEnvironment(step.item_name), emode }] });
+            pieces.push({ members: [{ x: 0, y: 0, w: footprint[0], h: footprint[1], weight: tripsPerUnit(step), cycle: step.cycle_time, facility: step.facility, facilityLevel: facLevel, crop: step.item_name, sensitive: needsEnvironment(step.item_name), emode }] });
         }
         count(step.facility, n);
     });
@@ -1378,6 +1381,200 @@ const initialsOf = name => {
     if (name === 'Crackle Power Pole') return 'PP';
     return name.split(/[\s-]+/).map(w => w[0]).join('').toUpperCase();
 };
+
+function activeFacilityLevel(facilityName, m) {
+    if (m?.facilityLevel) return m.facilityLevel;
+    if (m?.isGenerator) return m.genLevel || CRACKLE_GENERATOR.levelByHomeLevel(activeHomelandLevel());
+    if (m?.isPowerPole) return null;
+    const f = FACILITIES.find(fac => fac.name === facilityName);
+    if (!f || f.hasLevels === false) return null;
+    if (lastPlanInput?.facilities?.[facilityName]?.[0]?.level) {
+        return lastPlanInput.facilities[facilityName][0].level;
+    }
+    if (isSimpleMode()) {
+        const simple = simpleSetup(activeHomelandLevel()).facilities[facilityName];
+        return simple && simple[0] ? simple[0].level : 1;
+    }
+    const tiers = facilityTiers[facilityName];
+    return tiers && tiers[0] ? tiers[0].level : 1;
+}
+
+function facilityIconSvg(name, cx, cy, s, color = '#ffffff') {
+    switch (name) {
+        case 'Woodland':
+            return `<rect x="${(cx - 0.15 * s).toFixed(3)}" y="${(cy + 0.08 * s).toFixed(3)}" width="${(0.3 * s).toFixed(3)}" height="${(0.44 * s).toFixed(3)}" rx="${(0.06 * s).toFixed(3)}" fill="${color}" />
+                    <circle cx="${cx.toFixed(3)}" cy="${(cy - 0.18 * s).toFixed(3)}" r="${(0.42 * s).toFixed(3)}" fill="${color}" />
+                    <circle cx="${(cx - 0.28 * s).toFixed(3)}" cy="${(cy - 0.02 * s).toFixed(3)}" r="${(0.3 * s).toFixed(3)}" fill="${color}" />
+                    <circle cx="${(cx + 0.28 * s).toFixed(3)}" cy="${(cy - 0.02 * s).toFixed(3)}" r="${(0.3 * s).toFixed(3)}" fill="${color}" />`;
+        case 'Farmland':
+            return `<rect x="${(cx - 0.48 * s).toFixed(3)}" y="${(cy - 0.26 * s).toFixed(3)}" width="${(0.96 * s).toFixed(3)}" height="${(0.52 * s).toFixed(3)}" rx="${(0.1 * s).toFixed(3)}" fill="none" stroke="${color}" stroke-width="${(0.12 * s).toFixed(3)}" />
+                    <line x1="${(cx - 0.22 * s).toFixed(3)}" y1="${(cy - 0.2 * s).toFixed(3)}" x2="${(cx - 0.22 * s).toFixed(3)}" y2="${(cy + 0.2 * s).toFixed(3)}" stroke="${color}" stroke-width="${(0.1 * s).toFixed(3)}" stroke-linecap="round" />
+                    <line x1="${cx.toFixed(3)}" y1="${(cy - 0.2 * s).toFixed(3)}" x2="${cx.toFixed(3)}" y2="${(cy + 0.2 * s).toFixed(3)}" stroke="${color}" stroke-width="${(0.1 * s).toFixed(3)}" stroke-linecap="round" />
+                    <line x1="${(cx + 0.22 * s).toFixed(3)}" y1="${(cy - 0.2 * s).toFixed(3)}" x2="${(cx + 0.22 * s).toFixed(3)}" y2="${(cy + 0.2 * s).toFixed(3)}" stroke="${color}" stroke-width="${(0.1 * s).toFixed(3)}" stroke-linecap="round" />
+                    <line x1="${(cx - 0.38 * s).toFixed(3)}" y1="${(cy + 0.3 * s).toFixed(3)}" x2="${(cx - 0.38 * s).toFixed(3)}" y2="${(cy + 0.46 * s).toFixed(3)}" stroke="${color}" stroke-width="${(0.12 * s).toFixed(3)}" stroke-linecap="round" />
+                    <line x1="${(cx + 0.38 * s).toFixed(3)}" y1="${(cy + 0.3 * s).toFixed(3)}" x2="${(cx + 0.38 * s).toFixed(3)}" y2="${(cy + 0.46 * s).toFixed(3)}" stroke="${color}" stroke-width="${(0.12 * s).toFixed(3)}" stroke-linecap="round" />`;
+        case 'Mine':
+            return `<polygon points="${(cx - 0.45 * s).toFixed(3)},${(cy + 0.42 * s).toFixed(3)} ${(cx - 0.52 * s).toFixed(3)},${cy.toFixed(3)} ${(cx - 0.18 * s).toFixed(3)},${(cy - 0.22 * s).toFixed(3)} ${cx.toFixed(3)},${(cy + 0.42 * s).toFixed(3)}" fill="${color}" />
+                    <polygon points="${(cx - 0.08 * s).toFixed(3)},${(cy + 0.42 * s).toFixed(3)} ${(cx + 0.16 * s).toFixed(3)},${(cy - 0.48 * s).toFixed(3)} ${(cx + 0.44 * s).toFixed(3)},${(cy - 0.22 * s).toFixed(3)} ${(cx + 0.52 * s).toFixed(3)},${(cy + 0.42 * s).toFixed(3)}" fill="${color}" />
+                    <polygon points="${(cx - 0.15 * s).toFixed(3)},${(cy + 0.42 * s).toFixed(3)} ${(cx - 0.28 * s).toFixed(3)},${(cy + 0.1 * s).toFixed(3)} ${(cx + 0.12 * s).toFixed(3)},${(cy - 0.1 * s).toFixed(3)} ${(cx + 0.26 * s).toFixed(3)},${(cy + 0.42 * s).toFixed(3)}" fill="${color}" opacity="0.85" />`;
+        case 'Tidewhisper Sandcastle':
+            return `<path d="M ${(cx - 0.52 * s).toFixed(3)} ${(cy + 0.42 * s).toFixed(3)} 
+                             L ${(cx - 0.52 * s).toFixed(3)} ${(cy - 0.08 * s).toFixed(3)} 
+                             L ${(cx - 0.38 * s).toFixed(3)} ${(cy - 0.08 * s).toFixed(3)} 
+                             L ${(cx - 0.38 * s).toFixed(3)} ${(cy + 0.05 * s).toFixed(3)} 
+                             L ${(cx - 0.24 * s).toFixed(3)} ${(cy + 0.05 * s).toFixed(3)} 
+                             L ${(cx - 0.24 * s).toFixed(3)} ${(cy - 0.32 * s).toFixed(3)} 
+                             L ${cx.toFixed(3)} ${(cy - 0.55 * s).toFixed(3)} 
+                             L ${(cx + 0.24 * s).toFixed(3)} ${(cy - 0.32 * s).toFixed(3)} 
+                             L ${(cx + 0.24 * s).toFixed(3)} ${(cy + 0.05 * s).toFixed(3)} 
+                             L ${(cx + 0.38 * s).toFixed(3)} ${(cy + 0.05 * s).toFixed(3)} 
+                             L ${(cx + 0.38 * s).toFixed(3)} ${(cy - 0.08 * s).toFixed(3)} 
+                             L ${(cx + 0.52 * s).toFixed(3)} ${(cy - 0.08 * s).toFixed(3)} 
+                             L ${(cx + 0.52 * s).toFixed(3)} ${(cy + 0.42 * s).toFixed(3)} Z" fill="${color}" />
+                    <path d="M ${(cx - 0.15 * s).toFixed(3)} ${(cy + 0.42 * s).toFixed(3)} A ${(0.15 * s).toFixed(3)} ${(0.15 * s).toFixed(3)} 0 0 1 ${(cx + 0.15 * s).toFixed(3)} ${(cy + 0.42 * s).toFixed(3)} Z" fill="rgba(15, 23, 42, 0.85)" />`;
+        case 'Dewy House':
+            return `<path d="M ${cx.toFixed(3)} ${(cy - 0.55 * s).toFixed(3)} C ${(cx + 0.42 * s).toFixed(3)} ${(cy - 0.22 * s).toFixed(3)} ${(cx + 0.5 * s).toFixed(3)} ${(cy + 0.05 * s).toFixed(3)} ${cx.toFixed(3)} ${(cy + 0.05 * s).toFixed(3)} C ${(cx - 0.5 * s).toFixed(3)} ${(cy + 0.05 * s).toFixed(3)} ${(cx - 0.42 * s).toFixed(3)} ${(cy - 0.22 * s).toFixed(3)} ${cx.toFixed(3)} ${(cy - 0.55 * s).toFixed(3)} Z" fill="${color}" />
+                    <rect x="${(cx - 0.3 * s).toFixed(3)}" y="${(cy + 0.05 * s).toFixed(3)}" width="${(0.6 * s).toFixed(3)}" height="${(0.4 * s).toFixed(3)}" rx="${(0.1 * s).toFixed(3)}" fill="${color}" />
+                    <path d="M ${(cx - 0.1 * s).toFixed(3)} ${(cy + 0.45 * s).toFixed(3)} A ${(0.1 * s).toFixed(3)} ${(0.1 * s).toFixed(3)} 0 0 1 ${(cx + 0.1 * s).toFixed(3)} ${(cy + 0.45 * s).toFixed(3)} Z" fill="rgba(15, 23, 42, 0.85)" />`;
+        case 'Crafting Table':
+            return `<rect x="${(cx - 0.52 * s).toFixed(3)}" y="${(cy - 0.22 * s).toFixed(3)}" width="${(1.04 * s).toFixed(3)}" height="${(0.2 * s).toFixed(3)}" rx="${(0.05 * s).toFixed(3)}" fill="${color}" />
+                    <rect x="${(cx - 0.42 * s).toFixed(3)}" y="${(cy - 0.02 * s).toFixed(3)}" width="${(0.14 * s).toFixed(3)}" height="${(0.45 * s).toFixed(3)}" fill="${color}" />
+                    <rect x="${(cx + 0.28 * s).toFixed(3)}" y="${(cy - 0.02 * s).toFixed(3)}" width="${(0.14 * s).toFixed(3)}" height="${(0.45 * s).toFixed(3)}" fill="${color}" />
+                    <rect x="${(cx - 0.18 * s).toFixed(3)}" y="${(cy - 0.02 * s).toFixed(3)}" width="${(0.36 * s).toFixed(3)}" height="${(0.3 * s).toFixed(3)}" rx="${(0.04 * s).toFixed(3)}" fill="none" stroke="${color}" stroke-width="${(0.08 * s).toFixed(3)}" />`;
+        case 'Woodworking Bench':
+            return `<rect x="${(cx - 0.42 * s).toFixed(3)}" y="${(cy + 0.3 * s).toFixed(3)}" width="${(0.84 * s).toFixed(3)}" height="${(0.14 * s).toFixed(3)}" rx="${(0.04 * s).toFixed(3)}" fill="${color}" />
+                    <rect x="${(cx - 0.1 * s).toFixed(3)}" y="${(cy - 0.22 * s).toFixed(3)}" width="${(0.2 * s).toFixed(3)}" height="${(0.42 * s).toFixed(3)}" fill="${color}" />
+                    <rect x="${(cx - 0.3 * s).toFixed(3)}" y="${(cy - 0.48 * s).toFixed(3)}" width="${(0.6 * s).toFixed(3)}" height="${(0.24 * s).toFixed(3)}" rx="${(0.06 * s).toFixed(3)}" fill="${color}" />
+                    <line x1="${(cx - 0.24 * s).toFixed(3)}" y1="${(cy + 0.14 * s).toFixed(3)}" x2="${(cx + 0.24 * s).toFixed(3)}" y2="${(cy + 0.14 * s).toFixed(3)}" stroke="${color}" stroke-width="${(0.09 * s).toFixed(3)}" stroke-linecap="round" />`;
+        case 'Chimney Kiln':
+            return `<rect x="${(cx + 0.1 * s).toFixed(3)}" y="${(cy - 0.55 * s).toFixed(3)}" width="${(0.22 * s).toFixed(3)}" height="${(0.42 * s).toFixed(3)}" rx="${(0.04 * s).toFixed(3)}" fill="${color}" />
+                    <path d="M ${(cx - 0.48 * s).toFixed(3)} ${(cy + 0.45 * s).toFixed(3)} L ${(cx - 0.48 * s).toFixed(3)} ${(cy + 0.12 * s).toFixed(3)} C ${(cx - 0.48 * s).toFixed(3)} ${(cy - 0.28 * s).toFixed(3)} ${(cx + 0.4 * s).toFixed(3)} ${(cy - 0.28 * s).toFixed(3)} ${(cx + 0.4 * s).toFixed(3)} ${(cy + 0.12 * s).toFixed(3)} L ${(cx + 0.4 * s).toFixed(3)} ${(cy + 0.45 * s).toFixed(3)} Z" fill="${color}" />
+                    <path d="M ${(cx - 0.16 * s).toFixed(3)} ${(cy + 0.45 * s).toFixed(3)} A ${(0.16 * s).toFixed(3)} ${(0.18 * s).toFixed(3)} 0 0 1 ${(cx + 0.16 * s).toFixed(3)} ${(cy + 0.45 * s).toFixed(3)} Z" fill="rgba(15, 23, 42, 0.85)" />`;
+        case 'Crackle Generator':
+            return `<path d="M ${(cx - 0.28 * s).toFixed(3)} ${(cy - 0.1 * s).toFixed(3)} 
+                             A ${(0.22 * s).toFixed(3)} ${(0.22 * s).toFixed(3)} 0 0 1 ${(cx + 0.2 * s).toFixed(3)} ${(cy - 0.26 * s).toFixed(3)} 
+                             A ${(0.18 * s).toFixed(3)} ${(0.18 * s).toFixed(3)} 0 0 1 ${(cx + 0.4 * s).toFixed(3)} ${(cy - 0.05 * s).toFixed(3)} 
+                             A ${(0.16 * s).toFixed(3)} ${(0.16 * s).toFixed(3)} 0 0 1 ${(cx + 0.3 * s).toFixed(3)} ${(cy + 0.1 * s).toFixed(3)} 
+                             L ${(cx - 0.3 * s).toFixed(3)} ${(cy + 0.1 * s).toFixed(3)} 
+                             A ${(0.16 * s).toFixed(3)} ${(0.16 * s).toFixed(3)} 0 0 1 ${(cx - 0.28 * s).toFixed(3)} ${(cy - 0.1 * s).toFixed(3)} Z" fill="${color}" />
+                    <polygon points="${(cx - 0.04 * s).toFixed(3)},${(cy + 0.05 * s).toFixed(3)} ${(cx + 0.16 * s).toFixed(3)},${(cy + 0.05 * s).toFixed(3)} ${cx.toFixed(3)},${(cy + 0.26 * s).toFixed(3)} ${(cx + 0.14 * s).toFixed(3)},${(cy + 0.26 * s).toFixed(3)} ${(cx - 0.14 * s).toFixed(3)},${(cy + 0.55 * s).toFixed(3)} ${(cx - 0.04 * s).toFixed(3)},${(cy + 0.24 * s).toFixed(3)} ${(cx - 0.16 * s).toFixed(3)},${(cy + 0.24 * s).toFixed(3)}" fill="#facc15" />`;
+        case 'Crackle Power Pole':
+            return `<line x1="${cx.toFixed(3)}" y1="${(cy - 0.32 * s).toFixed(3)}" x2="${cx.toFixed(3)}" y2="${(cy + 0.48 * s).toFixed(3)}" stroke="${color}" stroke-width="${(0.12 * s).toFixed(3)}" stroke-linecap="round" />
+                    <line x1="${(cx - 0.35 * s).toFixed(3)}" y1="${(cy - 0.1 * s).toFixed(3)}" x2="${(cx + 0.35 * s).toFixed(3)}" y2="${(cy - 0.1 * s).toFixed(3)}" stroke="${color}" stroke-width="${(0.12 * s).toFixed(3)}" stroke-linecap="round" />
+                    <polygon points="${(cx - 0.04 * s).toFixed(3)},${(cy - 0.56 * s).toFixed(3)} ${(cx + 0.1 * s).toFixed(3)},${(cy - 0.56 * s).toFixed(3)} ${cx.toFixed(3)},${(cy - 0.38 * s).toFixed(3)} ${(cx + 0.09 * s).toFixed(3)},${(cy - 0.38 * s).toFixed(3)} ${(cx - 0.09 * s).toFixed(3)},${(cy - 0.2 * s).toFixed(3)} ${(cx - 0.03 * s).toFixed(3)},${(cy - 0.4 * s).toFixed(3)} ${(cx - 0.11 * s).toFixed(3)},${(cy - 0.4 * s).toFixed(3)}" fill="#facc15" />`;
+        case 'Storage Unit':
+            return `<rect x="${(cx - 0.45 * s).toFixed(3)}" y="${(cy - 0.12 * s).toFixed(3)}" width="${(0.9 * s).toFixed(3)}" height="${(0.5 * s).toFixed(3)}" rx="${(0.08 * s).toFixed(3)}" fill="${color}" />
+                    <path d="M ${(cx - 0.48 * s).toFixed(3)} ${(cy - 0.12 * s).toFixed(3)} C ${(cx - 0.48 * s).toFixed(3)} ${(cy - 0.42 * s).toFixed(3)} ${(cx + 0.48 * s).toFixed(3)} ${(cy - 0.42 * s).toFixed(3)} ${(cx + 0.48 * s).toFixed(3)} ${(cy - 0.12 * s).toFixed(3)} Z" fill="${color}" />
+                    <rect x="${(cx - 0.1 * s).toFixed(3)}" y="${(cy - 0.15 * s).toFixed(3)}" width="${(0.2 * s).toFixed(3)}" height="${(0.2 * s).toFixed(3)}" rx="${(0.04 * s).toFixed(3)}" fill="rgba(15, 23, 42, 0.85)" />`;
+        case 'Well':
+            return `<path d="M ${(cx - 0.38 * s).toFixed(3)} ${(cy - 0.22 * s).toFixed(3)} L ${cx.toFixed(3)} ${(cy - 0.5 * s).toFixed(3)} L ${(cx + 0.38 * s).toFixed(3)} ${(cy - 0.22 * s).toFixed(3)} Z" fill="${color}" />
+                    <line x1="${(cx - 0.3 * s).toFixed(3)}" y1="${(cy - 0.22 * s).toFixed(3)}" x2="${(cx - 0.3 * s).toFixed(3)}" y2="${(cy + 0.4 * s).toFixed(3)}" stroke="${color}" stroke-width="${(0.08 * s).toFixed(3)}" />
+                    <line x1="${(cx + 0.3 * s).toFixed(3)}" y1="${(cy - 0.22 * s).toFixed(3)}" x2="${(cx + 0.3 * s).toFixed(3)}" y2="${(cy + 0.4 * s).toFixed(3)}" stroke="${color}" stroke-width="${(0.08 * s).toFixed(3)}" />
+                    <ellipse cx="${cx.toFixed(3)}" cy="${(cy + 0.18 * s).toFixed(3)}" rx="${(0.38 * s).toFixed(3)}" ry="${(0.22 * s).toFixed(3)}" fill="${color}" />`;
+        case 'Nimbus Bed':
+            return `<rect x="${(cx - 0.48 * s).toFixed(3)}" y="${(cy + 0.12 * s).toFixed(3)}" width="${(0.96 * s).toFixed(3)}" height="${(0.16 * s).toFixed(3)}" rx="${(0.05 * s).toFixed(3)}" fill="${color}" />
+                    <path d="M ${(cx - 0.38 * s).toFixed(3)} ${(cy + 0.12 * s).toFixed(3)} C ${(cx - 0.5 * s).toFixed(3)} ${(cy - 0.1 * s).toFixed(3)} ${(cx - 0.18 * s).toFixed(3)} ${(cy - 0.28 * s).toFixed(3)} ${cx.toFixed(3)} ${(cy - 0.12 * s).toFixed(3)} C ${(cx + 0.18 * s).toFixed(3)} ${(cy - 0.32 * s).toFixed(3)} ${(cx + 0.48 * s).toFixed(3)} ${(cy - 0.1 * s).toFixed(3)} ${(cx + 0.38 * s).toFixed(3)} ${(cy + 0.12 * s).toFixed(3)} Z" fill="${color}" />`;
+        case 'Starfall Hammock':
+            return `<path d="M ${(cx - 0.5 * s).toFixed(3)} ${(cy - 0.18 * s).toFixed(3)} Q ${cx.toFixed(3)} ${(cy + 0.42 * s).toFixed(3)} ${(cx + 0.5 * s).toFixed(3)} ${(cy - 0.18 * s).toFixed(3)} Q ${cx.toFixed(3)} ${(cy + 0.22 * s).toFixed(3)} ${(cx - 0.5 * s).toFixed(3)} ${(cy - 0.18 * s).toFixed(3)} Z" fill="${color}" />
+                    <polygon points="${cx.toFixed(3)},${(cy - 0.42 * s).toFixed(3)} ${(cx + 0.07 * s).toFixed(3)},${(cy - 0.24 * s).toFixed(3)} ${(cx + 0.26 * s).toFixed(3)},${(cy - 0.24 * s).toFixed(3)} ${(cx + 0.11 * s).toFixed(3)},${(cy - 0.12 * s).toFixed(3)} ${(cx + 0.16 * s).toFixed(3)},${(cy + 0.06 * s).toFixed(3)} ${cx.toFixed(3)},${(cy - 0.04 * s).toFixed(3)} ${(cx - 0.16 * s).toFixed(3)},${(cy + 0.06 * s).toFixed(3)} ${(cx - 0.11 * s).toFixed(3)},${(cy - 0.12 * s).toFixed(3)} ${(cx - 0.26 * s).toFixed(3)},${(cy - 0.24 * s).toFixed(3)} ${(cx - 0.07 * s).toFixed(3)},${(cy - 0.24 * s).toFixed(3)}" fill="#facc15" />`;
+        case 'Floral Windmill':
+            return `<polygon points="${(cx - 0.22 * s).toFixed(3)},${(cy + 0.45 * s).toFixed(3)} ${(cx - 0.1 * s).toFixed(3)},${(cy - 0.08 * s).toFixed(3)} ${(cx + 0.1 * s).toFixed(3)},${(cy - 0.08 * s).toFixed(3)} ${(cx + 0.22 * s).toFixed(3)},${(cy + 0.45 * s).toFixed(3)}" fill="${color}" />
+                    <circle cx="${cx.toFixed(3)}" cy="${(cy - 0.08 * s).toFixed(3)}" r="${(0.08 * s).toFixed(3)}" fill="${color}" />
+                    <line x1="${(cx - 0.42 * s).toFixed(3)}" y1="${(cy - 0.08 * s).toFixed(3)}" x2="${(cx + 0.42 * s).toFixed(3)}" y2="${(cy - 0.08 * s).toFixed(3)}" stroke="${color}" stroke-width="${(0.08 * s).toFixed(3)}" stroke-linecap="round" />
+                    <line x1="${cx.toFixed(3)}" y1="${(cy - 0.5 * s).toFixed(3)}" x2="${cx.toFixed(3)}" y2="${(cy + 0.32 * s).toFixed(3)}" stroke="${color}" stroke-width="${(0.08 * s).toFixed(3)}" stroke-linecap="round" />`;
+        case 'Heat Furnace':
+            return flameIcon(cx, cy, s);
+        case 'Cooling Unit':
+            return snowflakeIcon(cx, cy, s);
+        case 'Sunlamp':
+            return sunIcon(cx, cy, s);
+        case 'Carousel Mill':
+            return `<circle cx="${cx.toFixed(3)}" cy="${cy.toFixed(3)}" r="${(0.42 * s).toFixed(3)}" fill="none" stroke="${color}" stroke-width="${(0.09 * s).toFixed(3)}" />
+                    <circle cx="${cx.toFixed(3)}" cy="${cy.toFixed(3)}" r="${(0.14 * s).toFixed(3)}" fill="${color}" />
+                    <line x1="${(cx - 0.42 * s).toFixed(3)}" y1="${cy.toFixed(3)}" x2="${(cx + 0.42 * s).toFixed(3)}" y2="${cy.toFixed(3)}" stroke="${color}" stroke-width="${(0.07 * s).toFixed(3)}" />
+                    <line x1="${cx.toFixed(3)}" y1="${(cy - 0.42 * s).toFixed(3)}" x2="${cx.toFixed(3)}" y2="${(cy + 0.42 * s).toFixed(3)}" stroke="${color}" stroke-width="${(0.07 * s).toFixed(3)}" />`;
+        case 'Claw Game Cooker':
+            return `<rect x="${(cx - 0.38 * s).toFixed(3)}" y="${cy.toFixed(3)}" width="${(0.76 * s).toFixed(3)}" height="${(0.42 * s).toFixed(3)}" rx="${(0.09 * s).toFixed(3)}" fill="${color}" />
+                    <path d="M ${(cx - 0.34 * s).toFixed(3)} ${cy.toFixed(3)} C ${(cx - 0.34 * s).toFixed(3)} ${(cy - 0.32 * s).toFixed(3)} ${(cx + 0.34 * s).toFixed(3)} ${(cy - 0.32 * s).toFixed(3)} ${(cx + 0.34 * s).toFixed(3)} ${cy.toFixed(3)} Z" fill="none" stroke="${color}" stroke-width="${(0.07 * s).toFixed(3)}" />
+                    <line x1="${cx.toFixed(3)}" y1="${(cy - 0.5 * s).toFixed(3)}" x2="${cx.toFixed(3)}" y2="${(cy - 0.3 * s).toFixed(3)}" stroke="${color}" stroke-width="${(0.07 * s).toFixed(3)}" />`;
+        case 'Simmering Pot':
+            return `<path d="M ${(cx - 0.38 * s).toFixed(3)} ${(cy - 0.05 * s).toFixed(3)} C ${(cx - 0.42 * s).toFixed(3)} ${(cy + 0.42 * s).toFixed(3)} ${(cx + 0.42 * s).toFixed(3)} ${(cy + 0.42 * s).toFixed(3)} ${(cx + 0.38 * s).toFixed(3)} ${(cy - 0.05 * s).toFixed(3)} Z" fill="${color}" />
+                    <rect x="${(cx - 0.44 * s).toFixed(3)}" y="${(cy - 0.16 * s).toFixed(3)}" width="${(0.88 * s).toFixed(3)}" height="${(0.12 * s).toFixed(3)}" rx="${(0.05 * s).toFixed(3)}" fill="${color}" />
+                    <circle cx="${cx.toFixed(3)}" cy="${(cy - 0.24 * s).toFixed(3)}" r="${(0.07 * s).toFixed(3)}" fill="${color}" />`;
+        case 'Phonolfactory Table':
+            return `<rect x="${(cx - 0.45 * s).toFixed(3)}" y="${(cy + 0.16 * s).toFixed(3)}" width="${(0.9 * s).toFixed(3)}" height="${(0.22 * s).toFixed(3)}" rx="${(0.05 * s).toFixed(3)}" fill="${color}" />
+                    <circle cx="${(cx - 0.14 * s).toFixed(3)}" cy="${(cy - 0.04 * s).toFixed(3)}" r="${(0.2 * s).toFixed(3)}" fill="${color}" />
+                    <rect x="${(cx - 0.18 * s).toFixed(3)}" y="${(cy - 0.35 * s).toFixed(3)}" width="${(0.09 * s).toFixed(3)}" height="${(0.14 * s).toFixed(3)}" fill="${color}" />
+                    <circle cx="${(cx + 0.16 * s).toFixed(3)}" cy="${(cy - 0.18 * s).toFixed(3)}" r="${(0.14 * s).toFixed(3)}" fill="${color}" opacity="0.8" />`;
+        case 'Bouncy Brew Keg':
+            return `<path d="M ${(cx - 0.3 * s).toFixed(3)} ${(cy - 0.46 * s).toFixed(3)} C ${(cx - 0.48 * s).toFixed(3)} ${cy.toFixed(3)} ${(cx - 0.48 * s).toFixed(3)} ${cy.toFixed(3)} ${(cx - 0.3 * s).toFixed(3)} ${(cy + 0.46 * s).toFixed(3)} L ${(cx + 0.3 * s).toFixed(3)} ${(cy + 0.46 * s).toFixed(3)} C ${(cx + 0.48 * s).toFixed(3)} ${cy.toFixed(3)} ${(cx + 0.48 * s).toFixed(3)} ${cy.toFixed(3)} ${(cx + 0.3 * s).toFixed(3)} ${(cy - 0.46 * s).toFixed(3)} Z" fill="${color}" />
+                    <line x1="${(cx - 0.42 * s).toFixed(3)}" y1="${(cy - 0.15 * s).toFixed(3)}" x2="${(cx + 0.42 * s).toFixed(3)}" y2="${(cy - 0.15 * s).toFixed(3)}" stroke="rgba(15, 23, 42, 0.85)" stroke-width="${(0.07 * s).toFixed(3)}" />
+                    <line x1="${(cx - 0.42 * s).toFixed(3)}" y1="${(cy + 0.15 * s).toFixed(3)}" x2="${(cx + 0.42 * s).toFixed(3)}" y2="${(cy + 0.15 * s).toFixed(3)}" stroke="rgba(15, 23, 42, 0.85)" stroke-width="${(0.07 * s).toFixed(3)}" />`;
+        case 'Blazing Stove':
+            return `<rect x="${(cx - 0.44 * s).toFixed(3)}" y="${(cy - 0.28 * s).toFixed(3)}" width="${(0.88 * s).toFixed(3)}" height="${(0.7 * s).toFixed(3)}" rx="${(0.07 * s).toFixed(3)}" fill="${color}" />
+                    <circle cx="${(cx - 0.2 * s).toFixed(3)}" cy="${(cy - 0.05 * s).toFixed(3)}" r="${(0.12 * s).toFixed(3)}" fill="rgba(15, 23, 42, 0.85)" />
+                    <circle cx="${(cx + 0.2 * s).toFixed(3)}" cy="${(cy - 0.05 * s).toFixed(3)}" r="${(0.12 * s).toFixed(3)}" fill="rgba(15, 23, 42, 0.85)" />
+                    <rect x="${(cx - 0.32 * s).toFixed(3)}" y="${(cy + 0.16 * s).toFixed(3)}" width="${(0.64 * s).toFixed(3)}" height="${(0.18 * s).toFixed(3)}" rx="${(0.04 * s).toFixed(3)}" fill="rgba(15, 23, 42, 0.85)" />`;
+        case 'Pickling Jar':
+            return `<rect x="${(cx - 0.32 * s).toFixed(3)}" y="${(cy - 0.22 * s).toFixed(3)}" width="${(0.64 * s).toFixed(3)}" height="${(0.64 * s).toFixed(3)}" rx="${(0.11 * s).toFixed(3)}" fill="${color}" />
+                    <rect x="${(cx - 0.25 * s).toFixed(3)}" y="${(cy - 0.38 * s).toFixed(3)}" width="${(0.5 * s).toFixed(3)}" height="${(0.14 * s).toFixed(3)}" rx="${(0.04 * s).toFixed(3)}" fill="${color}" />
+                    <circle cx="${cx.toFixed(3)}" cy="${(cy + 0.07 * s).toFixed(3)}" r="${(0.13 * s).toFixed(3)}" fill="rgba(15, 23, 42, 0.85)" />`;
+        case 'Jukebox Dryer':
+            return `<path d="M ${(cx - 0.38 * s).toFixed(3)} ${(cy + 0.42 * s).toFixed(3)} L ${(cx - 0.38 * s).toFixed(3)} ${(cy - 0.1 * s).toFixed(3)} C ${(cx - 0.38 * s).toFixed(3)} ${(cy - 0.5 * s).toFixed(3)} ${(cx + 0.38 * s).toFixed(3)} ${(cy - 0.5 * s).toFixed(3)} ${(cx + 0.38 * s).toFixed(3)} ${(cy - 0.1 * s).toFixed(3)} L ${(cx + 0.38 * s).toFixed(3)} ${(cy + 0.42 * s).toFixed(3)} Z" fill="${color}" />
+                    <line x1="${(cx - 0.22 * s).toFixed(3)}" y1="${(cy + 0.05 * s).toFixed(3)}" x2="${(cx + 0.22 * s).toFixed(3)}" y2="${(cy + 0.05 * s).toFixed(3)}" stroke="rgba(15, 23, 42, 0.85)" stroke-width="${(0.07 * s).toFixed(3)}" />
+                    <line x1="${(cx - 0.22 * s).toFixed(3)}" y1="${(cy + 0.22 * s).toFixed(3)}" x2="${(cx + 0.22 * s).toFixed(3)}" y2="${(cy + 0.22 * s).toFixed(3)}" stroke="rgba(15, 23, 42, 0.85)" stroke-width="${(0.07 * s).toFixed(3)}" />`;
+        case 'Joy Wheel Loom':
+            return `<rect x="${(cx - 0.44 * s).toFixed(3)}" y="${(cy - 0.42 * s).toFixed(3)}" width="${(0.88 * s).toFixed(3)}" height="${(0.84 * s).toFixed(3)}" rx="${(0.07 * s).toFixed(3)}" fill="none" stroke="${color}" stroke-width="${(0.09 * s).toFixed(3)}" />
+                    <line x1="${(cx - 0.18 * s).toFixed(3)}" y1="${(cy - 0.38 * s).toFixed(3)}" x2="${(cx - 0.18 * s).toFixed(3)}" y2="${(cy + 0.38 * s).toFixed(3)}" stroke="${color}" stroke-width="${(0.06 * s).toFixed(3)}" />
+                    <line x1="${cx.toFixed(3)}" y1="${(cy - 0.38 * s).toFixed(3)}" x2="${cx.toFixed(3)}" y2="${(cy + 0.38 * s).toFixed(3)}" stroke="${color}" stroke-width="${(0.06 * s).toFixed(3)}" />
+                    <line x1="${(cx + 0.18 * s).toFixed(3)}" y1="${(cy - 0.38 * s).toFixed(3)}" x2="${(cx + 0.18 * s).toFixed(3)}" y2="${(cy + 0.38 * s).toFixed(3)}" stroke="${color}" stroke-width="${(0.06 * s).toFixed(3)}" />
+                    <line x1="${(cx - 0.32 * s).toFixed(3)}" y1="${cy.toFixed(3)}" x2="${(cx + 0.32 * s).toFixed(3)}" y2="${cy.toFixed(3)}" stroke="${color}" stroke-width="${(0.09 * s).toFixed(3)}" stroke-linecap="round" />`;
+        case 'Dance Pad Polisher':
+            return `<rect x="${(cx - 0.45 * s).toFixed(3)}" y="${(cy - 0.45 * s).toFixed(3)}" width="${(0.9 * s).toFixed(3)}" height="${(0.9 * s).toFixed(3)}" rx="${(0.1 * s).toFixed(3)}" fill="none" stroke="${color}" stroke-width="${(0.09 * s).toFixed(3)}" />
+                    <polygon points="${cx.toFixed(3)},${(cy - 0.32 * s).toFixed(3)} ${(cx + 0.14 * s).toFixed(3)},${(cy - 0.14 * s).toFixed(3)} ${(cx - 0.14 * s).toFixed(3)},${(cy - 0.14 * s).toFixed(3)}" fill="${color}" />
+                    <polygon points="${cx.toFixed(3)},${(cy + 0.32 * s).toFixed(3)} ${(cx + 0.14 * s).toFixed(3)},${(cy + 0.14 * s).toFixed(3)} ${(cx - 0.14 * s).toFixed(3)},${(cy + 0.14 * s).toFixed(3)}" fill="${color}" />
+                    <polygon points="${(cx - 0.32 * s).toFixed(3)},${cy.toFixed(3)} ${(cx - 0.14 * s).toFixed(3)},${(cy + 0.14 * s).toFixed(3)} ${(cx - 0.14 * s).toFixed(3)},${(cy - 0.14 * s).toFixed(3)}" fill="${color}" />
+                    <polygon points="${(cx + 0.32 * s).toFixed(3)},${cy.toFixed(3)} ${(cx + 0.14 * s).toFixed(3)},${(cy + 0.14 * s).toFixed(3)} ${(cx + 0.14 * s).toFixed(3)},${(cy - 0.14 * s).toFixed(3)}" fill="${color}" />`;
+        case 'Aniipod Maker':
+            return `<rect x="${(cx - 0.42 * s).toFixed(3)}" y="${(cy - 0.42 * s).toFixed(3)}" width="${(0.84 * s).toFixed(3)}" height="${(0.84 * s).toFixed(3)}" rx="${(0.14 * s).toFixed(3)}" fill="none" stroke="${color}" stroke-width="${(0.09 * s).toFixed(3)}" />
+                    <polygon points="${cx.toFixed(3)},${(cy - 0.28 * s).toFixed(3)} ${(cx + 0.25 * s).toFixed(3)},${(cy - 0.14 * s).toFixed(3)} ${cx.toFixed(3)},${cy.toFixed(3)} ${(cx - 0.25 * s).toFixed(3)},${(cy - 0.14 * s).toFixed(3)}" fill="${color}" opacity="0.95" />
+                    <polygon points="${cx.toFixed(3)},${cy.toFixed(3)} ${(cx + 0.25 * s).toFixed(3)},${(cy - 0.14 * s).toFixed(3)} ${(cx + 0.25 * s).toFixed(3)},${(cy + 0.18 * s).toFixed(3)} ${cx.toFixed(3)},${(cy + 0.32 * s).toFixed(3)}" fill="${color}" opacity="0.8" />
+                    <polygon points="${cx.toFixed(3)},${cy.toFixed(3)} ${(cx - 0.25 * s).toFixed(3)},${(cy - 0.14 * s).toFixed(3)} ${(cx - 0.25 * s).toFixed(3)},${(cy + 0.18 * s).toFixed(3)} ${cx.toFixed(3)},${(cy + 0.32 * s).toFixed(3)}" fill="${color}" opacity="0.65" />`;
+        default:
+            return `<text x="${cx.toFixed(3)}" y="${cy.toFixed(3)}" font-size="${(0.6 * s).toFixed(3)}" font-weight="bold" fill="${color}" text-anchor="middle" dominant-baseline="middle">${initialsOf(name)}</text>`;
+    }
+}
+
+function facilityBadge(m) {
+    const minDim = Math.min(m.w, m.h);
+    const r = Math.min(0.85, Math.max(0.36, minDim * 0.26));
+    const cx = m.x + m.w / 2;
+    const cy = m.y + m.h / 2;
+    
+    let level = null;
+    if (m.isGenerator) {
+        level = m.genLevel || activeFacilityLevel('Crackle Generator', m);
+    } else if (!m.isPowerPole && m.facility && m.facility !== 'Storage Unit') {
+        level = activeFacilityLevel(m.facility, m);
+    }
+    
+    const showLevel = level !== null && level !== undefined;
+    const levelOffset = showLevel ? r * 0.25 : 0;
+    const badgeCy = cy - levelOffset;
+    const iconR = r * 0.72;
+    
+    const badgeCircle = `<circle class="facility-badge-circle" cx="${cx.toFixed(3)}" cy="${badgeCy.toFixed(3)}" r="${r.toFixed(3)}" fill="rgba(15, 23, 42, 0.74)" stroke="rgba(255, 255, 255, 0.55)" stroke-width="${(r * 0.08).toFixed(3)}" />`;
+    const icon = facilityIconSvg(m.facility || (m.isGenerator ? 'Crackle Generator' : m.isPowerPole ? 'Crackle Power Pole' : ''), cx, badgeCy, iconR);
+    
+    let levelText = '';
+    if (showLevel) {
+        const textY = badgeCy + r + r * 0.32;
+        const fontSize = Math.max(0.24, r * 0.5);
+        levelText = `<text class="facility-badge-level" x="${cx.toFixed(3)}" y="${textY.toFixed(3)}" font-size="${fontSize.toFixed(3)}" font-weight="bold" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">Lv.${level}</text>`;
+    }
+    
+    return `<g class="facility-badge" pointer-events="none">${badgeCircle}${icon}${levelText}</g>`;
+}
 
 let layoutRunId = 0;
 let layoutWorker = null;
@@ -1581,8 +1778,7 @@ function homelandSvg(layout, homeLevel) {
             });
             return `<g class="layout-piece crackle-generator" ${tip}><rect x="${m.x + 0.05}" y="${m.y + 0.05}" width="${m.w - 0.1}" height="${m.h - 0.1}" rx="0.3"
                 fill="#f59e0b" fill-opacity="0.88" stroke="#d97706" stroke-width="0.08" />
-                <text x="${m.x + m.w / 2}" y="${m.y + m.h / 2 - 0.22}" font-size="0.6" font-weight="bold" fill="#ffffff">⚡ CG</text>
-                <text x="${m.x + m.w / 2}" y="${m.y + m.h / 2 + 0.38}" font-size="0.32" fill="#ffffff" opacity="0.95">2×2 · ${m.outputWatts || 120}W</text>
+                ${facilityBadge(m)}
             </g>`;
         }
         if (m.isPowerPole) {
@@ -1595,8 +1791,7 @@ function homelandSvg(layout, homeLevel) {
             });
             return `<g class="layout-piece crackle-pole" ${tip}><rect x="${m.x + 0.04}" y="${m.y + 0.04}" width="${m.w - 0.08}" height="${m.h - 0.08}" rx="0.2"
                 fill="#d97706" fill-opacity="0.9" stroke="#b45309" stroke-width="0.08" />
-                <text x="${m.x + m.w / 2}" y="${m.y + m.h / 2 - 0.15}" font-size="0.5" font-weight="bold" fill="#ffffff">⚡ PP</text>
-                <text x="${m.x + m.w / 2}" y="${m.y + m.h / 2 + 0.35}" font-size="0.32" fill="#ffffff" opacity="0.95">1.5×1.5</text>
+                ${facilityBadge(m)}
             </g>`;
         }
         const color = layoutColor(m);
@@ -1609,7 +1804,7 @@ function homelandSvg(layout, homeLevel) {
             stats: m.weight > 0 ? `${formatRate(m.weight)} trips/hour · ${away.toFixed(1)} tiles from storage` : '',
             color,
         });
-        const label = Math.min(m.w, m.h) >= 1.5 ? `<text x="${m.x + m.w / 2}" y="${m.y + m.h / 2}" font-size="${Math.min(0.8, m.w / 3)}">${initialsOf(m.facility)}</text>` : '';
+        const badge = Math.min(m.w, m.h) >= 1.2 ? facilityBadge(m) : '';
         // Busier pieces are filled more solidly; idle ones are an outline.
         const fill = m.building ? 0.9 : m.weight > 0 ? 0.35 + 0.55 * Math.sqrt(m.weight / maxTrips) : 0.08;
         if (m.building) {
@@ -1621,10 +1816,10 @@ function homelandSvg(layout, homeLevel) {
         if (m.emode) {
             const emodeBadge = `<text x="${m.x + m.w - 0.28}" y="${m.y + 0.32}" font-size="0.42" fill="#f59e0b" font-weight="bold">⚡</text>`;
             return `<g class="layout-piece emode-facility" ${tip}><rect x="${m.x + 0.04}" y="${m.y + 0.04}" width="${m.w - 0.08}" height="${m.h - 0.08}" rx="0.2"
-                fill="${color}" fill-opacity="${fill.toFixed(2)}" stroke="#f59e0b" stroke-width="0.08" stroke-dasharray="0.6,0.2" />${label}${emodeBadge}</g>`;
+                fill="${color}" fill-opacity="${fill.toFixed(2)}" stroke="#f59e0b" stroke-width="0.08" stroke-dasharray="0.6,0.2" />${badge}${emodeBadge}</g>`;
         }
         return `<g class="layout-piece" ${tip}><rect x="${m.x + 0.04}" y="${m.y + 0.04}" width="${m.w - 0.08}" height="${m.h - 0.08}" rx="0.2"
-            fill="${color}" fill-opacity="${fill.toFixed(2)}" stroke="${color}" stroke-width="0.06" />${label}</g>`;
+            fill="${color}" fill-opacity="${fill.toFixed(2)}" stroke="${color}" stroke-width="0.06" />${badge}</g>`;
     }).join('');
     const coverageShapes = coverage.map(c => {
         const tint = ENVIRONMENT_MODE_COLORS[c.mode] || '#9aa0a8';
@@ -1658,7 +1853,7 @@ function homelandSvg(layout, homeLevel) {
         <g class="layout-rings" pointer-events="none">${rings}</g>
         <g class="layout-flows" pointer-events="none">${flows}<g class="layout-dots"></g></g>
         <g class="layout-piece layout-storage-unit" ${tipAttrs('Storage Unit', { detail: 'Where everything is carried', stats: totalTrips > 0 ? `${formatRate(totalTrips)} trips/hour` : '' })}><rect x="${s.x + 0.04}" y="${s.y + 0.04}" width="${s.w - 0.08}" height="${s.h - 0.08}" rx="0.2" class="layout-storage" />
-        <text x="${s.x + s.w / 2}" y="${s.y + s.h / 2}" font-size="0.8" class="layout-storage-text">SU</text></g>
+        ${facilityBadge({ ...s, facility: 'Storage Unit' })}</g>
     </svg>`;
 }
 
