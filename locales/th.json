@@ -998,5 +998,7 @@
     "3 Storage Units": "3 อัน",
     "2 Storage Units": "2 อัน",
     "1 Storage Unit": "1 อัน",
-    "Storage Unit #{n}": "ยูนิตที่จัดเก็บ #{n}"
+    "Storage Unit #{n}": "ยูนิตที่จัดเก็บ #{n}",
+    "Exclusively requires Fragrancier": "บังคับใช้เฉพาะนกน้ำหอม",
+    "Or earlier tier:": "หรือร่างก่อนหน้า:"
 }
