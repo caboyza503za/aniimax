@@ -851,5 +851,13 @@
   "Workshop",
   "No facilities in this plot",
   "Or use:",
-  "Personality match (+20% speed)"
+  "Personality match (+20% speed)",
+  "{trips} trips/hour across {n} Storage Units, {distance} tiles each on average, in the {plots} plot open at RV {level}.",
+  "{trips} trips/hour across {n} Storage Units, {distance} tiles each on average, in the {plots} plots open at RV {level}.",
+  "Storage Units",
+  "4 Storage Units (Max)",
+  "3 Storage Units",
+  "2 Storage Units",
+  "1 Storage Unit",
+  "Storage Unit #{n}"
 ]

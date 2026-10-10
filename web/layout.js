@@ -245,8 +245,10 @@ export function layOut(pieces, options = {}) {
 // Lays the homeland out within its open `cells` (in homeland tiles), trying the Storage Unit at
 // the middle of the open area and at the middles of the open plots nearest it, and keeping
 // whichever walks least with everything placed. Returns what `layOut` does, moved into the
-// homeland's own frame, plus `storageAt`, the Storage Unit's center.
-export function layOutHomeland(pieces, cells, storage = { w: 2, h: 2 }) {
+// homeland's own frame, plus `storageAt`, the Storage Unit's center, and up to 4 distributed
+// `storages` across the homeland plots.
+export function layOutHomeland(pieces, cells, storage = { w: 2, h: 2 }, storageCount = 4) {
+    const targetStorageCount = Math.max(1, Math.min(4, Number.isInteger(storageCount) ? storageCount : 4));
     const area = cells.reduce((sum, c) => sum + c.w * c.h, 0);
     const mid = {
         x: cells.reduce((sum, c) => sum + (c.x + c.w / 2) * c.w * c.h, 0) / area,
@@ -273,13 +275,115 @@ export function layOutHomeland(pieces, cells, storage = { w: 2, h: 2 }) {
     }
     const { out, at } = best;
     const move = r => ({ ...r, x: r.x + at.x, y: r.y + at.y });
+    const primaryStorage = move(out.storage);
+    const placedPieces = out.pieces.map(p => ({ ...p, members: p.members.map(move) }));
+
+    // Distribute up to targetStorageCount storage units across the homeland plots
+    const storages = distributeStorageUnits(primaryStorage, placedPieces, cells, targetStorageCount, storage);
+
     return {
         ...out,
         tried,
         storageAt: at,
-        storage: move(out.storage),
-        pieces: out.pieces.map(p => ({ ...p, members: p.members.map(move) })),
+        storage: storages[0],
+        storages,
+        pieces: placedPieces,
     };
+}
+
+// Distributes up to `targetCount` Storage Units (2x2 tiles each) across the homeland.
+// The primary storage unit is already placed at the central hub.
+// Additional storage units (up to 4 in total) are placed in other open plots/quadrants
+// to minimize the walking distance for facilities carrying goods to their nearest storage unit.
+function distributeStorageUnits(primaryStorage, placedPieces, cells, targetCount, storageSize = { w: 2, h: 2 }) {
+    const placedStorages = [primaryStorage];
+    if (targetCount <= 1 || !cells?.length) return placedStorages;
+
+    const allMembers = placedPieces.flatMap(p => p.members);
+    const obstacles = [...allMembers, primaryStorage];
+    const productive = allMembers.filter(m => !m.building && !m.isGenerator && !m.isPowerPole);
+
+    // Collect candidate spots inside open cells on whole integer grid
+    const candidates = [];
+    for (const c of cells) {
+        const minX = Math.ceil(c.x);
+        const maxX = Math.floor(c.x + c.w - storageSize.w);
+        const minY = Math.ceil(c.y);
+        const maxY = Math.floor(c.y + c.h - storageSize.h);
+        for (let x = minX; x <= maxX; x++) {
+            for (let y = minY; y <= maxY; y++) {
+                const r = { x, y, w: storageSize.w, h: storageSize.h, cell: c };
+                if (!obstacles.some(o => overlaps(r, o))) {
+                    candidates.push(r);
+                }
+            }
+        }
+    }
+
+    if (!candidates.length) return placedStorages;
+
+    while (placedStorages.length < targetCount) {
+        let best = null;
+        let bestScore = -Infinity;
+
+        for (const r of candidates) {
+            if (obstacles.some(o => overlaps(r, o))) continue;
+
+            const rx = r.x + r.w / 2;
+            const ry = r.y + r.h / 2;
+
+            let minDistToStorage = Infinity;
+            for (const s of placedStorages) {
+                const d = Math.hypot(rx - (s.x + s.w / 2), ry - (s.y + s.h / 2));
+                if (d < minDistToStorage) minDistToStorage = d;
+            }
+
+            if (minDistToStorage < 2.5) continue;
+
+            const cell = r.cell;
+            const cellHasStorage = placedStorages.some(s =>
+                s.x >= cell.x - EPSILON && s.x + s.w <= cell.x + cell.w + EPSILON &&
+                s.y >= cell.y - EPSILON && s.y + s.h <= cell.y + cell.h + EPSILON
+            );
+
+            let savings = 0;
+            for (const m of productive) {
+                const mx = m.x + m.w / 2;
+                const my = m.y + m.h / 2;
+                let currDist = Infinity;
+                for (const s of placedStorages) {
+                    const d = Math.hypot(mx - (s.x + s.w / 2), my - (s.y + s.h / 2));
+                    if (d < currDist) currDist = d;
+                }
+                const newDist = Math.hypot(mx - rx, my - ry);
+                if (newDist < currDist) {
+                    const w = (m.weight && m.weight > 0) ? m.weight : 0.05;
+                    savings += w * (currDist - newDist);
+                }
+            }
+
+            let score = 0;
+            if (savings > 0.5) {
+                score = savings + (!cellHasStorage ? 25 : 0) + Math.min(minDistToStorage, 15);
+            } else {
+                const distToCellCenter = Math.hypot(rx - (cell.x + cell.w / 2), ry - (cell.y + cell.h / 2));
+                score = (!cellHasStorage ? 100 : 0) + minDistToStorage * 2 - distToCellCenter * 0.1;
+            }
+
+            if (score > bestScore) {
+                bestScore = score;
+                best = r;
+            }
+        }
+
+        if (!best) break;
+
+        const picked = { x: best.x, y: best.y, w: best.w, h: best.h };
+        placedStorages.push(picked);
+        obstacles.push(picked);
+    }
+
+    return placedStorages;
 }
 
 // Puts `plots` on `slots` (the plan's own arrangement, one slot per plot, each slot sized for the

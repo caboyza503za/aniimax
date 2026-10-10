@@ -990,5 +990,13 @@
     "Workshop": "เวิร์กช็อป",
     "No facilities in this plot": "ไม่มีสิ่งก่อสร้างในแปลงนี้",
     "Or use:": "หรือใช้:",
-    "Personality match (+20% speed)": "โบนัสนิสัย (+20% ความเร็ว)"
+    "Personality match (+20% speed)": "โบนัสนิสัย (+20% ความเร็ว)",
+    "{trips} trips/hour across {n} Storage Units, {distance} tiles each on average, in the {plots} plot open at RV {level}.": "{trips} เที่ยว/ชม. ไปยังยูนิตที่จัดเก็บ {n} อัน เฉลี่ยเที่ยวละ {distance} ช่อง ในแปลง {plots} ที่เปิดของ RV {level}",
+    "{trips} trips/hour across {n} Storage Units, {distance} tiles each on average, in the {plots} plots open at RV {level}.": "{trips} เที่ยว/ชม. ไปยังยูนิตที่จัดเก็บ {n} อัน เฉลี่ยเที่ยวละ {distance} ช่อง ในแปลง {plots} ที่เปิดของ RV {level}",
+    "Storage Units": "ยูนิตที่จัดเก็บ",
+    "4 Storage Units (Max)": "4 อัน (สูงสุด)",
+    "3 Storage Units": "3 อัน",
+    "2 Storage Units": "2 อัน",
+    "1 Storage Unit": "1 อัน",
+    "Storage Unit #{n}": "ยูนิตที่จัดเก็บ #{n}"
 }

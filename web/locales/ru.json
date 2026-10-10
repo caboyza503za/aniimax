@@ -851,5 +851,13 @@
   "Workshop": "Мастерская",
   "No facilities in this plot": "На этом участке нет построек",
   "Or use:": "Или используйте:",
-  "Personality match (+20% speed)": "Бонус характера (+20% скорости)"
+  "Personality match (+20% speed)": "Бонус характера (+20% скорости)",
+  "{trips} trips/hour across {n} Storage Units, {distance} tiles each on average, in the {plots} plot open at RV {level}.": "{trips} доставок в час по {n} складам, в среднем {distance} клеток каждая, на {plots} участке автодома уровня {level}.",
+  "{trips} trips/hour across {n} Storage Units, {distance} tiles each on average, in the {plots} plots open at RV {level}.": "{trips} доставок в час по {n} складам, в среднем {distance} клеток каждая, на {plots} участках автодома уровня {level}.",
+  "Storage Units": "Склады",
+  "4 Storage Units (Max)": "4 склада (макс.)",
+  "3 Storage Units": "3 склада",
+  "2 Storage Units": "2 склада",
+  "1 Storage Unit": "1 склад",
+  "Storage Unit #{n}": "Склад #{n}"
 }

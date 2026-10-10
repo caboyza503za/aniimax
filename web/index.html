@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=1.1.0">
+    <link rel="stylesheet" href="style.css?v=1.2.0">
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
@@ -331,6 +331,16 @@
                                             <div class="hp-listpanel__content" id="layout-plot-facility-list"></div>
                                         </div>
                                     </div>
+                                    <div class="hp-storage-control" id="layout-storage-control-wrap" title="จำนวนยูนิตที่จัดเก็บในบ้านเกิด (วางได้สูงสุด 4 อัน)">
+                                        <span class="hp-storage-icon">📦</span>
+                                        <label for="layout-storage-count" class="hp-storage-label">Storage Units</label>
+                                        <select id="layout-storage-count" class="hp-storage-select" aria-label="Storage Units">
+                                            <option value="4" selected>4 Storage Units (Max)</option>
+                                            <option value="3">3 Storage Units</option>
+                                            <option value="2">2 Storage Units</option>
+                                            <option value="1">1 Storage Unit</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                             <div class="hp-frame__right">
@@ -616,6 +626,6 @@
             }
         });
     </script>
-    <script type="module" src="app.js?v=1.1.0"></script>
+    <script type="module" src="app.js?v=1.2.0"></script>
 </body>
 </html>

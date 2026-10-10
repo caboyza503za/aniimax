@@ -4136,6 +4136,58 @@ footer p { margin: 0; }
     border-color: var(--accent-cool);
 }
 
+.hp-storage-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    height: 32px;
+    padding: 0 0.65rem;
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    background: var(--surface-raised, #ffffff);
+    color: var(--text);
+    font-family: var(--font-body, system-ui, sans-serif);
+    font-size: 0.8rem;
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    transition: all 0.15s ease;
+}
+
+.hp-storage-control:hover {
+    background: color-mix(in srgb, var(--accent-cool) 12%, var(--surface));
+    border-color: var(--accent-cool);
+}
+
+.hp-storage-icon {
+    font-size: 0.95rem;
+    line-height: 1;
+}
+
+.hp-storage-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.hp-storage-select {
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 800;
+    cursor: pointer;
+    outline: none;
+    padding: 0 0.15rem;
+}
+
+.hp-storage-select option {
+    background: var(--surface-raised, #ffffff);
+    color: var(--text);
+}
+
 .hp-listbtn__n {
     display: inline-flex;
     align-items: center;
