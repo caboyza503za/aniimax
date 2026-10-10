@@ -1694,6 +1694,70 @@ function drawLayout(drawn) {
 // SVG camera so players can inspect a busy corner without losing the solver's chosen placement.
 let layoutMapState = null;
 
+function updateRadiusDisplay(piece = null) {
+    if (typeof document.querySelectorAll !== 'function') return;
+    document.querySelectorAll('#layout-diagram .active-radius').forEach(el => el.classList.remove('active-radius'));
+    if (!piece) return;
+
+    const px = piece?.dataset?.x != null ? Number(piece.dataset.x) : (piece?.getAttribute?.('data-x') != null ? Number(piece.getAttribute('data-x')) : null);
+    const py = piece?.dataset?.y != null ? Number(piece.dataset.y) : (piece?.getAttribute?.('data-y') != null ? Number(piece.getAttribute('data-y')) : null);
+    if (px == null || py == null) return;
+
+    const isGen = piece.classList?.contains?.('crackle-generator');
+    const isPole = piece.classList?.contains?.('crackle-pole');
+    const isEmode = piece.classList?.contains?.('emode-facility');
+    const isEnv = piece.classList?.contains?.('env-building');
+
+    if (isGen || isPole) {
+        document.querySelectorAll('#layout-diagram .layout-generator-grid-frame, #layout-diagram .layout-power-grid-frame, #layout-diagram .layout-generator-grid-bg, #layout-power-grid-bg').forEach(el => {
+            const sx = Number(el.dataset?.sourceX ?? el.getAttribute?.('data-source-x'));
+            const sy = Number(el.dataset?.sourceY ?? el.getAttribute?.('data-source-y'));
+            if (Math.abs(sx - px) < 0.05 && Math.abs(sy - py) < 0.05) {
+                el.classList.add('active-radius');
+            }
+        });
+        return;
+    }
+
+    if (isEnv) {
+        document.querySelectorAll('#layout-diagram .layout-coverage-bg, #layout-diagram .layout-coverage-edge').forEach(el => {
+            const sx = Number(el.dataset?.sourceX ?? el.getAttribute?.('data-source-x'));
+            const sy = Number(el.dataset?.sourceY ?? el.getAttribute?.('data-source-y'));
+            if (Math.abs(sx - px) < 0.05 && Math.abs(sy - py) < 0.05) {
+                el.classList.add('active-radius');
+            }
+        });
+        return;
+    }
+
+    if (isEmode) {
+        document.querySelectorAll('#layout-diagram .layout-generator-grid-frame, #layout-diagram .layout-power-grid-frame, #layout-diagram .layout-generator-grid-bg, #layout-power-grid-bg').forEach(el => {
+            const rx = Number(el.dataset?.radiusX ?? el.getAttribute?.('data-radius-x'));
+            const ry = Number(el.dataset?.radiusY ?? el.getAttribute?.('data-radius-y'));
+            const rw = Number(el.dataset?.radiusW ?? el.getAttribute?.('data-radius-w'));
+            const rh = Number(el.dataset?.radiusH ?? el.getAttribute?.('data-radius-h'));
+            if (!isNaN(rx) && !isNaN(ry) && !isNaN(rw) && !isNaN(rh)) {
+                if (px >= rx - 0.1 && px <= rx + rw + 0.1 && py >= ry - 0.1 && py <= ry + rh + 0.1) {
+                    el.classList.add('active-radius');
+                }
+            }
+        });
+        return;
+    }
+
+    document.querySelectorAll('#layout-diagram .layout-coverage-bg, #layout-diagram .layout-coverage-edge').forEach(el => {
+        const rx = Number(el.dataset?.radiusX ?? el.getAttribute?.('data-radius-x'));
+        const ry = Number(el.dataset?.radiusY ?? el.getAttribute?.('data-radius-y'));
+        const rw = Number(el.dataset?.radiusW ?? el.getAttribute?.('data-radius-w'));
+        const rh = Number(el.dataset?.radiusH ?? el.getAttribute?.('data-radius-h'));
+        if (!isNaN(rx) && !isNaN(ry) && !isNaN(rw) && !isNaN(rh)) {
+            if (px >= rx - 0.1 && px <= rx + rw + 0.1 && py >= ry - 0.1 && py <= ry + rh + 0.1) {
+                el.classList.add('active-radius');
+            }
+        }
+    });
+}
+
 function setLayoutInspector(piece = null) {
     const title = document.getElementById('layout-inspector-title');
     const detail = document.getElementById('layout-inspector-detail');
@@ -1702,6 +1766,7 @@ function setLayoutInspector(piece = null) {
         document.querySelectorAll('#layout-diagram .layout-piece.selected').forEach(el => el.classList.remove('selected'));
         document.querySelectorAll('#layout-diagram .layout-piece.same-facility').forEach(el => el.classList.remove('same-facility'));
     }
+    updateRadiusDisplay(piece);
     if (!piece) {
         if (title) title.textContent = translate('Explore your plan');
         if (detail) detail.textContent = translate('Tap a facility on the map to see its job, route and Aniimo recommendation.');
@@ -2432,7 +2497,16 @@ function homelandSvg(layout, homeLevel) {
     // everything in its mode's color as on the building's own map.
     const coverage = layout.pieces.flatMap(p => p.members)
         .filter(m => m.building && m.mode)
-        .map(m => ({ x: m.x + m.w / 2 - ENVIRONMENT_COVERAGE_RADIUS, y: m.y + m.h / 2 - ENVIRONMENT_COVERAGE_RADIUS, w: ENVIRONMENT_COVERAGE_RADIUS * 2, h: ENVIRONMENT_COVERAGE_RADIUS * 2, mode: m.mode }));
+        .map(m => ({
+            x: m.x + m.w / 2 - ENVIRONMENT_COVERAGE_RADIUS,
+            y: m.y + m.h / 2 - ENVIRONMENT_COVERAGE_RADIUS,
+            w: ENVIRONMENT_COVERAGE_RADIUS * 2,
+            h: ENVIRONMENT_COVERAGE_RADIUS * 2,
+            mode: m.mode,
+            sourceX: m.x,
+            sourceY: m.y,
+            facility: m.facility,
+        }));
     // The whole homeland, its plots marked out and the ones not open yet shaded.
     const plots = homelandPlots();
     const storages = layout.storages || (layout.storage ? [layout.storage] : []);
@@ -2482,51 +2556,41 @@ function homelandSvg(layout, homeLevel) {
     const generatorFrames = powerGenerators.map(gen => {
         const cx = gen.x + gen.w / 2;
         const cy = gen.y + gen.h / 2;
-        return { x: cx - 5.5, y: cy - 5.5, w: 11, h: 11 };
+        return {
+            x: cx - 5.5,
+            y: cy - 5.5,
+            w: 11,
+            h: 11,
+            sourceX: gen.x,
+            sourceY: gen.y
+        };
     });
     const powerPoles = allMembers.filter(m => m.isPowerPole);
     const poleFrames = powerPoles.map(pole => {
         const cx = pole.x + pole.w / 2;
         const cy = pole.y + pole.h / 2;
-        return { x: cx - 3.5, y: cy - 3.5, w: 7, h: 7 };
+        return {
+            x: cx - 3.5,
+            y: cy - 3.5,
+            w: 7,
+            h: 7,
+            sourceX: pole.x,
+            sourceY: pole.y
+        };
     });
 
-    const powerBoxes = [];
-    if (powerMembers.length > 0) {
-        plots.forEach(p => {
-            const inPlot = powerMembers.filter(m => {
-                const cx = m.x + m.w / 2;
-                const cy = m.y + m.h / 2;
-                return cx >= p.x && cx < p.x + p.w && cy >= p.y && cy < p.y + p.h;
-            });
-            if (inPlot.length > 0) {
-                const minX = Math.min(...inPlot.map(m => m.x));
-                const minY = Math.min(...inPlot.map(m => m.y));
-                const maxX = Math.max(...inPlot.map(m => m.x + m.w));
-                const maxY = Math.max(...inPlot.map(m => m.y + m.h));
-                const pad = 0.35;
-                const bx = minX - pad;
-                const by = minY - pad;
-                const bw = (maxX - minX) + pad * 2;
-                const bh = (maxY - minY) + pad * 2;
-                powerBoxes.push({ x: bx, y: by, w: bw, h: bh, emodeCount: inPlot.filter(m => m.emode).length });
-            }
-        });
-    }
     const powerGridBgs = generatorFrames.map(f =>
-        `<rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" rx="0.35" fill="#f59e0b" fill-opacity="0.10" class="layout-generator-grid-bg" />`
+        `<rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" rx="0.35" fill="#f59e0b" fill-opacity="0.10" class="layout-radius-bg layout-generator-grid-bg" data-source-x="${f.sourceX}" data-source-y="${f.sourceY}" data-radius-x="${f.x}" data-radius-y="${f.y}" data-radius-w="${f.w}" data-radius-h="${f.h}" />`
     ).join('') + poleFrames.map(f =>
-        `<rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" rx="0.3" fill="#facc15" fill-opacity="0.12" class="layout-power-grid-bg" />`
-    ).join('') + powerBoxes.map(b =>
-        `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="0.35" fill="#f59e0b" fill-opacity="0.04" />`
+        `<rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" rx="0.3" fill="#facc15" fill-opacity="0.12" class="layout-radius-bg layout-power-grid-bg" data-source-x="${f.sourceX}" data-source-y="${f.sourceY}" data-radius-x="${f.x}" data-radius-y="${f.y}" data-radius-w="${f.w}" data-radius-h="${f.h}" />`
     ).join('');
     const powerGridEdges = generatorFrames.map(f =>
-        `<g class="layout-generator-grid-frame">
+        `<g class="layout-radius-edge layout-generator-grid-frame" data-source-x="${f.sourceX}" data-source-y="${f.sourceY}" data-radius-x="${f.x}" data-radius-y="${f.y}" data-radius-w="${f.w}" data-radius-h="${f.h}">
             <rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" rx="0.35" fill="none"
                 stroke="#d97706" stroke-opacity="0.9" stroke-width="0.1" stroke-dasharray="0.6,0.25" />
         </g>`
     ).join('') + poleFrames.map(f =>
-        `<g class="layout-power-grid-frame">
+        `<g class="layout-radius-edge layout-power-grid-frame" data-source-x="${f.sourceX}" data-source-y="${f.sourceY}" data-radius-x="${f.x}" data-radius-y="${f.y}" data-radius-w="${f.w}" data-radius-h="${f.h}">
             <rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" rx="0.3" fill="none"
                 stroke="#eab308" stroke-opacity="0.9" stroke-width="0.09" stroke-dasharray="0.5,0.2" />
         </g>`
@@ -2603,12 +2667,12 @@ function homelandSvg(layout, homeLevel) {
     const coverageShapes = coverage.map(c => {
         const tint = ENVIRONMENT_MODE_COLORS[c.mode] || '#9aa0a8';
         const shade = (0.12 * (ENVIRONMENT_MODE_SHADE[c.mode] ?? 1)).toFixed(3);
-        return `<rect x="${c.x}" y="${c.y}" width="${c.w}" height="${c.h}" fill="${tint}" fill-opacity="${shade}" />`;
+        return `<rect class="layout-radius-bg layout-coverage-bg" data-source-x="${c.sourceX}" data-source-y="${c.sourceY}" data-mode="${c.mode}" data-radius-x="${c.x}" data-radius-y="${c.y}" data-radius-w="${c.w}" data-radius-h="${c.h}" x="${c.x}" y="${c.y}" width="${c.w}" height="${c.h}" fill="${tint}" fill-opacity="${shade}" />`;
     }).join('');
     // Its edge goes over the pieces, so the square reads through whatever stands in it.
     const coverageEdges = coverage.map(c => {
         const tint = ENVIRONMENT_MODE_COLORS[c.mode] || '#9aa0a8';
-        return `<rect x="${c.x}" y="${c.y}" width="${c.w}" height="${c.h}" fill="none"
+        return `<rect class="layout-radius-edge layout-coverage-edge" data-source-x="${c.sourceX}" data-source-y="${c.sourceY}" data-mode="${c.mode}" data-radius-x="${c.x}" data-radius-y="${c.y}" data-radius-w="${c.w}" data-radius-h="${c.h}" x="${c.x}" y="${c.y}" width="${c.w}" height="${c.h}" fill="none"
             stroke="${tint}" stroke-opacity="0.8" stroke-dasharray="0.35,0.25" stroke-width="0.08" />`;
     }).join('');
     const totalTrips = layout.pieces.flatMap(p => p.members).filter(m => !m.building && !m.isGenerator && !m.isPowerPole).reduce((sum, m) => sum + (m.weight || 0), 0);

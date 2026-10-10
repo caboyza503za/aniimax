@@ -218,3 +218,70 @@ test('clicking a facility highlights all units of same facility type and opens d
     assert.ok(!piece2.classList.contains('same-facility'));
     assert.equal(drawerOpened, false);
 });
+
+test('clicking generator or environment building toggles active-radius on matching frame', () => {
+    const listeners = {};
+    const attributes = new Map([['viewBox', '0 0 120 80']]);
+    const svg = {
+        getAttribute: name => attributes.get(name),
+        setAttribute: (name, value) => attributes.set(name, String(value)),
+        getBoundingClientRect: () => ({ left: 0, top: 0, width: 600, height: 400 }),
+        setPointerCapture() {},
+        releasePointerCapture() {},
+        addEventListener: (name, handler) => { listeners[name] = handler; },
+    };
+
+    const makeMockEl = (fac, x, y, extraClass = '') => {
+        const classes = new Set(['layout-piece']);
+        if (extraClass) classes.add(extraClass);
+        const el = {
+            dataset: { facility: fac, x: String(x), y: String(y), tip: fac },
+            classList: {
+                add: c => classes.add(c),
+                remove: c => classes.delete(c),
+                contains: c => classes.has(c),
+            },
+            getAttribute: k => k === 'data-facility' ? fac : (k === 'data-x' ? String(x) : (k === 'data-y' ? String(y) : null)),
+        };
+        el.closest = sel => sel === '.layout-piece' ? el : null;
+        return el;
+    };
+
+    const genPiece = makeMockEl('Crackle Generator', 5, 5, 'crackle-generator');
+    const radiusClasses = new Set(['layout-radius-edge', 'layout-generator-grid-frame']);
+    const mockGenFrame = {
+        dataset: { sourceX: '5', sourceY: '5', radiusX: '0', radiusY: '0', radiusW: '11', radiusH: '11' },
+        classList: {
+            add: c => radiusClasses.add(c),
+            remove: c => radiusClasses.delete(c),
+            contains: c => radiusClasses.has(c),
+        },
+        getAttribute: k => mockGenFrame.dataset[k] || null,
+    };
+
+    const context = {
+        document: {
+            querySelector: () => svg,
+            querySelectorAll: sel => {
+                if (sel.includes('.layout-piece')) return [genPiece];
+                if (sel.includes('data-source-x') || sel.includes('active-radius') || sel.includes('layout-generator-grid-frame')) return [mockGenFrame];
+                return [];
+            },
+            getElementById: () => ({ textContent: '', classList: { add() {}, remove() {} } }),
+            elementFromPoint: () => genPiece,
+        },
+        translate: value => value,
+        Math,
+    };
+
+    runInNewContext(`${source.slice(start, end)}\nglobalThis.explorer = { setupInteractiveLayout, setLayoutInspector, state: () => layoutMapState };`, context);
+    context.explorer.setupInteractiveLayout();
+
+    // Clicking generator activates its radius frame
+    context.explorer.setLayoutInspector(genPiece);
+    assert.ok(mockGenFrame.classList.contains('active-radius'));
+
+    // Deselecting removes active-radius
+    context.explorer.setLayoutInspector(null);
+    assert.ok(!mockGenFrame.classList.contains('active-radius'));
+});

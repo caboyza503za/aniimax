@@ -292,6 +292,41 @@ body.has-results #layout-card .layout-svg { min-width: 0; }
     to { stroke-opacity: 1; filter: drop-shadow(0 0 1.5px rgba(255, 210, 63, 1)); }
 }
 
+/* Radius frames and coverage areas are hidden by default to keep the map clean */
+.layout-radius-bg,
+.layout-radius-edge,
+.layout-generator-grid-frame,
+.layout-power-grid-frame,
+.layout-coverage-edge,
+.layout-generator-grid-bg,
+.layout-power-grid-bg,
+.layout-coverage-bg,
+.layout-power-box-bg {
+    display: none !important;
+}
+
+.layout-radius-bg.active-radius,
+.layout-radius-edge.active-radius,
+.layout-generator-grid-frame.active-radius,
+.layout-power-grid-frame.active-radius,
+.layout-coverage-edge.active-radius,
+.layout-generator-grid-bg.active-radius,
+.layout-power-grid-bg.active-radius,
+.layout-coverage-bg.active-radius,
+.layout-power-box-bg.active-radius {
+    display: inline !important;
+    animation: radius-appear 0.2s ease-out forwards;
+}
+
+.layout-radius-edge.active-radius rect {
+    filter: drop-shadow(0 0 0.8px currentColor) !important;
+}
+
+@keyframes radius-appear {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
 .fd-head-info {
     display: flex;
     align-items: center;
