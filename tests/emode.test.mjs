@@ -8,6 +8,7 @@ test('CRACKLE_GENERATOR has correct unlock and levels', () => {
     assert.equal(CRACKLE_GENERATOR.unlockHomeLevel, 12);
     assert.equal(CRACKLE_GENERATOR.maxPlaced, 1); // Placed at most 1 in Homeland
     assert.deepEqual(CRACKLE_GENERATOR.footprint, [2, 2]);
+    assert.deepEqual(CRACKLE_GENERATOR.range, [11, 11]);
 
     // Watts by level
     assert.equal(CRACKLE_GENERATOR.wattsByLevel[1], 120);

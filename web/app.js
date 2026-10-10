@@ -1514,6 +1514,12 @@ function homelandSvg(layout, homeLevel) {
     // Facilities using E-Mode must sit within the power pole / generator frame.
     const allMembers = layout.pieces.flatMap(p => p.members);
     const powerMembers = allMembers.filter(m => m.emode || m.isGenerator || m.isPowerPole);
+    const powerGenerators = allMembers.filter(m => m.isGenerator);
+    const generatorFrames = powerGenerators.map(gen => {
+        const cx = gen.x + gen.w / 2;
+        const cy = gen.y + gen.h / 2;
+        return { x: cx - 5.5, y: cy - 5.5, w: 11, h: 11 };
+    });
     const powerPoles = allMembers.filter(m => m.isPowerPole);
     const poleFrames = powerPoles.map(pole => {
         const cx = pole.x + pole.w / 2;
@@ -1543,12 +1549,20 @@ function homelandSvg(layout, homeLevel) {
             }
         });
     }
-    const powerGridBgs = poleFrames.map(f =>
+    const powerGridBgs = generatorFrames.map(f =>
+        `<rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" rx="0.35" fill="#f59e0b" fill-opacity="0.10" class="layout-generator-grid-bg" />`
+    ).join('') + poleFrames.map(f =>
         `<rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" rx="0.3" fill="#facc15" fill-opacity="0.12" class="layout-power-grid-bg" />`
     ).join('') + powerBoxes.map(b =>
         `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="0.35" fill="#f59e0b" fill-opacity="0.04" />`
     ).join('');
-    const powerGridEdges = poleFrames.map(f =>
+    const powerGridEdges = generatorFrames.map(f =>
+        `<g class="layout-generator-grid-frame">
+            <rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" rx="0.35" fill="none"
+                stroke="#d97706" stroke-opacity="0.9" stroke-width="0.1" stroke-dasharray="0.6,0.25" />
+            <text x="${f.x + 0.2}" y="${f.y + 0.35}" font-size="0.45" fill="#b45309" font-weight="bold" text-anchor="start" dominant-baseline="hanging">⚡ กรอบเครื่องกำเนิดไฟ 11×11</text>
+        </g>`
+    ).join('') + poleFrames.map(f =>
         `<g class="layout-power-grid-frame">
             <rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" rx="0.3" fill="none"
                 stroke="#eab308" stroke-opacity="0.9" stroke-width="0.09" stroke-dasharray="0.5,0.2" />
@@ -1560,14 +1574,14 @@ function homelandSvg(layout, homeLevel) {
     const shapes = allMembers.map(m => {
         if (m.isGenerator) {
             const tip = tipAttrs('Crackle Generator', {
-                detail: `เสากำเนิดไฟฟ้าเปาะแปะ Lv.${m.genLevel || 1} (จ่ายไฟ ${m.outputWatts || 120}W / วางได้สูงสุด 1 เสา)`,
+                detail: `เสากำเนิดไฟฟ้าเปาะแปะ Lv.${m.genLevel || 1} (ขนาด 2×2 · กรอบจ่ายไฟ 11×11 · จ่ายไฟ ${m.outputWatts || 120}W / วางได้สูงสุด 1 เสา)`,
                 stats: `รองรับเครื่องโหมด E ได้ ${Math.floor((m.outputWatts || 120) / 60)} เครื่อง (ใช้ไป ${m.totalWatts || 0}W)`,
                 color: '#f59e0b',
             });
             return `<g class="layout-piece crackle-generator" ${tip}><rect x="${m.x + 0.05}" y="${m.y + 0.05}" width="${m.w - 0.1}" height="${m.h - 0.1}" rx="0.3"
                 fill="#f59e0b" fill-opacity="0.88" stroke="#d97706" stroke-width="0.08" />
                 <text x="${m.x + m.w / 2}" y="${m.y + m.h / 2 - 0.22}" font-size="0.6" font-weight="bold" fill="#ffffff">⚡ CG</text>
-                <text x="${m.x + m.w / 2}" y="${m.y + m.h / 2 + 0.4}" font-size="0.35" fill="#ffffff" opacity="0.95">Lv.${m.genLevel || 1} · ${m.outputWatts || 120}W</text>
+                <text x="${m.x + m.w / 2}" y="${m.y + m.h / 2 + 0.38}" font-size="0.32" fill="#ffffff" opacity="0.95">2×2 · ${m.outputWatts || 120}W</text>
             </g>`;
         }
         if (m.isPowerPole) {
