@@ -2716,7 +2716,6 @@ tr:hover .skip-row,
     fill: #ffffff;
     font-weight: 700;
     opacity: 0.85;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
     pointer-events: none;
     user-select: none;
 }
@@ -3710,20 +3709,8 @@ tbody tr:hover {
 
 /* Power Grid Frame ("กรอบเสาไฟ") & E-Mode visualization */
 .layout-power-grid-frame rect {
-    animation: pulse-power-frame 3s ease-in-out infinite alternate;
-}
-@keyframes pulse-power-frame {
-    0% { stroke-opacity: 0.7; stroke-width: 0.08; }
-    100% { stroke-opacity: 1; stroke-width: 0.11; }
-}
-.layout-piece.crackle-generator rect {
-    filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.45));
-}
-.layout-piece.crackle-pole rect {
-    filter: drop-shadow(0 0 1px rgba(217, 119, 6, 0.45));
-}
-.layout-piece.emode-facility rect {
-    filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.4));
+    stroke-opacity: 0.9;
+    stroke-width: 0.09;
 }
 
 /* In-game style facility badge and level in Homeland layout */
@@ -3731,22 +3718,22 @@ tbody tr:hover {
     pointer-events: none;
 }
 .facility-badge-circle {
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45));
+    pointer-events: none;
 }
 .facility-badge-level {
     font-family: var(--font-body, system-ui, sans-serif);
     font-weight: 700;
     fill: #ffffff;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.95));
+    pointer-events: none;
 }
 .facility-item-icon {
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+    pointer-events: none;
 }
-.facility-worker-badge circle {
-    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.45));
+.facility-worker-badge {
+    pointer-events: none;
 }
-.facility-emode-badge rect {
-    filter: drop-shadow(0 1px 2px rgba(245, 158, 11, 0.6));
+.facility-emode-badge {
+    pointer-events: none;
 }
 
 /* Modals */
