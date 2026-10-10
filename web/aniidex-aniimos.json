@@ -1,0 +1,3256 @@
+[
+  {
+    "id": "10011",
+    "petId": "1001100",
+    "slug": "celestis",
+    "name": "กระรอกจ้าวเวหา",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10011.webp",
+    "skills": {
+      "Dark": 1,
+      "Leisure": 1
+    },
+    "skillsTh": {
+      "ความมืด": 1,
+      "ไม่รีบร้อน": 1
+    }
+  },
+  {
+    "id": "10012",
+    "petId": "1001200",
+    "slug": "stellarys",
+    "name": "กระรอกจ้าวดารา",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10012.webp",
+    "skills": {
+      "Dark": 3,
+      "Leisure": 3
+    },
+    "skillsTh": {
+      "ความมืด": 3,
+      "ไม่รีบร้อน": 3
+    }
+  },
+  {
+    "id": "10021",
+    "petId": "1002100",
+    "slug": "helmut",
+    "name": "หมวกเกราะจิ๋ว",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10021.webp",
+    "skills": {
+      "Dark": 1,
+      "Hauling": 1
+    },
+    "skillsTh": {
+      "ความมืด": 1,
+      "แบก": 1
+    }
+  },
+  {
+    "id": "10022",
+    "petId": "1002200",
+    "slug": "helmwhelp",
+    "name": "มังกรเกราะจิ๋ว",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10022.webp",
+    "skills": {
+      "Wind": 2,
+      "Hauling": 2
+    },
+    "skillsTh": {
+      "ลม": 2,
+      "แบก": 2
+    }
+  },
+  {
+    "id": "10023",
+    "petId": "1002300",
+    "slug": "helgon",
+    "name": "มังกรเกราะพิทักษ์",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10023.webp",
+    "skills": {
+      "Wind": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ลม": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "10024",
+    "petId": "1002400",
+    "slug": "jawling",
+    "name": "มังกรฟันน้ำนม",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10024.webp",
+    "skills": {
+      "Wind": 1,
+      "Hauling": 1
+    },
+    "skillsTh": {
+      "ลม": 1,
+      "แบก": 1
+    }
+  },
+  {
+    "id": "10025",
+    "petId": "1002500",
+    "slug": "infergon",
+    "name": "มังกรโลกันตร์",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10025.webp",
+    "skills": {
+      "Fire": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ไฟ": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "10026",
+    "petId": "1002600",
+    "slug": "pawney",
+    "name": "อัศวินเบี้ย",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10026.webp",
+    "skills": {
+      "Dark": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ความมืด": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "10027",
+    "petId": "1002700",
+    "slug": "rookey",
+    "name": "อัศวินน้องใหม่",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10027.webp",
+    "skills": {
+      "Dark": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ความมืด": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "10031",
+    "petId": "1003100",
+    "slug": "wisptis",
+    "name": "ตั๊กแตนพรายจิ๋ว",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10031.webp",
+    "skills": {
+      "Dark": 1,
+      "Artisanship": 1
+    },
+    "skillsTh": {
+      "ความมืด": 1,
+      "ช่างฝีมือ": 1
+    }
+  },
+  {
+    "id": "10032",
+    "petId": "1003200",
+    "slug": "ignitis",
+    "name": "ตั๊กแตนพรายอัคคี",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10032.webp",
+    "skills": {
+      "Dark": 3,
+      "Artisanship": 3
+    },
+    "skillsTh": {
+      "ความมืด": 3,
+      "ช่างฝีมือ": 3
+    }
+  },
+  {
+    "id": "10033",
+    "petId": "1003300",
+    "slug": "fulmintis",
+    "name": "ตั๊กแตนอัสนี",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10033.webp",
+    "skills": {
+      "Lightning": 3,
+      "Artisanship": 3
+    },
+    "skillsTh": {
+      "สายฟ้า": 3,
+      "ช่างฝีมือ": 3
+    }
+  },
+  {
+    "id": "10041",
+    "petId": "1004100",
+    "slug": "skippy",
+    "name": "ปลาจอมโดด",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10041.webp",
+    "skills": {
+      "Water": 1,
+      "Hauling": 1
+    },
+    "skillsTh": {
+      "น้ำ": 1,
+      "แบก": 1
+    }
+  },
+  {
+    "id": "10042",
+    "petId": "1004200",
+    "slug": "pranky",
+    "name": "ปลาจอมหยอก",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10042.webp",
+    "skills": {
+      "Water": 2,
+      "Hauling": 2
+    },
+    "skillsTh": {
+      "น้ำ": 2,
+      "แบก": 2
+    }
+  },
+  {
+    "id": "10043",
+    "petId": "1004300",
+    "slug": "glacy",
+    "name": "ปลาหยาดน้ำแข็ง",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10043.webp",
+    "skills": {
+      "Water": 3,
+      "Ice": 2,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "น้ำ": 3,
+      "น้ำแข็ง": 2,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "10045",
+    "petId": "1004500",
+    "slug": "leafy",
+    "name": "เจ้าใบบัว",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10045.webp",
+    "skills": {
+      "Grass": 3,
+      "Water": 2,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "หญ้า": 3,
+      "น้ำ": 2,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "10051",
+    "petId": "1005100",
+    "slug": "emberpup",
+    "name": "เจ้าหมาถ่าน",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10051.webp",
+    "skills": {
+      "Fire": 1,
+      "Hauling": 1
+    },
+    "skillsTh": {
+      "ไฟ": 1,
+      "แบก": 1
+    }
+  },
+  {
+    "id": "10052",
+    "petId": "1005200",
+    "slug": "flameruff",
+    "name": "เจ้าปุยอัคคี",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10052.webp",
+    "skills": {
+      "Fire": 2,
+      "Hauling": 2
+    },
+    "skillsTh": {
+      "ไฟ": 2,
+      "แบก": 2
+    }
+  },
+  {
+    "id": "10053",
+    "petId": "1005300",
+    "slug": "scorchhowl",
+    "name": "เจ้าเพลิงคำราม",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10053.webp",
+    "skills": {
+      "Fire": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ไฟ": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "10055",
+    "petId": "1005500",
+    "slug": "inferlupa",
+    "name": "หมาป่าโลกันตร์",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10055.webp",
+    "skills": {
+      "Fire": 2,
+      "Dark": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ไฟ": 2,
+      "ความมืด": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "10122",
+    "petId": "1012200",
+    "slug": "besauce",
+    "name": "บีซอส",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10122.webp",
+    "skills": {
+      "Lightning": 3,
+      "Artisanship": 1
+    },
+    "skillsTh": {
+      "สายฟ้า": 3,
+      "ช่างฝีมือ": 1
+    }
+  },
+  {
+    "id": "10131",
+    "petId": "1013100",
+    "slug": "bonesky",
+    "name": "จิ้งจอกโครงฟ้า",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10131.webp",
+    "skills": {
+      "Ice": 1,
+      "Hauling": 1
+    },
+    "skillsTh": {
+      "น้ำแข็ง": 1,
+      "แบก": 1
+    }
+  },
+  {
+    "id": "10132",
+    "petId": "1013200",
+    "slug": "fenrier",
+    "name": "จิ้งจอกธารน้ำแข็ง",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10132.webp",
+    "skills": {
+      "Ice": 2,
+      "Hauling": 2
+    },
+    "skillsTh": {
+      "น้ำแข็ง": 2,
+      "แบก": 2
+    }
+  },
+  {
+    "id": "10133",
+    "petId": "1013300",
+    "slug": "glynsera",
+    "name": "จิ้งจอกดาบเหมันต์",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10133.webp",
+    "skills": {
+      "Ice": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "น้ำแข็ง": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "10141",
+    "petId": "1014100",
+    "slug": "bulbly",
+    "name": "หลอดไฟจิ๋ว",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10141.webp",
+    "skills": {
+      "Lightning": 1,
+      "Artisanship": 1
+    },
+    "skillsTh": {
+      "สายฟ้า": 1,
+      "ช่างฝีมือ": 1
+    }
+  },
+  {
+    "id": "10142",
+    "petId": "1014200",
+    "slug": "veilfloat",
+    "name": "กระพรุนโคมลอย",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10142.webp",
+    "skills": {
+      "Lightning": 2,
+      "Artisanship": 2
+    },
+    "skillsTh": {
+      "สายฟ้า": 2,
+      "ช่างฝีมือ": 2
+    }
+  },
+  {
+    "id": "10143",
+    "petId": "1014300",
+    "slug": "luminelle",
+    "name": "กระพรุนแสงละมุน",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10143.webp",
+    "skills": {
+      "Lightning": 3,
+      "Artisanship": 3
+    },
+    "skillsTh": {
+      "สายฟ้า": 3,
+      "ช่างฝีมือ": 3
+    }
+  },
+  {
+    "id": "10161",
+    "petId": "1016100",
+    "slug": "budclaw",
+    "name": "ปูหน่ออ่อน",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10161.webp",
+    "skills": {
+      "Grass": 1,
+      "Earth": 1,
+      "Hauling": 1
+    },
+    "skillsTh": {
+      "หญ้า": 1,
+      "ดิน": 1,
+      "แบก": 1
+    }
+  },
+  {
+    "id": "10162",
+    "petId": "1016200",
+    "slug": "shrubclaw",
+    "name": "ปูไม้พุ่ม",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10162.webp",
+    "skills": {
+      "Grass": 2,
+      "Earth": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "หญ้า": 2,
+      "ดิน": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "10163",
+    "petId": "1016300",
+    "slug": "geoclaw",
+    "name": "ปูธรณี",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10163.webp",
+    "skills": {
+      "Ice": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "น้ำแข็ง": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "10171",
+    "petId": "1017100",
+    "slug": "susuta",
+    "name": "นากขี้อาย",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10171.webp",
+    "skills": {
+      "Water": 1,
+      "Leisure": 1
+    },
+    "skillsTh": {
+      "น้ำ": 1,
+      "ไม่รีบร้อน": 1
+    }
+  },
+  {
+    "id": "10172",
+    "petId": "1017200",
+    "slug": "popota",
+    "name": "นากแอบรัก",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10172.webp",
+    "skills": {
+      "Water": 2,
+      "Leisure": 2
+    },
+    "skillsTh": {
+      "น้ำ": 2,
+      "ไม่รีบร้อน": 2
+    }
+  },
+  {
+    "id": "10173",
+    "petId": "1017300",
+    "slug": "piopiota",
+    "name": "นากเจ้าเสน่ห์",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10173.webp",
+    "skills": {
+      "Water": 3,
+      "Leisure": 3
+    },
+    "skillsTh": {
+      "น้ำ": 3,
+      "ไม่รีบร้อน": 3
+    }
+  },
+  {
+    "id": "10174",
+    "petId": "1017400",
+    "slug": "panpanta",
+    "name": "นากนักสร้าง",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10174.webp",
+    "skills": {
+      "Water": 3,
+      "Leisure": 3
+    },
+    "skillsTh": {
+      "น้ำ": 3,
+      "ไม่รีบร้อน": 3
+    }
+  },
+  {
+    "id": "10181",
+    "petId": "1018100",
+    "slug": "chirpi",
+    "name": "จิ๊บจิ๊บ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10181.webp",
+    "skills": {
+      "Wind": 1
+    },
+    "skillsTh": {
+      "ลม": 1
+    }
+  },
+  {
+    "id": "10184",
+    "petId": "1018400",
+    "slug": "tromber",
+    "name": "จิ๊บแตรยาว",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10184.webp",
+    "skills": {
+      "Wind": 3
+    },
+    "skillsTh": {
+      "ลม": 3
+    }
+  },
+  {
+    "id": "10185",
+    "petId": "1018500",
+    "slug": "cornet",
+    "name": "จิ๊บแตรน้อย",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10185.webp",
+    "skills": {
+      "Wind": 3
+    },
+    "skillsTh": {
+      "ลม": 3
+    }
+  },
+  {
+    "id": "10187",
+    "petId": "1018700",
+    "slug": "tubster",
+    "name": "จิ๊บแตรใหญ่",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10187.webp",
+    "skills": {
+      "Wind": 3
+    },
+    "skillsTh": {
+      "ลม": 3
+    }
+  },
+  {
+    "id": "10191",
+    "petId": "1019100",
+    "slug": "shelly",
+    "name": "ดาวจิ๋ว",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10191.webp",
+    "skills": {
+      "Water": 1,
+      "Leisure": 1
+    },
+    "skillsTh": {
+      "น้ำ": 1,
+      "ไม่รีบร้อน": 1
+    }
+  },
+  {
+    "id": "10192",
+    "petId": "1019200",
+    "slug": "sheldon",
+    "name": "ดาวติดเกราะ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10192.webp",
+    "skills": {
+      "Water": 2,
+      "Leisure": 2
+    },
+    "skillsTh": {
+      "น้ำ": 2,
+      "ไม่รีบร้อน": 2
+    }
+  },
+  {
+    "id": "10194",
+    "petId": "1019400",
+    "slug": "sherro",
+    "name": "ดาวนักรบ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10194.webp",
+    "skills": {
+      "Water": 3,
+      "Leisure": 3
+    },
+    "skillsTh": {
+      "น้ำ": 3,
+      "ไม่รีบร้อน": 3
+    }
+  },
+  {
+    "id": "10201",
+    "petId": "1020100",
+    "slug": "hummin",
+    "name": "ผักร่าเริง",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10201.webp",
+    "skills": {
+      "Grass": 1
+    },
+    "skillsTh": {
+      "หญ้า": 1
+    }
+  },
+  {
+    "id": "10203",
+    "petId": "1020300",
+    "slug": "hexxin",
+    "name": "ผักแม่มด",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10203.webp",
+    "skills": {
+      "Grass": 1,
+      "Dark": 2,
+      "Artisanship": 2
+    },
+    "skillsTh": {
+      "หญ้า": 1,
+      "ความมืด": 2,
+      "ช่างฝีมือ": 2
+    }
+  },
+  {
+    "id": "10207",
+    "petId": "1020700",
+    "slug": "tuckin",
+    "name": "ผักจอมซุก",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10207.webp",
+    "skills": {
+      "Grass": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "หญ้า": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "10211",
+    "petId": "1021100",
+    "slug": "iris",
+    "name": "ไอริสน้อย",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10211.webp",
+    "skills": {
+      "Grass": 1,
+      "Leisure": 1
+    },
+    "skillsTh": {
+      "หญ้า": 1,
+      "ไม่รีบร้อน": 1
+    }
+  },
+  {
+    "id": "10212",
+    "petId": "1021200",
+    "slug": "irisal",
+    "name": "ไอริสเริงระบำ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10212.webp",
+    "skills": {
+      "Grass": 3,
+      "Leisure": 3
+    },
+    "skillsTh": {
+      "หญ้า": 3,
+      "ไม่รีบร้อน": 3
+    }
+  },
+  {
+    "id": "10213",
+    "petId": "1021300",
+    "slug": "irisalis",
+    "name": "ไอริสสายรุ้ง",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10213.webp",
+    "skills": {
+      "Grass": 4,
+      "Leisure": 4
+    },
+    "skillsTh": {
+      "หญ้า": 4,
+      "ไม่รีบร้อน": 4
+    }
+  },
+  {
+    "id": "10221",
+    "petId": "1022100",
+    "slug": "bolty",
+    "name": "เจ้าจิ๋วสายฟ้าแลบ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10221.webp",
+    "skills": {
+      "Lightning": 1,
+      "Artisanship": 1
+    },
+    "skillsTh": {
+      "สายฟ้า": 1,
+      "ช่างฝีมือ": 1
+    }
+  },
+  {
+    "id": "10222",
+    "petId": "1022200",
+    "slug": "blazen",
+    "name": "เจ้าปุยอัสนี",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10222.webp",
+    "skills": {
+      "Lightning": 3,
+      "Artisanship": 3
+    },
+    "skillsTh": {
+      "สายฟ้า": 3,
+      "ช่างฝีมือ": 3
+    }
+  },
+  {
+    "id": "10231",
+    "petId": "1023100",
+    "slug": "flutternym",
+    "name": "ผีเสื้อปีกกระพือ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10231.webp",
+    "skills": {
+      "Wind": 1,
+      "Leisure": 1
+    },
+    "skillsTh": {
+      "ลม": 1,
+      "ไม่รีบร้อน": 1
+    }
+  },
+  {
+    "id": "10232",
+    "petId": "1023200",
+    "slug": "gracewing",
+    "name": "ผีเสื้อปีกสง่า",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10232.webp",
+    "skills": {
+      "Wind": 3,
+      "Leisure": 3
+    },
+    "skillsTh": {
+      "ลม": 3,
+      "ไม่รีบร้อน": 3
+    }
+  },
+  {
+    "id": "10233",
+    "petId": "1023300",
+    "slug": "somniwing",
+    "name": "ผีเสื้อปีกนิทรา",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10233.webp",
+    "skills": {
+      "Grass": 4,
+      "Wind": 3,
+      "Leisure": 4
+    },
+    "skillsTh": {
+      "หญ้า": 4,
+      "ลม": 3,
+      "ไม่รีบร้อน": 4
+    }
+  },
+  {
+    "id": "10261",
+    "petId": "1026100",
+    "slug": "nimbi",
+    "name": "แกะปุยเมฆ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10261.webp",
+    "skills": {
+      "Wind": 1,
+      "Leisure": 1
+    },
+    "skillsTh": {
+      "ลม": 1,
+      "ไม่รีบร้อน": 1
+    }
+  },
+  {
+    "id": "10262",
+    "petId": "1026200",
+    "slug": "turbo",
+    "name": "แกะเทอร์โบ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10262.webp",
+    "skills": {
+      "Wind": 3,
+      "Leisure": 3
+    },
+    "skillsTh": {
+      "ลม": 3,
+      "ไม่รีบร้อน": 3
+    }
+  },
+  {
+    "id": "10263",
+    "petId": "1026300",
+    "slug": "dreaple",
+    "name": "แกะแดนฝัน",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10263.webp",
+    "skills": {
+      "Dark": 3,
+      "Leisure": 3
+    },
+    "skillsTh": {
+      "ความมืด": 3,
+      "ไม่รีบร้อน": 3
+    }
+  },
+  {
+    "id": "10281",
+    "petId": "1028100",
+    "slug": "pebbling",
+    "name": "กิ้งก่าหินจิ๋ว",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10281.webp",
+    "skills": {
+      "Earth": 1,
+      "Hauling": 1
+    },
+    "skillsTh": {
+      "ดิน": 1,
+      "แบก": 1
+    }
+  },
+  {
+    "id": "10282",
+    "petId": "1028200",
+    "slug": "lavazar",
+    "name": "กิ้งก่าลาวา",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10282.webp",
+    "skills": {
+      "Fire": 2,
+      "Earth": 1,
+      "Hauling": 2
+    },
+    "skillsTh": {
+      "ไฟ": 2,
+      "ดิน": 1,
+      "แบก": 2
+    }
+  },
+  {
+    "id": "10283",
+    "petId": "1028300",
+    "slug": "magmarex",
+    "name": "กิ้งก่าจ้าวแม็กมา",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10283.webp",
+    "skills": {
+      "Fire": 3,
+      "Earth": 2,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ไฟ": 3,
+      "ดิน": 2,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "10284",
+    "petId": "1028400",
+    "slug": "geodeback",
+    "name": "กิ้งก่าหลังหิน",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10284.webp",
+    "skills": {
+      "Earth": 2,
+      "Hauling": 2
+    },
+    "skillsTh": {
+      "ดิน": 2,
+      "แบก": 2
+    }
+  },
+  {
+    "id": "10285",
+    "petId": "1028500",
+    "slug": "minespine",
+    "name": "กิ้งก่าหนามแร่",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10285.webp",
+    "skills": {
+      "Earth": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ดิน": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "10291",
+    "petId": "1029100",
+    "slug": "fentuft",
+    "name": "จิ้งจอกปุกปุย",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10291.webp",
+    "skills": {
+      "Lightning": 1,
+      "Hauling": 1
+    },
+    "skillsTh": {
+      "สายฟ้า": 1,
+      "แบก": 1
+    }
+  },
+  {
+    "id": "10293",
+    "petId": "1029300",
+    "slug": "fenmane",
+    "name": "จิ้งจอกแผงคอยาว",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10293.webp",
+    "skills": {
+      "Lightning": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "สายฟ้า": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "10321",
+    "petId": "1032100",
+    "slug": "budsquire",
+    "name": "หน่ออัศวิน",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10321.webp",
+    "skills": {
+      "Grass": 1,
+      "Artisanship": 1
+    },
+    "skillsTh": {
+      "หญ้า": 1,
+      "ช่างฝีมือ": 1
+    }
+  },
+  {
+    "id": "10323",
+    "petId": "1032300",
+    "slug": "thornblade",
+    "name": "อัศวินดาบหนาม",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10323.webp",
+    "skills": {
+      "Grass": 3,
+      "Artisanship": 3
+    },
+    "skillsTh": {
+      "หญ้า": 3,
+      "ช่างฝีมือ": 3
+    }
+  },
+  {
+    "id": "10324",
+    "petId": "1032400",
+    "slug": "melloblum",
+    "name": "กุหลาบคนสวย",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10324.webp",
+    "skills": {
+      "Grass": 3,
+      "Artisanship": 3
+    },
+    "skillsTh": {
+      "หญ้า": 3,
+      "ช่างฝีมือ": 3
+    }
+  },
+  {
+    "id": "10331",
+    "petId": "1033100",
+    "slug": "sparki",
+    "name": "ประกายจิ๋ว",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10331.webp",
+    "skills": {
+      "Fire": 2
+    },
+    "skillsTh": {
+      "ไฟ": 2
+    }
+  },
+  {
+    "id": "10333",
+    "petId": "1033300",
+    "slug": "flamerion",
+    "name": "ภูตเพลิง",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10333.webp",
+    "skills": {
+      "Fire": 3
+    },
+    "skillsTh": {
+      "ไฟ": 3
+    }
+  },
+  {
+    "id": "10351",
+    "petId": "1035100",
+    "slug": "dewy",
+    "name": "นกน้ำดอกไม้",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10351.webp",
+    "skills": {
+      "Dark": 1,
+      "Leisure": 1,
+      "Perfumery": 1
+    },
+    "skillsTh": {
+      "ความมืด": 1,
+      "ไม่รีบร้อน": 1,
+      "การผลิตน้ำหอม": 1
+    }
+  },
+  {
+    "id": "10352",
+    "petId": "1035200",
+    "slug": "fragrancier",
+    "name": "นกน้ำหอม",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10352.webp",
+    "skills": {
+      "Dark": 3,
+      "Leisure": 3,
+      "Perfumery": 3
+    },
+    "skillsTh": {
+      "ความมืด": 3,
+      "ไม่รีบร้อน": 3,
+      "การผลิตน้ำหอม": 3
+    }
+  },
+  {
+    "id": "10361",
+    "petId": "1036100",
+    "slug": "helion",
+    "name": "สิงโตแสงตะวัน",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10361.webp",
+    "skills": {
+      "Light": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ส่องแสง": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "10363",
+    "petId": "1036300",
+    "slug": "soleon",
+    "name": "ราชสีห์สุริยัน",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10363.webp",
+    "skills": {
+      "Light": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ส่องแสง": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "10371",
+    "petId": "1037100",
+    "slug": "lunara",
+    "name": "จิ้งจอกแสงจันทร์",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10371.webp",
+    "skills": {
+      "Light": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ส่องแสง": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "10373",
+    "petId": "1037300",
+    "slug": "fennelun",
+    "name": "เฟนเนกจันทรา",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10373.webp",
+    "skills": {
+      "Light": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ส่องแสง": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "10431",
+    "petId": "1043100",
+    "slug": "cozite",
+    "name": "หินป้อมจิ๋ว",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10431.webp",
+    "skills": {
+      "Earth": 1,
+      "Hauling": 1
+    },
+    "skillsTh": {
+      "ดิน": 1,
+      "แบก": 1
+    }
+  },
+  {
+    "id": "10433",
+    "petId": "1043300",
+    "slug": "bailite",
+    "name": "หินปราการ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10433.webp",
+    "skills": {
+      "Earth": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ดิน": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "10441",
+    "petId": "1044100",
+    "slug": "eko",
+    "name": "ค้างคาวจิ๋ว",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10441.webp",
+    "skills": {
+      "Wind": 1,
+      "Artisanship": 1
+    },
+    "skillsTh": {
+      "ลม": 1,
+      "ช่างฝีมือ": 1
+    }
+  },
+  {
+    "id": "10443",
+    "petId": "1044300",
+    "slug": "eklue",
+    "name": "ค้างคาวนักสืบ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10443.webp",
+    "skills": {
+      "Wind": 3,
+      "Artisanship": 3
+    },
+    "skillsTh": {
+      "ลม": 3,
+      "ช่างฝีมือ": 3
+    }
+  },
+  {
+    "id": "10451",
+    "petId": "1045100",
+    "slug": "baleetle",
+    "name": "ด้วงกลิ้งหิน",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10451.webp",
+    "skills": {
+      "Earth": 1,
+      "Hauling": 1
+    },
+    "skillsTh": {
+      "ดิน": 1,
+      "แบก": 1
+    }
+  },
+  {
+    "id": "10453",
+    "petId": "1045300",
+    "slug": "waleetle",
+    "name": "ด้วงหินซิ่ง",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10453.webp",
+    "skills": {
+      "Earth": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ดิน": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "10454",
+    "petId": "1045400",
+    "slug": "bouldus",
+    "name": "แมลงหินกลม",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10454.webp",
+    "skills": {
+      "Earth": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ดิน": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "10471",
+    "petId": "1047100",
+    "slug": "pomegg",
+    "name": "กิ้งก่าเปลือกไข่",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10471.webp",
+    "skills": {
+      "Grass": 1,
+      "Artisanship": 1
+    },
+    "skillsTh": {
+      "หญ้า": 1,
+      "ช่างฝีมือ": 1
+    }
+  },
+  {
+    "id": "10474",
+    "petId": "1047400",
+    "slug": "dazmand",
+    "name": "กิ้งก่าขาแดนซ์",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10474.webp",
+    "skills": {
+      "Lightning": 3,
+      "Artisanship": 3
+    },
+    "skillsTh": {
+      "สายฟ้า": 3,
+      "ช่างฝีมือ": 3
+    }
+  },
+  {
+    "id": "10475",
+    "petId": "1047500",
+    "slug": "pomawk",
+    "name": "กิ้งก่าโมฮอว์ก",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10475.webp",
+    "skills": {
+      "Grass": 3,
+      "Artisanship": 3
+    },
+    "skillsTh": {
+      "หญ้า": 3,
+      "ช่างฝีมือ": 3
+    }
+  },
+  {
+    "id": "10481",
+    "petId": "1048100",
+    "slug": "fahloo",
+    "name": "ฟลามิงโกสาว",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10481.webp",
+    "skills": {
+      "Water": 1
+    },
+    "skillsTh": {
+      "น้ำ": 1
+    }
+  },
+  {
+    "id": "10483",
+    "petId": "1048300",
+    "slug": "erlath",
+    "name": "ฟลามิงโกรุ่นใหญ่",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10483.webp",
+    "skills": {
+      "Water": 3
+    },
+    "skillsTh": {
+      "น้ำ": 3
+    }
+  },
+  {
+    "id": "10501",
+    "petId": "1050100",
+    "slug": "cubbo",
+    "name": "ลูกหมีขี้เซา",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10501.webp",
+    "skills": {
+      "Earth": 1,
+      "Hauling": 1
+    },
+    "skillsTh": {
+      "ดิน": 1,
+      "แบก": 1
+    }
+  },
+  {
+    "id": "10503",
+    "petId": "1050300",
+    "slug": "grizbo",
+    "name": "เจ้าหมีขี้เซา",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10503.webp",
+    "skills": {
+      "Earth": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ดิน": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "10511",
+    "petId": "1051100",
+    "slug": "squarrel",
+    "name": "กระรอกชวนตี",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10511.webp",
+    "skills": {
+      "Fire": 1,
+      "Artisanship": 1
+    },
+    "skillsTh": {
+      "ไฟ": 1,
+      "ช่างฝีมือ": 1
+    }
+  },
+  {
+    "id": "10512",
+    "petId": "1051200",
+    "slug": "squashel",
+    "name": "กระรอกชวนต่อย",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10512.webp",
+    "skills": {
+      "Fire": 2,
+      "Artisanship": 2
+    },
+    "skillsTh": {
+      "ไฟ": 2,
+      "ช่างฝีมือ": 2
+    }
+  },
+  {
+    "id": "69993",
+    "petId": "6999300",
+    "slug": "sparkelf",
+    "name": "ภูตไฟน้อย",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_69993.webp",
+    "skills": {
+      "Fire": 3
+    },
+    "skillsTh": {
+      "ไฟ": 3
+    }
+  },
+  {
+    "id": "1001201",
+    "petId": "1001200",
+    "slug": "stellarys",
+    "name": "กระรอกจ้าวดารา",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1001201.webp",
+    "skills": {
+      "Water": 2,
+      "Dark": 3,
+      "Leisure": 3
+    },
+    "skillsTh": {
+      "น้ำ": 2,
+      "ความมืด": 3,
+      "ไม่รีบร้อน": 3
+    }
+  },
+  {
+    "id": "1001202",
+    "petId": "1001200",
+    "slug": "stellarys",
+    "name": "กระรอกจ้าวดารา",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1001202.webp",
+    "skills": {
+      "Ice": 3,
+      "Dark": 4,
+      "Leisure": 4
+    },
+    "skillsTh": {
+      "น้ำแข็ง": 3,
+      "ความมืด": 4,
+      "ไม่รีบร้อน": 4
+    }
+  },
+  {
+    "id": "1002101",
+    "petId": "1002100",
+    "slug": "helmut",
+    "name": "หมวกเกราะจิ๋ว",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1002101.webp",
+    "skills": {
+      "Ice": 1,
+      "Dark": 1,
+      "Hauling": 1
+    },
+    "skillsTh": {
+      "น้ำแข็ง": 1,
+      "ความมืด": 1,
+      "แบก": 1
+    }
+  },
+  {
+    "id": "1002102",
+    "petId": "1002100",
+    "slug": "helmut",
+    "name": "หมวกเกราะจิ๋ว",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1002102.webp",
+    "skills": {
+      "Dark": 1,
+      "Hauling": 1
+    },
+    "skillsTh": {
+      "ความมืด": 1,
+      "แบก": 1
+    }
+  },
+  {
+    "id": "1002201",
+    "petId": "1002200",
+    "slug": "helmwhelp",
+    "name": "มังกรเกราะจิ๋ว",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1002201.webp",
+    "skills": {
+      "Wind": 2,
+      "Hauling": 2
+    },
+    "skillsTh": {
+      "ลม": 2,
+      "แบก": 2
+    }
+  },
+  {
+    "id": "1002301",
+    "petId": "1002300",
+    "slug": "helgon",
+    "name": "มังกรเกราะพิทักษ์",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1002301.webp",
+    "skills": {
+      "Wind": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ลม": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "1002401",
+    "petId": "1002400",
+    "slug": "jawling",
+    "name": "มังกรฟันน้ำนม",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1002401.webp",
+    "skills": {
+      "Wind": 1,
+      "Hauling": 1
+    },
+    "skillsTh": {
+      "ลม": 1,
+      "แบก": 1
+    }
+  },
+  {
+    "id": "1002503",
+    "petId": "1002500",
+    "slug": "infergon",
+    "name": "มังกรโลกันตร์",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1002503.webp",
+    "skills": {
+      "Fire": 4,
+      "Wind": 3,
+      "Hauling": 4
+    },
+    "skillsTh": {
+      "ไฟ": 4,
+      "ลม": 3,
+      "แบก": 4
+    }
+  },
+  {
+    "id": "1002601",
+    "petId": "1002600",
+    "slug": "pawney",
+    "name": "อัศวินเบี้ย",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1002601.webp",
+    "skills": {
+      "Ice": 2,
+      "Dark": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "น้ำแข็ง": 2,
+      "ความมืด": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "1002602",
+    "petId": "1002600",
+    "slug": "pawney",
+    "name": "อัศวินเบี้ย",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1002602.webp",
+    "skills": {
+      "Dark": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ความมืด": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "1002603",
+    "petId": "1002600",
+    "slug": "pawney",
+    "name": "อัศวินเบี้ย",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1002603.webp",
+    "skills": {
+      "Dark": 4,
+      "Hauling": 4
+    },
+    "skillsTh": {
+      "ความมืด": 4,
+      "แบก": 4
+    }
+  },
+  {
+    "id": "1002701",
+    "petId": "1002700",
+    "slug": "rookey",
+    "name": "อัศวินน้องใหม่",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1002701.webp",
+    "skills": {
+      "Ice": 2,
+      "Dark": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "น้ำแข็ง": 2,
+      "ความมืด": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "1002702",
+    "petId": "1002700",
+    "slug": "rookey",
+    "name": "อัศวินน้องใหม่",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1002702.webp",
+    "skills": {
+      "Dark": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ความมืด": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "1003101",
+    "petId": "1003100",
+    "slug": "wisptis",
+    "name": "ตั๊กแตนพรายจิ๋ว",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1003101.webp",
+    "skills": {
+      "Grass": 1,
+      "Dark": 1,
+      "Artisanship": 1
+    },
+    "skillsTh": {
+      "หญ้า": 1,
+      "ความมืด": 1,
+      "ช่างฝีมือ": 1
+    }
+  },
+  {
+    "id": "1003103",
+    "petId": "1003100",
+    "slug": "wisptis",
+    "name": "ตั๊กแตนพรายจิ๋ว",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1003103.webp",
+    "skills": {
+      "Fire": 1,
+      "Dark": 1,
+      "Artisanship": 1
+    },
+    "skillsTh": {
+      "ไฟ": 1,
+      "ความมืด": 1,
+      "ช่างฝีมือ": 1
+    }
+  },
+  {
+    "id": "1003201",
+    "petId": "1003200",
+    "slug": "ignitis",
+    "name": "ตั๊กแตนพรายอัคคี",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1003201.webp",
+    "skills": {
+      "Grass": 2,
+      "Dark": 3,
+      "Artisanship": 3
+    },
+    "skillsTh": {
+      "หญ้า": 2,
+      "ความมืด": 3,
+      "ช่างฝีมือ": 3
+    }
+  },
+  {
+    "id": "1003202",
+    "petId": "1003200",
+    "slug": "ignitis",
+    "name": "ตั๊กแตนพรายอัคคี",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1003202.webp",
+    "skills": {
+      "Fire": 3,
+      "Dark": 4,
+      "Artisanship": 4
+    },
+    "skillsTh": {
+      "ไฟ": 3,
+      "ความมืด": 4,
+      "ช่างฝีมือ": 4
+    }
+  },
+  {
+    "id": "1003203",
+    "petId": "1003200",
+    "slug": "ignitis",
+    "name": "ตั๊กแตนพรายอัคคี",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1003203.webp",
+    "skills": {
+      "Fire": 2,
+      "Dark": 3,
+      "Artisanship": 3
+    },
+    "skillsTh": {
+      "ไฟ": 2,
+      "ความมืด": 3,
+      "ช่างฝีมือ": 3
+    }
+  },
+  {
+    "id": "1003305",
+    "petId": "1003300",
+    "slug": "fulmintis",
+    "name": "ตั๊กแตนอัสนี",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1003305.webp",
+    "skills": {
+      "Lightning": 4,
+      "Light": 3,
+      "Artisanship": 4
+    },
+    "skillsTh": {
+      "สายฟ้า": 4,
+      "ส่องแสง": 3,
+      "ช่างฝีมือ": 4
+    }
+  },
+  {
+    "id": "1004101",
+    "petId": "1004100",
+    "slug": "skippy",
+    "name": "ปลาจอมโดด",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1004101.webp",
+    "skills": {
+      "Water": 1,
+      "Hauling": 1
+    },
+    "skillsTh": {
+      "น้ำ": 1,
+      "แบก": 1
+    }
+  },
+  {
+    "id": "1004102",
+    "petId": "1004100",
+    "slug": "skippy",
+    "name": "ปลาจอมโดด",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1004102.webp",
+    "skills": {
+      "Water": 1,
+      "Ice": 1,
+      "Hauling": 1
+    },
+    "skillsTh": {
+      "น้ำ": 1,
+      "น้ำแข็ง": 1,
+      "แบก": 1
+    }
+  },
+  {
+    "id": "1004201",
+    "petId": "1004200",
+    "slug": "pranky",
+    "name": "ปลาจอมหยอก",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1004201.webp",
+    "skills": {
+      "Water": 2,
+      "Hauling": 2
+    },
+    "skillsTh": {
+      "น้ำ": 2,
+      "แบก": 2
+    }
+  },
+  {
+    "id": "1004202",
+    "petId": "1004200",
+    "slug": "pranky",
+    "name": "ปลาจอมหยอก",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1004202.webp",
+    "skills": {
+      "Water": 2,
+      "Ice": 1,
+      "Hauling": 2
+    },
+    "skillsTh": {
+      "น้ำ": 2,
+      "น้ำแข็ง": 1,
+      "แบก": 2
+    }
+  },
+  {
+    "id": "1004301",
+    "petId": "1004300",
+    "slug": "glacy",
+    "name": "ปลาหยาดน้ำแข็ง",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1004301.webp",
+    "skills": {
+      "Water": 3,
+      "Ice": 2,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "น้ำ": 3,
+      "น้ำแข็ง": 2,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "1004302",
+    "petId": "1004300",
+    "slug": "glacy",
+    "name": "ปลาหยาดน้ำแข็ง",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1004302.webp",
+    "skills": {
+      "Water": 3,
+      "Ice": 2,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "น้ำ": 3,
+      "น้ำแข็ง": 2,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "1004303",
+    "petId": "1004300",
+    "slug": "glacy",
+    "name": "ปลาหยาดน้ำแข็ง",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1004303.webp",
+    "skills": {
+      "Water": 4,
+      "Light": 3,
+      "Hauling": 4
+    },
+    "skillsTh": {
+      "น้ำ": 4,
+      "ส่องแสง": 3,
+      "แบก": 4
+    }
+  },
+  {
+    "id": "1005101",
+    "petId": "1005100",
+    "slug": "emberpup",
+    "name": "เจ้าหมาถ่าน",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1005101.webp",
+    "skills": {
+      "Fire": 1,
+      "Earth": 1,
+      "Hauling": 1
+    },
+    "skillsTh": {
+      "ไฟ": 1,
+      "ดิน": 1,
+      "แบก": 1
+    }
+  },
+  {
+    "id": "1005104",
+    "petId": "1005100",
+    "slug": "emberpup",
+    "name": "เจ้าหมาถ่าน",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1005104.webp",
+    "skills": {
+      "Fire": 1,
+      "Hauling": 1
+    },
+    "skillsTh": {
+      "ไฟ": 1,
+      "แบก": 1
+    }
+  },
+  {
+    "id": "1005201",
+    "petId": "1005200",
+    "slug": "flameruff",
+    "name": "เจ้าปุยอัคคี",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1005201.webp",
+    "skills": {
+      "Fire": 2,
+      "Earth": 1,
+      "Hauling": 2
+    },
+    "skillsTh": {
+      "ไฟ": 2,
+      "ดิน": 1,
+      "แบก": 2
+    }
+  },
+  {
+    "id": "1005204",
+    "petId": "1005200",
+    "slug": "flameruff",
+    "name": "เจ้าปุยอัคคี",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1005204.webp",
+    "skills": {
+      "Fire": 2,
+      "Hauling": 2
+    },
+    "skillsTh": {
+      "ไฟ": 2,
+      "แบก": 2
+    }
+  },
+  {
+    "id": "1005301",
+    "petId": "1005300",
+    "slug": "scorchhowl",
+    "name": "เจ้าเพลิงคำราม",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1005301.webp",
+    "skills": {
+      "Fire": 3,
+      "Earth": 2,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ไฟ": 3,
+      "ดิน": 2,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "1005302",
+    "petId": "1005300",
+    "slug": "scorchhowl",
+    "name": "เจ้าเพลิงคำราม",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1005302.webp",
+    "skills": {
+      "Fire": 3,
+      "Lightning": 2,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ไฟ": 3,
+      "สายฟ้า": 2,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "1005303",
+    "petId": "1005300",
+    "slug": "scorchhowl",
+    "name": "เจ้าเพลิงคำราม",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1005303.webp",
+    "skills": {
+      "Fire": 4,
+      "Hauling": 4
+    },
+    "skillsTh": {
+      "ไฟ": 4,
+      "แบก": 4
+    }
+  },
+  {
+    "id": "1005304",
+    "petId": "1005300",
+    "slug": "scorchhowl",
+    "name": "เจ้าเพลิงคำราม",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1005304.webp",
+    "skills": {
+      "Fire": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ไฟ": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "1005503",
+    "petId": "1005500",
+    "slug": "inferlupa",
+    "name": "หมาป่าโลกันตร์",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1005503.webp",
+    "skills": {
+      "Fire": 3,
+      "Dark": 4,
+      "Hauling": 4
+    },
+    "skillsTh": {
+      "ไฟ": 3,
+      "ความมืด": 4,
+      "แบก": 4
+    }
+  },
+  {
+    "id": "1013102",
+    "petId": "1013100",
+    "slug": "bonesky",
+    "name": "จิ้งจอกโครงฟ้า",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1013102.webp",
+    "skills": {
+      "Ice": 1,
+      "Dark": 1,
+      "Hauling": 1
+    },
+    "skillsTh": {
+      "น้ำแข็ง": 1,
+      "ความมืด": 1,
+      "แบก": 1
+    }
+  },
+  {
+    "id": "1013202",
+    "petId": "1013200",
+    "slug": "fenrier",
+    "name": "จิ้งจอกธารน้ำแข็ง",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1013202.webp",
+    "skills": {
+      "Ice": 2,
+      "Dark": 1,
+      "Hauling": 2
+    },
+    "skillsTh": {
+      "น้ำแข็ง": 2,
+      "ความมืด": 1,
+      "แบก": 2
+    }
+  },
+  {
+    "id": "1013301",
+    "petId": "1013300",
+    "slug": "glynsera",
+    "name": "จิ้งจอกดาบเหมันต์",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1013301.webp",
+    "skills": {
+      "Ice": 4,
+      "Light": 3,
+      "Hauling": 4
+    },
+    "skillsTh": {
+      "น้ำแข็ง": 4,
+      "ส่องแสง": 3,
+      "แบก": 4
+    }
+  },
+  {
+    "id": "1013302",
+    "petId": "1013300",
+    "slug": "glynsera",
+    "name": "จิ้งจอกดาบเหมันต์",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1013302.webp",
+    "skills": {
+      "Ice": 3,
+      "Dark": 2,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "น้ำแข็ง": 3,
+      "ความมืด": 2,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "1014301",
+    "petId": "1014300",
+    "slug": "luminelle",
+    "name": "กระพรุนแสงละมุน",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1014301.webp",
+    "skills": {
+      "Water": 2,
+      "Lightning": 3,
+      "Artisanship": 3
+    },
+    "skillsTh": {
+      "น้ำ": 2,
+      "สายฟ้า": 3,
+      "ช่างฝีมือ": 3
+    }
+  },
+  {
+    "id": "1014302",
+    "petId": "1014300",
+    "slug": "luminelle",
+    "name": "กระพรุนแสงละมุน",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1014302.webp",
+    "skills": {
+      "Lightning": 4,
+      "Light": 3,
+      "Artisanship": 4
+    },
+    "skillsTh": {
+      "สายฟ้า": 4,
+      "ส่องแสง": 3,
+      "ช่างฝีมือ": 4
+    }
+  },
+  {
+    "id": "1016101",
+    "petId": "1016100",
+    "slug": "budclaw",
+    "name": "ปูหน่ออ่อน",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1016101.webp",
+    "skills": {
+      "Earth": 1,
+      "Hauling": 1
+    },
+    "skillsTh": {
+      "ดิน": 1,
+      "แบก": 1
+    }
+  },
+  {
+    "id": "1016102",
+    "petId": "1016100",
+    "slug": "budclaw",
+    "name": "ปูหน่ออ่อน",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1016102.webp",
+    "skills": {
+      "Earth": 1,
+      "Hauling": 1
+    },
+    "skillsTh": {
+      "ดิน": 1,
+      "แบก": 1
+    }
+  },
+  {
+    "id": "1016103",
+    "petId": "1016100",
+    "slug": "budclaw",
+    "name": "ปูหน่ออ่อน",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1016103.webp",
+    "skills": {
+      "Earth": 1,
+      "Hauling": 1
+    },
+    "skillsTh": {
+      "ดิน": 1,
+      "แบก": 1
+    }
+  },
+  {
+    "id": "1016201",
+    "petId": "1016200",
+    "slug": "shrubclaw",
+    "name": "ปูไม้พุ่ม",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1016201.webp",
+    "skills": {
+      "Earth": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ดิน": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "1016202",
+    "petId": "1016200",
+    "slug": "shrubclaw",
+    "name": "ปูไม้พุ่ม",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1016202.webp",
+    "skills": {
+      "Earth": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ดิน": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "1016203",
+    "petId": "1016200",
+    "slug": "shrubclaw",
+    "name": "ปูไม้พุ่ม",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1016203.webp",
+    "skills": {
+      "Earth": 3,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ดิน": 3,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "1017101",
+    "petId": "1017100",
+    "slug": "susuta",
+    "name": "นากขี้อาย",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1017101.webp",
+    "skills": {
+      "Water": 1,
+      "Leisure": 1
+    },
+    "skillsTh": {
+      "น้ำ": 1,
+      "ไม่รีบร้อน": 1
+    }
+  },
+  {
+    "id": "1017201",
+    "petId": "1017200",
+    "slug": "popota",
+    "name": "นากแอบรัก",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1017201.webp",
+    "skills": {
+      "Water": 2,
+      "Leisure": 2
+    },
+    "skillsTh": {
+      "น้ำ": 2,
+      "ไม่รีบร้อน": 2
+    }
+  },
+  {
+    "id": "1017301",
+    "petId": "1017300",
+    "slug": "piopiota",
+    "name": "นากเจ้าเสน่ห์",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1017301.webp",
+    "skills": {
+      "Water": 3,
+      "Dark": 2,
+      "Leisure": 3
+    },
+    "skillsTh": {
+      "น้ำ": 3,
+      "ความมืด": 2,
+      "ไม่รีบร้อน": 3
+    }
+  },
+  {
+    "id": "1017401",
+    "petId": "1017400",
+    "slug": "panpanta",
+    "name": "นากนักสร้าง",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1017401.webp",
+    "skills": {
+      "Water": 3,
+      "Leisure": 3
+    },
+    "skillsTh": {
+      "น้ำ": 3,
+      "ไม่รีบร้อน": 3
+    }
+  },
+  {
+    "id": "1017402",
+    "petId": "1017400",
+    "slug": "panpanta",
+    "name": "นากนักสร้าง",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1017402.webp",
+    "skills": {
+      "Water": 4,
+      "Leisure": 4
+    },
+    "skillsTh": {
+      "น้ำ": 4,
+      "ไม่รีบร้อน": 4
+    }
+  },
+  {
+    "id": "1018101",
+    "petId": "1018100",
+    "slug": "chirpi",
+    "name": "จิ๊บจิ๊บ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1018101.webp",
+    "skills": {
+      "Water": 1,
+      "Wind": 1
+    },
+    "skillsTh": {
+      "น้ำ": 1,
+      "ลม": 1
+    }
+  },
+  {
+    "id": "1018103",
+    "petId": "1018100",
+    "slug": "chirpi",
+    "name": "จิ๊บจิ๊บ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1018103.webp",
+    "skills": {
+      "Grass": 1,
+      "Wind": 1
+    },
+    "skillsTh": {
+      "หญ้า": 1,
+      "ลม": 1
+    }
+  },
+  {
+    "id": "1018401",
+    "petId": "1018400",
+    "slug": "tromber",
+    "name": "จิ๊บแตรยาว",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1018401.webp",
+    "skills": {
+      "Water": 2,
+      "Wind": 3
+    },
+    "skillsTh": {
+      "น้ำ": 2,
+      "ลม": 3
+    }
+  },
+  {
+    "id": "1018403",
+    "petId": "1018400",
+    "slug": "tromber",
+    "name": "จิ๊บแตรยาว",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1018403.webp",
+    "skills": {
+      "Grass": 2,
+      "Wind": 3
+    },
+    "skillsTh": {
+      "หญ้า": 2,
+      "ลม": 3
+    }
+  },
+  {
+    "id": "1018501",
+    "petId": "1018500",
+    "slug": "cornet",
+    "name": "จิ๊บแตรน้อย",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1018501.webp",
+    "skills": {
+      "Water": 2,
+      "Wind": 3
+    },
+    "skillsTh": {
+      "น้ำ": 2,
+      "ลม": 3
+    }
+  },
+  {
+    "id": "1018502",
+    "petId": "1018500",
+    "slug": "cornet",
+    "name": "จิ๊บแตรน้อย",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1018502.webp",
+    "skills": {
+      "Lightning": 3,
+      "Wind": 4
+    },
+    "skillsTh": {
+      "สายฟ้า": 3,
+      "ลม": 4
+    }
+  },
+  {
+    "id": "1018503",
+    "petId": "1018500",
+    "slug": "cornet",
+    "name": "จิ๊บแตรน้อย",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1018503.webp",
+    "skills": {
+      "Grass": 2,
+      "Wind": 3
+    },
+    "skillsTh": {
+      "หญ้า": 2,
+      "ลม": 3
+    }
+  },
+  {
+    "id": "1018701",
+    "petId": "1018700",
+    "slug": "tubster",
+    "name": "จิ๊บแตรใหญ่",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1018701.webp",
+    "skills": {
+      "Water": 2,
+      "Wind": 3
+    },
+    "skillsTh": {
+      "น้ำ": 2,
+      "ลม": 3
+    }
+  },
+  {
+    "id": "1018703",
+    "petId": "1018700",
+    "slug": "tubster",
+    "name": "จิ๊บแตรใหญ่",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1018703.webp",
+    "skills": {
+      "Grass": 2,
+      "Wind": 3
+    },
+    "skillsTh": {
+      "หญ้า": 2,
+      "ลม": 3
+    }
+  },
+  {
+    "id": "1019401",
+    "petId": "1019400",
+    "slug": "sherro",
+    "name": "ดาวนักรบ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1019401.webp",
+    "skills": {
+      "Water": 3,
+      "Lightning": 2,
+      "Leisure": 3
+    },
+    "skillsTh": {
+      "น้ำ": 3,
+      "สายฟ้า": 2,
+      "ไม่รีบร้อน": 3
+    }
+  },
+  {
+    "id": "1019402",
+    "petId": "1019400",
+    "slug": "sherro",
+    "name": "ดาวนักรบ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1019402.webp",
+    "skills": {
+      "Water": 4,
+      "Light": 3,
+      "Leisure": 4
+    },
+    "skillsTh": {
+      "น้ำ": 4,
+      "ส่องแสง": 3,
+      "ไม่รีบร้อน": 4
+    }
+  },
+  {
+    "id": "1020101",
+    "petId": "1020100",
+    "slug": "hummin",
+    "name": "ผักร่าเริง",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1020101.webp",
+    "skills": {
+      "Grass": 1
+    },
+    "skillsTh": {
+      "หญ้า": 1
+    }
+  },
+  {
+    "id": "1020301",
+    "petId": "1020300",
+    "slug": "hexxin",
+    "name": "ผักแม่มด",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1020301.webp",
+    "skills": {
+      "Grass": 1,
+      "Dark": 2,
+      "Artisanship": 2
+    },
+    "skillsTh": {
+      "หญ้า": 1,
+      "ความมืด": 2,
+      "ช่างฝีมือ": 2
+    }
+  },
+  {
+    "id": "1020302",
+    "petId": "1020300",
+    "slug": "hexxin",
+    "name": "ผักแม่มด",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1020302.webp",
+    "skills": {
+      "Grass": 3,
+      "Dark": 4,
+      "Artisanship": 4
+    },
+    "skillsTh": {
+      "หญ้า": 3,
+      "ความมืด": 4,
+      "ช่างฝีมือ": 4
+    }
+  },
+  {
+    "id": "1020701",
+    "petId": "1020700",
+    "slug": "tuckin",
+    "name": "ผักจอมซุก",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1020701.webp",
+    "skills": {
+      "Grass": 3,
+      "Earth": 2,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "หญ้า": 3,
+      "ดิน": 2,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "1021101",
+    "petId": "1021100",
+    "slug": "iris",
+    "name": "ไอริสน้อย",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1021101.webp",
+    "skills": {
+      "Grass": 1,
+      "Leisure": 1
+    },
+    "skillsTh": {
+      "หญ้า": 1,
+      "ไม่รีบร้อน": 1
+    }
+  },
+  {
+    "id": "1021102",
+    "petId": "1021100",
+    "slug": "iris",
+    "name": "ไอริสน้อย",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1021102.webp",
+    "skills": {
+      "Grass": 1,
+      "Leisure": 1
+    },
+    "skillsTh": {
+      "หญ้า": 1,
+      "ไม่รีบร้อน": 1
+    }
+  },
+  {
+    "id": "1021103",
+    "petId": "1021100",
+    "slug": "iris",
+    "name": "ไอริสน้อย",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1021103.webp",
+    "skills": {
+      "Grass": 1,
+      "Leisure": 1
+    },
+    "skillsTh": {
+      "หญ้า": 1,
+      "ไม่รีบร้อน": 1
+    }
+  },
+  {
+    "id": "1021104",
+    "petId": "1021100",
+    "slug": "iris",
+    "name": "ไอริสน้อย",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1021104.webp",
+    "skills": {
+      "Grass": 1,
+      "Leisure": 1
+    },
+    "skillsTh": {
+      "หญ้า": 1,
+      "ไม่รีบร้อน": 1
+    }
+  },
+  {
+    "id": "1021105",
+    "petId": "1021100",
+    "slug": "iris",
+    "name": "ไอริสน้อย",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1021105.webp",
+    "skills": {
+      "Grass": 1,
+      "Leisure": 1
+    },
+    "skillsTh": {
+      "หญ้า": 1,
+      "ไม่รีบร้อน": 1
+    }
+  },
+  {
+    "id": "1021106",
+    "petId": "1021100",
+    "slug": "iris",
+    "name": "ไอริสน้อย",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1021106.webp",
+    "skills": {
+      "Grass": 1,
+      "Leisure": 1
+    },
+    "skillsTh": {
+      "หญ้า": 1,
+      "ไม่รีบร้อน": 1
+    }
+  },
+  {
+    "id": "1021201",
+    "petId": "1021200",
+    "slug": "irisal",
+    "name": "ไอริสเริงระบำ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1021201.webp",
+    "skills": {
+      "Grass": 3,
+      "Leisure": 3
+    },
+    "skillsTh": {
+      "หญ้า": 3,
+      "ไม่รีบร้อน": 3
+    }
+  },
+  {
+    "id": "1021202",
+    "petId": "1021200",
+    "slug": "irisal",
+    "name": "ไอริสเริงระบำ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1021202.webp",
+    "skills": {
+      "Grass": 3,
+      "Leisure": 3
+    },
+    "skillsTh": {
+      "หญ้า": 3,
+      "ไม่รีบร้อน": 3
+    }
+  },
+  {
+    "id": "1021203",
+    "petId": "1021200",
+    "slug": "irisal",
+    "name": "ไอริสเริงระบำ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1021203.webp",
+    "skills": {
+      "Grass": 3,
+      "Leisure": 3
+    },
+    "skillsTh": {
+      "หญ้า": 3,
+      "ไม่รีบร้อน": 3
+    }
+  },
+  {
+    "id": "1021204",
+    "petId": "1021200",
+    "slug": "irisal",
+    "name": "ไอริสเริงระบำ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1021204.webp",
+    "skills": {
+      "Grass": 4,
+      "Leisure": 4
+    },
+    "skillsTh": {
+      "หญ้า": 4,
+      "ไม่รีบร้อน": 4
+    }
+  },
+  {
+    "id": "1021205",
+    "petId": "1021200",
+    "slug": "irisal",
+    "name": "ไอริสเริงระบำ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1021205.webp",
+    "skills": {
+      "Grass": 3,
+      "Leisure": 3
+    },
+    "skillsTh": {
+      "หญ้า": 3,
+      "ไม่รีบร้อน": 3
+    }
+  },
+  {
+    "id": "1021206",
+    "petId": "1021200",
+    "slug": "irisal",
+    "name": "ไอริสเริงระบำ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1021206.webp",
+    "skills": {
+      "Grass": 3,
+      "Leisure": 3
+    },
+    "skillsTh": {
+      "หญ้า": 3,
+      "ไม่รีบร้อน": 3
+    }
+  },
+  {
+    "id": "1022102",
+    "petId": "1022100",
+    "slug": "bolty",
+    "name": "เจ้าจิ๋วสายฟ้าแลบ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1022102.webp",
+    "skills": {
+      "Lightning": 1,
+      "Artisanship": 1
+    },
+    "skillsTh": {
+      "สายฟ้า": 1,
+      "ช่างฝีมือ": 1
+    }
+  },
+  {
+    "id": "1022201",
+    "petId": "1022200",
+    "slug": "blazen",
+    "name": "เจ้าปุยอัสนี",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1022201.webp",
+    "skills": {
+      "Lightning": 4,
+      "Dark": 3,
+      "Artisanship": 4
+    },
+    "skillsTh": {
+      "สายฟ้า": 4,
+      "ความมืด": 3,
+      "ช่างฝีมือ": 4
+    }
+  },
+  {
+    "id": "1022202",
+    "petId": "1022200",
+    "slug": "blazen",
+    "name": "เจ้าปุยอัสนี",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1022202.webp",
+    "skills": {
+      "Lightning": 3,
+      "Artisanship": 3
+    },
+    "skillsTh": {
+      "สายฟ้า": 3,
+      "ช่างฝีมือ": 3
+    }
+  },
+  {
+    "id": "1023101",
+    "petId": "1023100",
+    "slug": "flutternym",
+    "name": "ผีเสื้อปีกกระพือ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1023101.webp",
+    "skills": {
+      "Grass": 1,
+      "Wind": 1,
+      "Leisure": 1
+    },
+    "skillsTh": {
+      "หญ้า": 1,
+      "ลม": 1,
+      "ไม่รีบร้อน": 1
+    }
+  },
+  {
+    "id": "1023102",
+    "petId": "1023100",
+    "slug": "flutternym",
+    "name": "ผีเสื้อปีกกระพือ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1023102.webp",
+    "skills": {
+      "Wind": 1,
+      "Dark": 1,
+      "Leisure": 1
+    },
+    "skillsTh": {
+      "ลม": 1,
+      "ความมืด": 1,
+      "ไม่รีบร้อน": 1
+    }
+  },
+  {
+    "id": "1023103",
+    "petId": "1023100",
+    "slug": "flutternym",
+    "name": "ผีเสื้อปีกกระพือ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1023103.webp",
+    "skills": {
+      "Earth": 1,
+      "Wind": 1,
+      "Leisure": 1
+    },
+    "skillsTh": {
+      "ดิน": 1,
+      "ลม": 1,
+      "ไม่รีบร้อน": 1
+    }
+  },
+  {
+    "id": "1023201",
+    "petId": "1023200",
+    "slug": "gracewing",
+    "name": "ผีเสื้อปีกสง่า",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1023201.webp",
+    "skills": {
+      "Grass": 2,
+      "Wind": 3,
+      "Leisure": 3
+    },
+    "skillsTh": {
+      "หญ้า": 2,
+      "ลม": 3,
+      "ไม่รีบร้อน": 3
+    }
+  },
+  {
+    "id": "1023202",
+    "petId": "1023200",
+    "slug": "gracewing",
+    "name": "ผีเสื้อปีกสง่า",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1023202.webp",
+    "skills": {
+      "Wind": 3,
+      "Dark": 2,
+      "Leisure": 3
+    },
+    "skillsTh": {
+      "ลม": 3,
+      "ความมืด": 2,
+      "ไม่รีบร้อน": 3
+    }
+  },
+  {
+    "id": "1023203",
+    "petId": "1023200",
+    "slug": "gracewing",
+    "name": "ผีเสื้อปีกสง่า",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1023203.webp",
+    "skills": {
+      "Earth": 2,
+      "Wind": 3,
+      "Leisure": 3
+    },
+    "skillsTh": {
+      "ดิน": 2,
+      "ลม": 3,
+      "ไม่รีบร้อน": 3
+    }
+  },
+  {
+    "id": "1026101",
+    "petId": "1026100",
+    "slug": "nimbi",
+    "name": "แกะปุยเมฆ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1026101.webp",
+    "skills": {
+      "Lightning": 1,
+      "Wind": 1,
+      "Leisure": 1
+    },
+    "skillsTh": {
+      "สายฟ้า": 1,
+      "ลม": 1,
+      "ไม่รีบร้อน": 1
+    }
+  },
+  {
+    "id": "1026102",
+    "petId": "1026100",
+    "slug": "nimbi",
+    "name": "แกะปุยเมฆ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1026102.webp",
+    "skills": {
+      "Wind": 1,
+      "Leisure": 1
+    },
+    "skillsTh": {
+      "ลม": 1,
+      "ไม่รีบร้อน": 1
+    }
+  },
+  {
+    "id": "1026105",
+    "petId": "1026100",
+    "slug": "nimbi",
+    "name": "แกะปุยเมฆ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1026105.webp",
+    "skills": {
+      "Ice": 1,
+      "Wind": 1,
+      "Leisure": 1
+    },
+    "skillsTh": {
+      "น้ำแข็ง": 1,
+      "ลม": 1,
+      "ไม่รีบร้อน": 1
+    }
+  },
+  {
+    "id": "1026201",
+    "petId": "1026200",
+    "slug": "turbo",
+    "name": "แกะเทอร์โบ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1026201.webp",
+    "skills": {
+      "Lightning": 2,
+      "Wind": 3,
+      "Leisure": 3
+    },
+    "skillsTh": {
+      "สายฟ้า": 2,
+      "ลม": 3,
+      "ไม่รีบร้อน": 3
+    }
+  },
+  {
+    "id": "1026202",
+    "petId": "1026200",
+    "slug": "turbo",
+    "name": "แกะเทอร์โบ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1026202.webp",
+    "skills": {
+      "Wind": 3,
+      "Leisure": 3
+    },
+    "skillsTh": {
+      "ลม": 3,
+      "ไม่รีบร้อน": 3
+    }
+  },
+  {
+    "id": "1026204",
+    "petId": "1026200",
+    "slug": "turbo",
+    "name": "แกะเทอร์โบ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1026204.webp",
+    "skills": {
+      "Wind": 4,
+      "Dark": 3,
+      "Leisure": 4
+    },
+    "skillsTh": {
+      "ลม": 4,
+      "ความมืด": 3,
+      "ไม่รีบร้อน": 4
+    }
+  },
+  {
+    "id": "1026205",
+    "petId": "1026200",
+    "slug": "turbo",
+    "name": "แกะเทอร์โบ",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1026205.webp",
+    "skills": {
+      "Ice": 2,
+      "Wind": 3,
+      "Leisure": 3
+    },
+    "skillsTh": {
+      "น้ำแข็ง": 2,
+      "ลม": 3,
+      "ไม่รีบร้อน": 3
+    }
+  },
+  {
+    "id": "1028301",
+    "petId": "1028300",
+    "slug": "magmarex",
+    "name": "กิ้งก่าจ้าวแม็กมา",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1028301.webp",
+    "skills": {
+      "Fire": 4,
+      "Dark": 3,
+      "Hauling": 4
+    },
+    "skillsTh": {
+      "ไฟ": 4,
+      "ความมืด": 3,
+      "แบก": 4
+    }
+  },
+  {
+    "id": "1029301",
+    "petId": "1029300",
+    "slug": "fenmane",
+    "name": "จิ้งจอกแผงคอยาว",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1029301.webp",
+    "skills": {
+      "Lightning": 4,
+      "Light": 3,
+      "Hauling": 3,
+      "Artisanship": 4
+    },
+    "skillsTh": {
+      "สายฟ้า": 4,
+      "ส่องแสง": 3,
+      "แบก": 3,
+      "ช่างฝีมือ": 4
+    }
+  },
+  {
+    "id": "1032103",
+    "petId": "1032100",
+    "slug": "budsquire",
+    "name": "หน่ออัศวิน",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1032103.webp",
+    "skills": {
+      "Grass": 1,
+      "Artisanship": 1
+    },
+    "skillsTh": {
+      "หญ้า": 1,
+      "ช่างฝีมือ": 1
+    }
+  },
+  {
+    "id": "1032301",
+    "petId": "1032300",
+    "slug": "thornblade",
+    "name": "อัศวินดาบหนาม",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1032301.webp",
+    "skills": {
+      "Grass": 3,
+      "Lightning": 2,
+      "Artisanship": 3
+    },
+    "skillsTh": {
+      "หญ้า": 3,
+      "สายฟ้า": 2,
+      "ช่างฝีมือ": 3
+    }
+  },
+  {
+    "id": "1032302",
+    "petId": "1032300",
+    "slug": "thornblade",
+    "name": "อัศวินดาบหนาม",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1032302.webp",
+    "skills": {
+      "Grass": 4,
+      "Water": 3,
+      "Artisanship": 4
+    },
+    "skillsTh": {
+      "หญ้า": 4,
+      "น้ำ": 3,
+      "ช่างฝีมือ": 4
+    }
+  },
+  {
+    "id": "1032303",
+    "petId": "1032300",
+    "slug": "thornblade",
+    "name": "อัศวินดาบหนาม",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1032303.webp",
+    "skills": {
+      "Grass": 3,
+      "Artisanship": 3
+    },
+    "skillsTh": {
+      "หญ้า": 3,
+      "ช่างฝีมือ": 3
+    }
+  },
+  {
+    "id": "1032402",
+    "petId": "1032400",
+    "slug": "melloblum",
+    "name": "กุหลาบคนสวย",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1032402.webp",
+    "skills": {
+      "Grass": 4,
+      "Light": 3,
+      "Artisanship": 4
+    },
+    "skillsTh": {
+      "หญ้า": 4,
+      "ส่องแสง": 3,
+      "ช่างฝีมือ": 4
+    }
+  },
+  {
+    "id": "1033101",
+    "petId": "1033100",
+    "slug": "sparki",
+    "name": "ประกายจิ๋ว",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1033101.webp",
+    "skills": {
+      "Fire": 2
+    },
+    "skillsTh": {
+      "ไฟ": 2
+    }
+  },
+  {
+    "id": "1033102",
+    "petId": "1033100",
+    "slug": "sparki",
+    "name": "ประกายจิ๋ว",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1033102.webp",
+    "skills": {
+      "Fire": 2
+    },
+    "skillsTh": {
+      "ไฟ": 2
+    }
+  },
+  {
+    "id": "1033103",
+    "petId": "1033100",
+    "slug": "sparki",
+    "name": "ประกายจิ๋ว",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1033103.webp",
+    "skills": {
+      "Fire": 2
+    },
+    "skillsTh": {
+      "ไฟ": 2
+    }
+  },
+  {
+    "id": "1033301",
+    "petId": "1033300",
+    "slug": "flamerion",
+    "name": "ภูตเพลิง",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1033301.webp",
+    "skills": {
+      "Fire": 3
+    },
+    "skillsTh": {
+      "ไฟ": 3
+    }
+  },
+  {
+    "id": "1033302",
+    "petId": "1033300",
+    "slug": "flamerion",
+    "name": "ภูตเพลิง",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1033302.webp",
+    "skills": {
+      "Fire": 3
+    },
+    "skillsTh": {
+      "ไฟ": 3
+    }
+  },
+  {
+    "id": "1033303",
+    "petId": "1033300",
+    "slug": "flamerion",
+    "name": "ภูตเพลิง",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1033303.webp",
+    "skills": {
+      "Fire": 3
+    },
+    "skillsTh": {
+      "ไฟ": 3
+    }
+  },
+  {
+    "id": "1045101",
+    "petId": "1045100",
+    "slug": "baleetle",
+    "name": "ด้วงกลิ้งหิน",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1045101.webp",
+    "skills": {
+      "Earth": 1,
+      "Ice": 1,
+      "Hauling": 1
+    },
+    "skillsTh": {
+      "ดิน": 1,
+      "น้ำแข็ง": 1,
+      "แบก": 1
+    }
+  },
+  {
+    "id": "1045301",
+    "petId": "1045300",
+    "slug": "waleetle",
+    "name": "ด้วงหินซิ่ง",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1045301.webp",
+    "skills": {
+      "Earth": 3,
+      "Ice": 2,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ดิน": 3,
+      "น้ำแข็ง": 2,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "1045302",
+    "petId": "1045300",
+    "slug": "waleetle",
+    "name": "ด้วงหินซิ่ง",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1045302.webp",
+    "skills": {
+      "Earth": 4,
+      "Dark": 3,
+      "Hauling": 4
+    },
+    "skillsTh": {
+      "ดิน": 4,
+      "ความมืด": 3,
+      "แบก": 4
+    }
+  },
+  {
+    "id": "1045401",
+    "petId": "1045400",
+    "slug": "bouldus",
+    "name": "แมลงหินกลม",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1045401.webp",
+    "skills": {
+      "Earth": 3,
+      "Ice": 2,
+      "Hauling": 3
+    },
+    "skillsTh": {
+      "ดิน": 3,
+      "น้ำแข็ง": 2,
+      "แบก": 3
+    }
+  },
+  {
+    "id": "1047101",
+    "petId": "1047100",
+    "slug": "pomegg",
+    "name": "กิ้งก่าเปลือกไข่",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1047101.webp",
+    "skills": {
+      "Grass": 1,
+      "Ice": 1,
+      "Artisanship": 1
+    },
+    "skillsTh": {
+      "หญ้า": 1,
+      "น้ำแข็ง": 1,
+      "ช่างฝีมือ": 1
+    }
+  },
+  {
+    "id": "1047102",
+    "petId": "1047100",
+    "slug": "pomegg",
+    "name": "กิ้งก่าเปลือกไข่",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1047102.webp",
+    "skills": {
+      "Grass": 1,
+      "Artisanship": 1
+    },
+    "skillsTh": {
+      "หญ้า": 1,
+      "ช่างฝีมือ": 1
+    }
+  },
+  {
+    "id": "1047103",
+    "petId": "1047100",
+    "slug": "pomegg",
+    "name": "กิ้งก่าเปลือกไข่",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1047103.webp",
+    "skills": {
+      "Grass": 1,
+      "Artisanship": 1
+    },
+    "skillsTh": {
+      "หญ้า": 1,
+      "ช่างฝีมือ": 1
+    }
+  },
+  {
+    "id": "1047501",
+    "petId": "1047500",
+    "slug": "pomawk",
+    "name": "กิ้งก่าโมฮอว์ก",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1047501.webp",
+    "skills": {
+      "Grass": 3,
+      "Ice": 2,
+      "Artisanship": 3
+    },
+    "skillsTh": {
+      "หญ้า": 3,
+      "น้ำแข็ง": 2,
+      "ช่างฝีมือ": 3
+    }
+  },
+  {
+    "id": "1047502",
+    "petId": "1047500",
+    "slug": "pomawk",
+    "name": "กิ้งก่าโมฮอว์ก",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1047502.webp",
+    "skills": {
+      "Grass": 3,
+      "Artisanship": 3
+    },
+    "skillsTh": {
+      "หญ้า": 3,
+      "ช่างฝีมือ": 3
+    }
+  },
+  {
+    "id": "1047503",
+    "petId": "1047500",
+    "slug": "pomawk",
+    "name": "กิ้งก่าโมฮอว์ก",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1047503.webp",
+    "skills": {
+      "Grass": 3,
+      "Artisanship": 3
+    },
+    "skillsTh": {
+      "หญ้า": 3,
+      "ช่างฝีมือ": 3
+    }
+  },
+  {
+    "id": "1050301",
+    "petId": "1050300",
+    "slug": "grizbo",
+    "name": "เจ้าหมีขี้เซา",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_1050301.webp",
+    "skills": {
+      "Earth": 4,
+      "Dark": 3,
+      "Hauling": 4
+    },
+    "skillsTh": {
+      "ดิน": 4,
+      "ความมืด": 3,
+      "แบก": 4
+    }
+  },
+  {
+    "id": "6999301",
+    "petId": "6999300",
+    "slug": "sparkelf",
+    "name": "ภูตไฟน้อย",
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_6999301.webp",
+    "skills": {
+      "Fire": 4
+    },
+    "skillsTh": {
+      "ไฟ": 4
+    }
+  }
+]
