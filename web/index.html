@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=1.1.0">
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
@@ -239,7 +239,10 @@
                                 <!-- Populated dynamically with concrete Aniimo cards -->
                             </div>
                         </div>
-                        <div class="ability-strip" id="aniimo-abilities" aria-label="Aniimo needed per ability" style="display: none;"></div>
+                        <details class="explain ability-strip-details" id="ability-strip-details" style="margin-top: 1rem;">
+                            <summary>📊 ดูสรุปยอดรวมตามธาตุ/ความสามารถ (Summary by Ability)</summary>
+                            <div class="ability-strip" id="aniimo-abilities" aria-label="Aniimo needed per ability"></div>
+                        </details>
                         <p class="hint small" id="aniimo-pending" style="display: none;">Still working this setup out...</p>
                         <div id="aniimo-body">
                             <details class="explain">
@@ -613,6 +616,6 @@
             }
         });
     </script>
-    <script type="module" src="app.js"></script>
+    <script type="module" src="app.js?v=1.1.0"></script>
 </body>
 </html>

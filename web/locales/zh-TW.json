@@ -947,5 +947,7 @@
   "Aniimo Workforce Assignment": "伊莫勞動力指派",
   "Concrete Aniimo workers assigned to facilities and plots based on live abilities and optimal output.": "根據實際技能與最佳產出，將具體的伊莫工人指派至設施與地塊。",
   "Workshop": "工作坊",
-  "No facilities in this plot": "此地塊內沒有設施"
+  "No facilities in this plot": "此地塊內沒有設施",
+  "Or use:": "或使用：",
+  "Personality match (+20% speed)": "符合性格（速度 +20%）"
 }

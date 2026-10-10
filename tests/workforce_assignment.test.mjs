@@ -31,3 +31,15 @@ test('getBestAniimoForFacility maps facilities to concrete Aniimo workers', () =
     assert.ok(mineWorker);
     assert.equal(mineWorker.name, 'ตุ่นทลายภูผา');
 });
+
+test('workforce recommendation provides matching Aniimo and alternatives', () => {
+    const worker = getBestAniimoForFacility('Clay Pit', 'Earth', 3);
+    assert.ok(worker);
+    assert.equal(worker.name, 'ด้วงหินซิ่ง');
+    assert.ok(worker.avatar.includes('UI_PetHead_'));
+
+    const candidates = findAniimosByAbility('Earth', 3);
+    const alts = candidates.filter(c => c.name !== worker.name).slice(0, 3).map(c => c.name);
+    assert.ok(alts.length > 0);
+    assert.ok(alts.includes('เจ้าหมีขี้เซา') || alts.includes('ปูไม้พุ่ม'));
+});
