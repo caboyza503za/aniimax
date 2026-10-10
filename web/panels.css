@@ -1,0 +1,238 @@
+/* ==========================================================================
+   Panels — the Homeland map is the hero; everything else slides out.
+   Loaded after redesign.css. Cards keep their IDs and markup (app.js still
+   renders into them); they are only repositioned as drawers.
+   ========================================================================== */
+
+body.has-results { padding-bottom: 7.5rem; }
+body.has-results .atlas-hero { display: none; }
+body.panel-lock { overflow: hidden; }
+
+/* ---------- Floating dock ---------- */
+#dock-bar {
+    position: fixed;
+    left: 50%;
+    bottom: 1rem;
+    z-index: 800;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: calc(100vw - 1.5rem);
+    padding: 0.55rem 0.65rem;
+    border: 2px solid var(--outline);
+    border-radius: 999px;
+    background: var(--surface);
+    box-shadow: 5px 5px 0 var(--outline);
+    overflow-x: auto;
+    scrollbar-width: none;
+    transform: translateX(-50%);
+    animation: dock-in 0.4s cubic-bezier(.2, 1.2, .3, 1);
+}
+#dock-bar::-webkit-scrollbar { display: none; }
+@keyframes dock-in {
+    from { opacity: 0; transform: translate(-50%, 30px); }
+}
+
+.dock-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 40px;
+    padding: 0.35rem 0.9rem;
+    border: 2px solid var(--outline);
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+.dock-btn:hover:not(:disabled) {
+    background: var(--surface-raised);
+    transform: translate(-2px, -2px);
+    box-shadow: 3px 3px 0 var(--outline);
+}
+.dock-btn:active:not(:disabled) { transform: none; box-shadow: none; }
+.dock-btn.active { background: var(--sun); color: var(--ink); }
+.dock-btn.primary { background: var(--accent); color: var(--on-accent); }
+.dock-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.dock-icon { font-size: 1.1rem; line-height: 1; }
+
+.dock-sep {
+    flex: 0 0 2px;
+    align-self: stretch;
+    margin: 0 0.15rem;
+    border-radius: 2px;
+    background: var(--border-strong);
+}
+
+.dock-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    max-width: 18rem;
+    padding: 0.35rem 0.95rem;
+    border: 2px solid var(--outline);
+    border-radius: 999px;
+    background: var(--sun);
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.dock-chip:empty { display: none; }
+.dock-chip.busy { background: var(--mint); }
+.dock-chip.busy::before {
+    content: '';
+    flex: 0 0 auto;
+    width: 0.85rem;
+    height: 0.85rem;
+    border: 3px solid var(--ink);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: step-spin 0.7s linear infinite;
+}
+
+/* ---------- Backdrop ---------- */
+#panel-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 850;
+    background: rgba(14, 12, 32, 0.55);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+#panel-backdrop.show { opacity: 1; pointer-events: auto; }
+
+/* ---------- Drawers ---------- */
+.card.panel-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: auto;
+    z-index: 900;
+    width: min(560px, 94vw);
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0;
+    padding-top: calc(1.25rem + 9px);
+    border-right: 0;
+    border-radius: 28px 0 0 28px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    box-shadow: -8px 0 0 var(--tone, var(--coral));
+    transform: translateX(108%);
+    visibility: hidden;
+    transition: transform 0.32s cubic-bezier(.2, .9, .25, 1), visibility 0s linear 0.32s;
+}
+.card.panel-drawer.panel-left {
+    right: auto;
+    left: 0;
+    width: min(700px, 96vw);
+    border-right: 2px solid var(--outline);
+    border-left: 0;
+    border-radius: 0 28px 28px 0;
+    box-shadow: 8px 0 0 var(--tone, var(--lilac));
+    transform: translateX(-108%);
+}
+.card.panel-drawer.panel-open {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.32s cubic-bezier(.2, .9, .25, 1), visibility 0s;
+}
+
+#facility-plan-card.panel-drawer { width: min(920px, 96vw); }
+#aniimo-card.panel-drawer { width: min(740px, 96vw); }
+#goal-section.panel-drawer { width: min(660px, 96vw); }
+
+/* the drawers don't need the in-flow grid placement */
+#results-content > .card.panel-drawer { grid-column: auto; }
+
+.panel-head { display: none; }
+.panel-drawer > .panel-head {
+    position: sticky;
+    top: -0.25rem;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 0 0 1.1rem;
+    padding: 0.25rem 0;
+}
+.panel-title {
+    padding: 0.3rem 1rem;
+    border: 2px solid var(--outline);
+    border-radius: 999px;
+    background: var(--tone, var(--coral));
+    color: #1b1a2e;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 600;
+    box-shadow: 3px 3px 0 var(--outline);
+}
+.panel-close {
+    display: grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border: 2px solid var(--outline);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+.panel-close:hover { background: var(--coral); color: #1b1a2e; transform: rotate(90deg); }
+.rate-card .panel-close { background: #fff; color: #1b1a2e; }
+
+/* ---------- The map takes the stage ---------- */
+body.has-results #layout-card { padding-bottom: 1.75rem; }
+body.has-results #layout-card .layout-diagram { min-height: min(78vh, 860px); }
+body.has-results #layout-card .layout-svg { min-width: 0; }
+
+/* ---------- Small screens: bottom sheets ---------- */
+@media (max-width: 760px) {
+    .card.panel-drawer,
+    .card.panel-drawer.panel-left,
+    #facility-plan-card.panel-drawer,
+    #aniimo-card.panel-drawer,
+    #goal-section.panel-drawer {
+        top: auto;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 100vw;
+        height: 88dvh;
+        max-height: 88dvh;
+        border: 2px solid var(--outline);
+        border-bottom: 0;
+        border-radius: 28px 28px 0 0;
+        box-shadow: 0 -8px 0 var(--tone, var(--coral));
+        transform: translateY(108%);
+    }
+    .card.panel-drawer.panel-open { transform: none; }
+    #dock-bar { bottom: 0.6rem; gap: 0.35rem; }
+    .dock-label { display: none; }
+    .dock-btn { padding: 0.35rem 0.7rem; }
+    .dock-btn.primary .dock-label { display: inline; }
+    .dock-chip { max-width: 9rem; font-size: 0.85rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .card.panel-drawer,
+    #panel-backdrop,
+    #dock-bar { transition: none; animation: none; }
+}
