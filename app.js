@@ -1698,21 +1698,307 @@ function setLayoutInspector(piece = null) {
     const title = document.getElementById('layout-inspector-title');
     const detail = document.getElementById('layout-inspector-detail');
     const stat = document.getElementById('layout-inspector-stat');
-    if (!title || !detail || !stat) return;
-    document.querySelectorAll('#layout-diagram .layout-piece.selected').forEach(el => el.classList.remove('selected'));
+    if (typeof document.querySelectorAll === 'function') {
+        document.querySelectorAll('#layout-diagram .layout-piece.selected').forEach(el => el.classList.remove('selected'));
+        document.querySelectorAll('#layout-diagram .layout-piece.same-facility').forEach(el => el.classList.remove('same-facility'));
+    }
     if (!piece) {
-        title.textContent = translate('Explore your plan');
-        detail.textContent = translate('Tap a facility on the map to see its job, route and Aniimo recommendation.');
-        stat.textContent = translate('Use the + / − buttons, mouse wheel or pinch-to-zoom.');
+        if (title) title.textContent = translate('Explore your plan');
+        if (detail) detail.textContent = translate('Tap a facility on the map to see its job, route and Aniimo recommendation.');
+        if (stat) stat.textContent = translate('Use the + / − buttons, mouse wheel or pinch-to-zoom.');
+        hideFacilityDetailDrawer();
         return;
     }
     piece.classList.add('selected');
     const rawTitle = piece.dataset?.tip || piece.getAttribute?.('data-tip') || 'Facility';
     const rawDetail = piece.dataset?.tipDetail || piece.getAttribute?.('data-tip-detail') || translate('No production assignment.');
     const rawStats = piece.dataset?.tipStats || piece.getAttribute?.('data-tip-stats') || translate('No delivery route is needed.');
-    title.textContent = translate(rawTitle);
-    detail.textContent = rawDetail;
-    stat.textContent = rawStats;
+    if (title) title.textContent = translate(rawTitle);
+    if (detail) detail.textContent = rawDetail;
+    if (stat) stat.textContent = rawStats;
+
+    const facilityName = piece.dataset?.facility || piece.getAttribute?.('data-facility') || piece.dataset?.tip || piece.getAttribute?.('data-tip') || '';
+    if (facilityName && typeof document.querySelectorAll === 'function') {
+        document.querySelectorAll('#layout-diagram .layout-piece').forEach(el => {
+            if (el === piece) return;
+            const elFac = el.dataset?.facility || el.getAttribute?.('data-facility') || el.dataset?.tip || el.getAttribute?.('data-tip');
+            if (elFac && elFac === facilityName) {
+                el.classList.add('same-facility');
+            }
+        });
+    }
+
+    showFacilityDetailDrawer(piece, facilityName);
+}
+
+function showFacilityDetailDrawer(piece, facilityName) {
+    const drawer = document.getElementById('facility-detail-drawer');
+    if (!drawer) return;
+    const titleEl = document.getElementById('fd-title');
+    const iconEl = document.getElementById('fd-head-icon');
+    const contentEl = document.getElementById('fd-content');
+    if (!contentEl) return;
+
+    const px = piece?.dataset?.x != null ? Number(piece.dataset.x) : (piece?.getAttribute?.('data-x') != null ? Number(piece.getAttribute('data-x')) : null);
+    const py = piece?.dataset?.y != null ? Number(piece.dataset.y) : (piece?.getAttribute?.('data-y') != null ? Number(piece.getAttribute('data-y')) : null);
+
+    const pieceMembers = (typeof lastLayout !== 'undefined' && lastLayout?.layout?.pieces?.flatMap(p => p.members)) || [];
+    const storages = (typeof lastLayout !== 'undefined' && (lastLayout?.layout?.storages || (lastLayout?.layout?.storage ? [lastLayout.layout.storage] : []))) || [];
+    const allMembers = [
+        ...pieceMembers,
+        ...storages.map((s, idx) => ({ ...s, facility: 'Storage Unit', storageNumber: idx + 1 }))
+    ];
+
+    let activeMember = null;
+    if (px != null && py != null) {
+        activeMember = allMembers.find(m => Math.abs(m.x - px) < 0.05 && Math.abs(m.y - py) < 0.05);
+    }
+    if (!activeMember) {
+        const rawTip = piece?.dataset?.tip || piece?.getAttribute?.('data-tip') || facilityName || 'Facility';
+        activeMember = {
+            facility: facilityName || rawTip,
+            x: px ?? 0,
+            y: py ?? 0,
+            w: 2,
+            h: 2,
+            weight: 0,
+            crop: null,
+        };
+    }
+
+    const fac = activeMember.facility || facilityName || 'Facility';
+    const sameUnits = allMembers.filter(m => {
+        if (activeMember.isGenerator || fac === 'Crackle Generator') return m.isGenerator || m.facility === 'Crackle Generator';
+        if (activeMember.isPowerPole || fac === 'Crackle Power Pole') return m.isPowerPole || m.facility === 'Crackle Power Pole';
+        if (activeMember.storageNumber || fac === 'Storage Unit') return m.storageNumber || m.facility === 'Storage Unit';
+        return m.facility === fac;
+    });
+
+    const totalCount = sameUnits.length || 1;
+
+    // Header info
+    const facGlyph = typeof getFacilityGlyphUrl === 'function' ? getFacilityGlyphUrl(fac) : null;
+    let fallbackEmoji = '🌾';
+    if (activeMember.isGenerator) fallbackEmoji = '⚡';
+    else if (activeMember.isPowerPole) fallbackEmoji = '📡';
+    else if (activeMember.storageNumber || fac === 'Storage Unit') fallbackEmoji = '📦';
+    else if (activeMember.building) fallbackEmoji = '🏛️';
+
+    if (titleEl) titleEl.textContent = translate(fac);
+    if (iconEl) iconEl.innerHTML = facGlyph ? `<img src="${facGlyph}" alt="" loading="lazy">` : `<span style="font-size:1.3rem;">${fallbackEmoji}</span>`;
+
+    // Active unit details
+    const activePlot = typeof getPlotForCoordinate === 'function' ? getPlotForCoordinate(activeMember.x + (activeMember.w || 2) / 2, activeMember.y + (activeMember.h || 2) / 2) : 1;
+    const producedItem = activeMember.jobs?.[0]?.item || activeMember.crop || null;
+    const itemIcon = producedItem && typeof getItemIconUrl === 'function' ? getItemIconUrl(producedItem) : null;
+    const worker = typeof getRecommendedWorker === 'function' ? getRecommendedWorker(fac) : null;
+    const prodRateDaily = activeMember.weight ? (typeof formatRate === 'function' ? `${formatRate(activeMember.weight * 24)}/วัน` : `${Math.round(activeMember.weight * 24)}/วัน`) : null;
+    const distanceToStorage = storages.length ? Math.min(...storages.map(s => Math.hypot(activeMember.x + (activeMember.w || 2) / 2 - (s.x + s.w / 2), activeMember.y + (activeMember.h || 2) / 2 - (s.y + s.h / 2)))) : 0;
+
+    let recipeInputsHtml = '';
+    let itemTitle = producedItem ? (typeof prettyItem === 'function' ? prettyItem(producedItem) : producedItem) : translate('Idle');
+    if (activeMember.storageNumber) {
+        itemTitle = `${translate('Storage Unit')} #${activeMember.storageNumber}`;
+        recipeInputsHtml = `<div class="hint small" style="margin-top:0.35rem;">${translate('Shared inventory connected to all Storage Units')}</div>`;
+    } else if (activeMember.isGenerator) {
+        itemTitle = `${translate('Crackle Generator')} Lv.${activeMember.genLevel || 1}`;
+        recipeInputsHtml = `<div class="hint small" style="margin-top:0.35rem;">⚡ ${translate('Outputs {watts}W (Currently powering {used}W)').replace('{watts}', activeMember.outputWatts || 120).replace('{used}', activeMember.totalWatts || 0)}</div>`;
+    } else if (activeMember.isPowerPole) {
+        itemTitle = translate('Crackle Power Pole');
+        recipeInputsHtml = `<div class="hint small" style="margin-top:0.35rem;">📡 ${translate('Expands 7×7 power grid coverage for E-Mode')}</div>`;
+    } else if (activeMember.building && activeMember.mode) {
+        itemTitle = `${translate(activeMember.mode)} (${translate('Environment Building')})`;
+        recipeInputsHtml = `<div class="hint small" style="margin-top:0.35rem;">🌡️ ${translate('Coverage radius')} 9×9</div>`;
+    } else if (producedItem) {
+        const recipe = (typeof recipeIndex !== 'undefined' && Array.isArray(recipeIndex) ? recipeIndex.find(r => r.name === producedItem) : null);
+        if (recipe && recipe.ingredients && recipe.ingredients.length > 0) {
+            const ingList = recipe.ingredients.map((ing, i) => {
+                const amt = recipe.amounts?.[i] ?? 1;
+                const ingIcon = typeof getItemIconUrl === 'function' ? getItemIconUrl(ing) : null;
+                const ingName = typeof prettyItem === 'function' ? prettyItem(ing) : ing;
+                return `<span class="hp-chip" style="font-size:0.78rem;">${ingIcon ? `<img src="${ingIcon}" alt="" loading="lazy">` : ''} <b>${amt}×</b> ${ingName}</span>`;
+            }).join(' ');
+            recipeInputsHtml = `<div style="margin-top:0.5rem;"><span class="fd-meta-label" style="display:block;margin-bottom:0.25rem;">${translate('Ingredients per batch')} / วัตถุดิบที่ใช้ต่อรอบ:</span><div style="display:flex;flex-wrap:wrap;gap:0.35rem;">${ingList}</div></div>`;
+        } else {
+            recipeInputsHtml = `<div class="hint small" style="margin-top:0.35rem;">🌱 ${translate('Agricultural crop production')} (ผลผลิตจากการเกษตร)</div>`;
+        }
+    }
+
+    let workerHtml = '';
+    if (activeMember.emode) {
+        workerHtml = `<div class="fd-worker-box" style="border-color:#f59e0b;background:rgba(245,158,11,0.08);">
+            <div style="font-size:1.4rem;">⚡</div>
+            <div>
+                <span class="fd-worker-name" style="color:#d97706;">${translate('E-Mode Active')} (ทำงานด้วยไฟฟ้า)</span>
+                <span class="fd-worker-skill">${translate('+20% efficiency, requires 60W power grid')}</span>
+            </div>
+        </div>`;
+    } else if (worker) {
+        const exclText = (worker.exclusive || fac === 'Dewy House') ? ` [${translate('Exclusively requires Fragrancier')}]` : '';
+        workerHtml = `<div class="fd-worker-box">
+            <img class="fd-worker-avatar" src="${worker.avatar}" alt="${worker.name}" loading="lazy">
+            <div>
+                <span class="fd-worker-name">👷 ${worker.name}${exclText}</span>
+                <span class="fd-worker-skill">${translate(worker.abilityTh)} Lv.${worker.level} (${translate('Increases work speed')})</span>
+            </div>
+        </div>`;
+    }
+
+    // Breakdown across all units of this facility
+    const productGroups = new Map();
+    sameUnits.forEach(u => {
+        const pKey = u.jobs?.[0]?.item || u.crop || (u.building ? (u.mode || 'Building') : (u.isGenerator ? 'Generator' : (u.isPowerPole ? 'PowerPole' : (u.storageNumber ? 'Storage' : 'Idle'))));
+        const curr = productGroups.get(pKey) || {
+            key: pKey,
+            count: 0,
+            totalRate: 0,
+        };
+        curr.count += 1;
+        if (u.weight) curr.totalRate += (u.weight * 24);
+        productGroups.set(pKey, curr);
+    });
+
+    const breakdownHtml = Array.from(productGroups.values()).map(g => {
+        const isIdle = g.key === 'Idle';
+        let gIcon = null;
+        let gName = translate(g.key);
+        if (g.key === 'Generator') { gName = translate('Crackle Generator'); gIcon = null; }
+        else if (g.key === 'PowerPole') { gName = translate('Crackle Power Pole'); gIcon = null; }
+        else if (g.key === 'Storage') { gName = translate('Storage Unit'); gIcon = null; }
+        else if (activeMember.building) { gName = translate(g.key); gIcon = null; }
+        else if (!isIdle) {
+            gName = typeof prettyItem === 'function' ? prettyItem(g.key) : g.key;
+            gIcon = typeof getItemIconUrl === 'function' ? getItemIconUrl(g.key) : null;
+        }
+
+        const rateFormatted = g.totalRate > 0
+            ? (typeof formatNumber === 'function' ? `${formatNumber(Math.round(g.totalRate))}/วัน` : `${Math.round(g.totalRate)}/วัน`)
+            : (isIdle ? translate('Idle') : '—');
+
+        return `<div class="fd-total-row">
+            <div class="fd-total-left">
+                ${gIcon ? `<img src="${gIcon}" alt="" loading="lazy">` : `<span style="font-size:1.1rem;">${isIdle ? '💤' : '📦'}</span>`}
+                <div>
+                    <span class="fd-total-name">${gName}</span>
+                    <span class="fd-total-count">${g.count} ${translate('plot(s)')} (${Math.round(g.count / totalCount * 100)}%)</span>
+                </div>
+            </div>
+            <div class="fd-total-rate">${rateFormatted}</div>
+        </div>`;
+    }).join('');
+
+    // List of each unit with jump button
+    const unitsListHtml = sameUnits.map((u, idx) => {
+        const uPlot = typeof getPlotForCoordinate === 'function' ? getPlotForCoordinate(u.x + (u.w || 2) / 2, u.y + (u.h || 2) / 2) : 1;
+        const uItem = u.jobs?.[0]?.item || u.crop || (u.building ? u.mode : (u.isGenerator ? 'Crackle Generator' : (u.isPowerPole ? 'Crackle Power Pole' : (u.storageNumber ? `Storage #${u.storageNumber}` : translate('Idle')))));
+        const uIcon = typeof getItemIconUrl === 'function' && uItem ? getItemIconUrl(uItem) : null;
+        const uRate = u.weight ? (typeof formatRate === 'function' ? `${formatRate(u.weight * 24)}/วัน` : `${Math.round(u.weight * 24)}/วัน`) : '';
+        const isCurrent = Math.abs(u.x - activeMember.x) < 0.05 && Math.abs(u.y - activeMember.y) < 0.05;
+
+        return `<div class="fd-unit-item ${isCurrent ? 'active-unit' : ''}" data-x="${u.x}" data-y="${u.y}">
+            <div class="fd-unit-left">
+                <span class="fd-unit-plot-tag">${translate('Plot')} ${uPlot}</span>
+                ${uIcon ? `<img src="${uIcon}" alt="" loading="lazy">` : ''}
+                <div>
+                    <span class="fd-unit-product">${typeof prettyItem === 'function' && uItem ? prettyItem(uItem) : translate(uItem)}</span>
+                    ${uRate ? `<span class="hint small" style="display:block;">${uRate}</span>` : ''}
+                </div>
+            </div>
+            <button type="button" class="fd-unit-jump-btn" aria-label="ซูมไปที่แปลงนี้">🔍 ${isCurrent ? 'ตำแหน่งนี้' : 'ซูมไป'}</button>
+        </div>`;
+    }).join('');
+
+    contentEl.innerHTML = `
+        <div class="fd-head-badge">📍 ${translate('Plot')} ${activePlot} · ${totalCount} ${translate('total in Homeland')}</div>
+
+        <div class="fd-section">
+            <div class="fd-section-head">
+                <span class="fd-section-title">แปลงที่เลือกในปัจจุบัน</span>
+                <span class="fd-chip">แปลงที่ ${activePlot}</span>
+            </div>
+            <div class="fd-card-row">
+                <div class="fd-card-icon">
+                    ${itemIcon ? `<img src="${itemIcon}" alt="" loading="lazy">` : (facGlyph ? `<img src="${facGlyph}" alt="" loading="lazy">` : `<span>${fallbackEmoji}</span>`)}
+                </div>
+                <div class="fd-card-body">
+                    <span class="fd-product-name">${itemTitle}</span>
+                    ${prodRateDaily ? `<span class="fd-rate-text">⚡ ผลิตได้: ${prodRateDaily}</span>` : ''}
+                </div>
+            </div>
+            ${recipeInputsHtml}
+            <div class="fd-meta-grid">
+                <div class="fd-meta-item">
+                    <span class="fd-meta-label">พิกัดในแผนที่:</span>
+                    <span class="fd-meta-val">X: ${activeMember.x.toFixed(1)}, Y: ${activeMember.y.toFixed(1)}</span>
+                </div>
+                <div class="fd-meta-item">
+                    <span class="fd-meta-label">ระยะห่างถึงคลัง:</span>
+                    <span class="fd-meta-val">${distanceToStorage > 0 ? `${distanceToStorage.toFixed(1)} ช่อง (${activeMember.weight > 0 && typeof formatRate === 'function' ? `${formatRate(activeMember.weight)} เที่ยว/ชม.` : '0'})` : '0 ช่อง'}</span>
+                </div>
+            </div>
+            ${workerHtml}
+        </div>
+
+        <div class="fd-section">
+            <div class="fd-section-head">
+                <span class="fd-section-title">สรุปการผลิตของ ${translate(fac)}</span>
+                <span class="fd-chip">${totalCount} แปลง</span>
+            </div>
+            <div class="fd-totals-list">
+                ${breakdownHtml}
+            </div>
+        </div>
+
+        <div class="fd-section">
+            <div class="fd-section-head">
+                <span class="fd-section-title">แปลงอื่นๆ ในประเภทเดียวกัน (${totalCount} แปลง)</span>
+            </div>
+            <div class="fd-units-scroll">
+                ${unitsListHtml}
+            </div>
+        </div>
+    `;
+
+    if (typeof contentEl.querySelectorAll === 'function') {
+        contentEl.querySelectorAll('.fd-unit-item').forEach(itemEl => {
+            itemEl.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const ux = Number(itemEl.dataset.x);
+                const uy = Number(itemEl.dataset.y);
+                if (!isNaN(ux) && !isNaN(uy)) {
+                    animateCameraTo({ x: ux - 4, y: uy - 3, width: 10, height: 8 }, 280);
+                    if (typeof document.querySelectorAll === 'function') {
+                        const targetSvgPiece = Array.from(document.querySelectorAll('#layout-diagram .layout-piece')).find(el => {
+                            const ex = Number(el.dataset?.x ?? el.getAttribute?.('data-x'));
+                            const ey = Number(el.dataset?.y ?? el.getAttribute?.('data-y'));
+                            return Math.abs(ex - ux) < 0.05 && Math.abs(ey - uy) < 0.05;
+                        });
+                        if (targetSvgPiece) {
+                            setLayoutInspector(targetSvgPiece);
+                        }
+                    }
+                }
+            });
+        });
+    }
+
+    drawer.hidden = false;
+    drawer.classList.add('open');
+}
+
+function hideFacilityDetailDrawer() {
+    const drawer = document.getElementById('facility-detail-drawer');
+    if (!drawer) return;
+    drawer.classList.remove('open');
+    if (typeof setTimeout === 'function') {
+        setTimeout(() => {
+            if (!drawer.classList.contains('open')) {
+                drawer.hidden = true;
+            }
+        }, 300);
+    } else {
+        drawer.hidden = true;
+    }
 }
 
 function writeLayoutViewBox() {
@@ -1958,6 +2244,14 @@ function setupInteractiveLayout() {
     const backBtn = document.getElementById('layout-back-btn');
     if (backBtn) {
         backBtn.onclick = resetLayoutViewport;
+    }
+
+    const fdClose = document.getElementById('fd-close');
+    if (fdClose) {
+        fdClose.onclick = () => {
+            hideFacilityDetailDrawer();
+            setLayoutInspector(null);
+        };
     }
 
     svg.addEventListener('wheel', event => {
@@ -2246,7 +2540,7 @@ function homelandSvg(layout, homeLevel) {
                 stats: translate('Supports up to {count} E-Mode machines (using {used}W)').replace('{count}', Math.floor((m.outputWatts || 120) / 60)).replace('{used}', m.totalWatts || 0),
                 color: '#f59e0b',
             });
-            return `<g class="layout-piece crackle-generator" ${tip}><rect x="${m.x + 0.05}" y="${m.y + 0.05}" width="${m.w - 0.1}" height="${m.h - 0.1}" rx="0.3"
+            return `<g class="layout-piece crackle-generator" data-facility="Crackle Generator" data-x="${m.x}" data-y="${m.y}" ${tip}><rect x="${m.x + 0.05}" y="${m.y + 0.05}" width="${m.w - 0.1}" height="${m.h - 0.1}" rx="0.3"
                 fill="#f59e0b" fill-opacity="0.88" stroke="#d97706" stroke-width="0.08" />
                 ${facilityBadge(m)}
             </g>`;
@@ -2259,7 +2553,7 @@ function homelandSvg(layout, homeLevel) {
                 stats: translate('Expands 7×7 power grid coverage for E-Mode'),
                 color: '#d97706',
             });
-            return `<g class="layout-piece crackle-pole" ${tip}><rect x="${m.x + 0.04}" y="${m.y + 0.04}" width="${m.w - 0.08}" height="${m.h - 0.08}" rx="0.2"
+            return `<g class="layout-piece crackle-pole" data-facility="Crackle Power Pole" data-x="${m.x}" data-y="${m.y}" ${tip}><rect x="${m.x + 0.04}" y="${m.y + 0.04}" width="${m.w - 0.08}" height="${m.h - 0.08}" rx="0.2"
                 fill="#d97706" fill-opacity="0.9" stroke="#b45309" stroke-width="0.08" />
                 ${facilityBadge(m)}
             </g>`;
@@ -2289,18 +2583,18 @@ function homelandSvg(layout, homeLevel) {
         const fill = m.building ? 0.9 : m.weight > 0 ? 0.35 + 0.55 * Math.sqrt(m.weight / maxTrips) : 0.08;
         if (m.building) {
             // As on the building's own map: its mode's color, with the game's symbol for it.
-            return `<g class="env-building" ${tip}><rect x="${m.x + 0.05}" y="${m.y + 0.05}" width="${m.w - 0.1}" height="${m.h - 0.1}" rx="0.3"
+            return `<g class="layout-piece env-building" data-facility="${m.facility}" data-x="${m.x}" data-y="${m.y}" ${tip}><rect x="${m.x + 0.05}" y="${m.y + 0.05}" width="${m.w - 0.1}" height="${m.h - 0.1}" rx="0.3"
                 fill="${color}" fill-opacity="${m.mode ? 1 : 0.25}" stroke="currentColor" stroke-opacity="0.6" stroke-width="0.08" />
                 ${m.mode ? environmentBuildingIcon(m.facility, m.mode, m.x + m.w / 2, m.y + m.h / 2) : ''}</g>`;
         }
         if (m.emode) {
-            return `<g class="layout-piece emode-facility" ${tip}>
+            return `<g class="layout-piece emode-facility" data-facility="${m.facility}" data-x="${m.x}" data-y="${m.y}" ${tip}>
                 <rect x="${m.x + 0.04}" y="${m.y + 0.04}" width="${m.w - 0.08}" height="${m.h - 0.08}" rx="0.25"
                     fill="${color}" fill-opacity="0.90" stroke="#f59e0b" stroke-width="0.09" stroke-dasharray="0.6,0.2" />
                 ${badge}${workerBadge}
             </g>`;
         }
-        return `<g class="layout-piece" ${tip}>
+        return `<g class="layout-piece" data-facility="${m.facility}" data-x="${m.x}" data-y="${m.y}" ${tip}>
             <rect x="${m.x + 0.04}" y="${m.y + 0.04}" width="${m.w - 0.08}" height="${m.h - 0.08}" rx="0.25"
                 fill="${color}" fill-opacity="0.90" stroke="${color}" stroke-opacity="0.95" stroke-width="0.08" />
             ${badge}${workerBadge}
@@ -2328,7 +2622,7 @@ function homelandSvg(layout, homeLevel) {
             stats: tripsToThis > 0 ? `${formatRate(tripsToThis)} trips/hour` : translate('Idle'),
             color: '#3b82f6',
         });
-        return `<g class="layout-piece layout-storage-unit" data-storage-index="${idx}" ${tip}>
+        return `<g class="layout-piece layout-storage-unit" data-facility="Storage Unit" data-x="${s.x}" data-y="${s.y}" data-storage-index="${idx}" ${tip}>
             <rect x="${s.x + 0.04}" y="${s.y + 0.04}" width="${s.w - 0.08}" height="${s.h - 0.08}" rx="0.25" class="layout-storage" fill="#2563eb" fill-opacity="0.92" stroke="#1d4ed8" stroke-width="0.08" />
             ${facilityBadge({ ...s, facility: 'Storage Unit' })}
             <rect x="${(s.x + 0.08).toFixed(2)}" y="${(s.y + 0.08).toFixed(2)}" width="0.72" height="0.42" rx="0.1" fill="#1e3a8a" fill-opacity="0.95" />
