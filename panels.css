@@ -120,7 +120,7 @@ body.panel-lock { overflow: hidden; }
     bottom: 0;
     left: auto;
     z-index: 900;
-    width: min(560px, 94vw);
+    width: min(640px, 96vw);
     height: 100dvh;
     max-height: 100dvh;
     margin: 0;
@@ -152,8 +152,12 @@ body.panel-lock { overflow: hidden; }
 }
 
 #facility-plan-card.panel-drawer { width: min(920px, 96vw); }
+#profit-card.panel-drawer { width: min(760px, 96vw); }
 #aniimo-card.panel-drawer { width: min(740px, 96vw); }
-#goal-section.panel-drawer { width: min(660px, 96vw); }
+#rate-card.panel-drawer { width: min(720px, 96vw); }
+#goal-section.panel-drawer { width: min(680px, 96vw); }
+#seed-card.panel-drawer { width: min(660px, 96vw); }
+#improve-card.panel-drawer { width: min(660px, 96vw); }
 
 /* the drawers don't need the in-flow grid placement */
 #results-content > .card.panel-drawer { grid-column: auto; }
@@ -208,8 +212,12 @@ body.has-results #layout-card .layout-svg { min-width: 0; }
     .card.panel-drawer,
     .card.panel-drawer.panel-left,
     #facility-plan-card.panel-drawer,
+    #profit-card.panel-drawer,
     #aniimo-card.panel-drawer,
-    #goal-section.panel-drawer {
+    #rate-card.panel-drawer,
+    #goal-section.panel-drawer,
+    #seed-card.panel-drawer,
+    #improve-card.panel-drawer {
         top: auto;
         right: 0;
         bottom: 0;
@@ -229,6 +237,69 @@ body.has-results #layout-card .layout-svg { min-width: 0; }
     .dock-btn { padding: 0.35rem 0.7rem; }
     .dock-btn.primary .dock-label { display: inline; }
     .dock-chip { max-width: 9rem; font-size: 0.85rem; }
+}
+
+/* ---------- Table & content containment inside drawers ---------- */
+#level-up-lines,
+#rate-table,
+#seed-table,
+#profit-breakdown,
+.table-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+}
+
+#level-up-lines::-webkit-scrollbar,
+#rate-table::-webkit-scrollbar,
+#seed-table::-webkit-scrollbar,
+#profit-breakdown::-webkit-scrollbar,
+.table-wrapper::-webkit-scrollbar {
+    height: 6px;
+}
+
+#level-up-lines::-webkit-scrollbar-thumb,
+#rate-table::-webkit-scrollbar-thumb,
+#seed-table::-webkit-scrollbar-thumb,
+#profit-breakdown::-webkit-scrollbar-thumb,
+.table-wrapper::-webkit-scrollbar-thumb {
+    background: var(--outline);
+    border-radius: 999px;
+}
+
+.level-up-lines {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.level-up-lines th,
+.level-up-lines td {
+    padding: 0.45rem 0.65rem 0.45rem 0;
+    white-space: nowrap;
+}
+
+.level-up-lines th:first-child,
+.level-up-lines td:first-child {
+    white-space: normal;
+    word-break: break-word;
+    min-width: 130px;
+}
+
+.level-up-lines th:last-child,
+.level-up-lines td:last-child {
+    padding-right: 0.5rem;
+}
+
+.rate-card .level-up-card {
+    width: 100%;
+    max-width: 100%;
+}
+
+.rate-card .summary-value {
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 @media (prefers-reduced-motion: reduce) {
