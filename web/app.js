@@ -1644,6 +1644,9 @@ function attachLayoutHandlers() {
     document.getElementById('layout-replay')?.addEventListener('click', () => {
         if (layoutSim) resetLayoutSim(layoutSim);
     });
+    document.getElementById('layout-zoom-in')?.addEventListener('click', () => zoomLayout(1.35));
+    document.getElementById('layout-zoom-out')?.addEventListener('click', () => zoomLayout(1 / 1.35));
+    document.getElementById('layout-zoom-fit')?.addEventListener('click', resetLayoutViewport);
 }
 
 function drawLayout(drawn) {
@@ -1652,6 +1655,127 @@ function drawLayout(drawn) {
     translateTree(diagram);
     diagram.classList.add('no-sim');
     stopLayoutSim();
+    setupInteractiveLayout();
+}
+
+// The plan's geometry still comes entirely from the layout worker.  This layer only changes the
+// SVG camera so players can inspect a busy corner without losing the solver's chosen placement.
+let layoutMapState = null;
+
+function setLayoutInspector(piece = null) {
+    const title = document.getElementById('layout-inspector-title');
+    const detail = document.getElementById('layout-inspector-detail');
+    const stat = document.getElementById('layout-inspector-stat');
+    if (!title || !detail || !stat) return;
+    document.querySelectorAll('#layout-diagram .layout-piece.selected').forEach(el => el.classList.remove('selected'));
+    if (!piece) {
+        title.textContent = translate('Explore your plan');
+        detail.textContent = translate('Tap a facility on the map to see its job, route and Aniimo recommendation.');
+        stat.textContent = translate('Use the + / − buttons, mouse wheel or pinch-to-zoom.');
+        return;
+    }
+    piece.classList.add('selected');
+    title.textContent = translate(piece.dataset.tip || 'Facility');
+    detail.textContent = translate(piece.dataset.tipDetail || 'No production assignment.');
+    stat.textContent = translate(piece.dataset.tipStats || 'No delivery route is needed.');
+}
+
+function writeLayoutViewBox() {
+    const state = layoutMapState;
+    if (!state) return;
+    const v = state.viewBox;
+    state.svg.setAttribute('viewBox', `${v.x} ${v.y} ${v.width} ${v.height}`);
+}
+
+function resetLayoutViewport() {
+    const state = layoutMapState;
+    if (!state) return;
+    state.viewBox = { ...state.baseViewBox };
+    writeLayoutViewBox();
+}
+
+function zoomLayout(factor, clientX = null, clientY = null) {
+    const state = layoutMapState;
+    if (!state) return;
+    const current = state.viewBox;
+    const base = state.baseViewBox;
+    const rect = state.svg.getBoundingClientRect();
+    const px = clientX == null ? 0.5 : Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+    const py = clientY == null ? 0.5 : Math.min(1, Math.max(0, (clientY - rect.top) / rect.height));
+    const width = Math.min(base.width, Math.max(base.width / 6, current.width / factor));
+    const height = Math.min(base.height, Math.max(base.height / 6, current.height / factor));
+    const focusX = current.x + current.width * px;
+    const focusY = current.y + current.height * py;
+    state.viewBox = { x: focusX - width * px, y: focusY - height * py, width, height };
+    writeLayoutViewBox();
+}
+
+function panLayout(dx, dy) {
+    const state = layoutMapState;
+    if (!state) return;
+    const rect = state.svg.getBoundingClientRect();
+    state.viewBox.x -= dx / rect.width * state.viewBox.width;
+    state.viewBox.y -= dy / rect.height * state.viewBox.height;
+    writeLayoutViewBox();
+}
+
+function setupInteractiveLayout() {
+    const svg = document.querySelector('#layout-diagram .layout-svg');
+    if (!svg) return;
+    const [x, y, width, height] = svg.getAttribute('viewBox').trim().split(/\s+/).map(Number);
+    layoutMapState = { svg, baseViewBox: { x, y, width, height }, viewBox: { x, y, width, height }, pointer: null };
+    svg.setAttribute('tabindex', '0');
+    svg.setAttribute('aria-label', `${translate('Homeland layout')}. ${translate('Use arrow keys to pan, plus and minus to zoom.')}`);
+    setLayoutInspector();
+    svg.addEventListener('wheel', event => {
+        event.preventDefault();
+        zoomLayout(event.deltaY < 0 ? 1.18 : 1 / 1.18, event.clientX, event.clientY);
+    }, { passive: false });
+    svg.addEventListener('pointerdown', event => {
+        layoutMapState.pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, moved: false };
+        svg.setPointerCapture(event.pointerId);
+    });
+    svg.addEventListener('pointermove', event => {
+        const pointer = layoutMapState?.pointer;
+        if (!pointer || pointer.id !== event.pointerId) return;
+        const dx = event.clientX - pointer.x;
+        const dy = event.clientY - pointer.y;
+        if (Math.abs(dx) + Math.abs(dy) > 3) pointer.moved = true;
+        if (pointer.moved) {
+            panLayout(dx, dy);
+            pointer.x = event.clientX;
+            pointer.y = event.clientY;
+        }
+    });
+    svg.addEventListener('pointerup', event => {
+        const pointer = layoutMapState?.pointer;
+        if (!pointer || pointer.id !== event.pointerId) return;
+        if (!pointer.moved) setLayoutInspector(event.target.closest('.layout-piece'));
+        layoutMapState.pointer = null;
+    });
+    svg.addEventListener('pointercancel', () => { if (layoutMapState) layoutMapState.pointer = null; });
+    svg.addEventListener('keydown', event => {
+        const pan = Math.max(1, layoutMapState.viewBox.width * 0.15);
+        const moves = {
+            ArrowLeft: [-pan, 0], ArrowRight: [pan, 0], ArrowUp: [0, -pan], ArrowDown: [0, pan],
+        };
+        if (moves[event.key]) {
+            event.preventDefault();
+            const [dx, dy] = moves[event.key];
+            layoutMapState.viewBox.x += dx;
+            layoutMapState.viewBox.y += dy;
+            writeLayoutViewBox();
+        } else if (event.key === '+' || event.key === '=') {
+            event.preventDefault();
+            zoomLayout(1.35);
+        } else if (event.key === '-') {
+            event.preventDefault();
+            zoomLayout(1 / 1.35);
+        } else if (event.key === '0') {
+            event.preventDefault();
+            resetLayoutViewport();
+        }
+    });
 }
 
 function renderHomelandLayout(plan) {

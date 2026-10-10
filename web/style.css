@@ -2688,6 +2688,206 @@ tr:hover .skip-row,
     }
 }
 
+/* --------------------------------------------------------------------------
+   Homeland explorer — a camera and detail panel over the existing solver map.
+   The terrain remains an SVG because the placements need to stay tile-accurate.
+   -------------------------------------------------------------------------- */
+.map-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.map-card-head h2 { margin: .15rem 0 0; }
+
+.section-kicker,
+.inspector-kicker {
+    display: block;
+    font-family: var(--font-mono, monospace);
+    font-size: .66rem;
+    letter-spacing: .13em;
+    font-weight: 800;
+    color: var(--accent-cool);
+}
+
+.map-status {
+    display: inline-flex;
+    align-items: center;
+    gap: .42rem;
+    padding: .4rem .65rem;
+    border: 1px solid color-mix(in srgb, #52b788 45%, var(--border));
+    border-radius: 999px;
+    background: color-mix(in srgb, #52b788 10%, var(--surface));
+    color: var(--text-muted);
+    white-space: nowrap;
+    font-family: var(--font-mono, monospace);
+    font-size: .68rem;
+    font-weight: 700;
+}
+
+.map-status i {
+    display: block;
+    width: .42rem;
+    height: .42rem;
+    border-radius: 50%;
+    background: #52b788;
+    box-shadow: 0 0 0 .22rem color-mix(in srgb, #52b788 15%, transparent);
+}
+
+.layout-zoom-controls {
+    display: inline-flex;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--surface-raised, var(--surface));
+    box-shadow: 0 4px 14px rgba(25, 44, 33, .08);
+}
+
+.map-control {
+    min-width: 2.25rem;
+    height: 2rem;
+    padding: 0 .5rem;
+    border: 0;
+    border-right: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    font: 700 1.1rem/1 var(--font-body, sans-serif);
+}
+
+.map-control:last-child { border-right: 0; }
+.map-control:hover { background: color-mix(in srgb, var(--accent-cool) 11%, var(--surface)); }
+.map-control:focus-visible { outline: 2px solid var(--accent-cool); outline-offset: -2px; }
+.map-control-fit { min-width: 2.7rem; font-size: .68rem; letter-spacing: .04em; }
+
+.layout-workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(13rem, 20rem);
+    gap: .8rem;
+    align-items: stretch;
+}
+
+.layout-diagram {
+    min-width: 0;
+    min-height: clamp(24rem, 55vw, 39rem);
+    margin-top: 0;
+    padding: .65rem;
+    overflow: hidden;
+    border-radius: 15px;
+    background:
+        linear-gradient(180deg, rgba(255,255,255,.09), transparent 20%),
+        #557b52;
+    touch-action: none;
+}
+
+.layout-svg {
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    max-height: none;
+    border-radius: 10px;
+    background-color: #7fa662;
+    cursor: grab;
+    user-select: none;
+}
+
+.layout-svg:active { cursor: grabbing; }
+.layout-svg:focus-visible { outline: 3px solid var(--accent-cool); outline-offset: 3px; }
+
+.layout-piece { cursor: pointer; }
+.layout-piece > rect { transition: filter .14s ease, stroke-width .14s ease, fill-opacity .14s ease; }
+.layout-piece:hover > rect,
+.layout-piece.selected > rect {
+    filter: brightness(1.08) drop-shadow(0 0 .22px rgba(255,255,255,.95));
+    stroke: #fff !important;
+    stroke-width: .16 !important;
+    fill-opacity: 1;
+}
+
+.layout-inspector {
+    display: flex;
+    min-height: 12rem;
+    padding: 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    border: 1px solid color-mix(in srgb, var(--accent-cool) 26%, var(--border));
+    border-radius: 14px;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--accent-cool) 9%, var(--surface-raised, var(--surface))), var(--surface));
+}
+
+.layout-inspector h3 {
+    margin: .45rem 0 .55rem;
+    color: var(--text);
+    font-size: 1.02rem;
+}
+
+.layout-inspector p { margin: 0; color: var(--text-muted); font-size: .84rem; line-height: 1.55; }
+.layout-inspector .layout-inspector-stat {
+    width: 100%;
+    margin-top: auto;
+    padding-top: .75rem;
+    border-top: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-mono, monospace);
+    font-size: .71rem;
+    line-height: 1.45;
+}
+
+/* Aniimo is the companion dashboard for the map, not a collapsed afterthought. */
+.aniimo-card {
+    border-color: color-mix(in srgb, var(--accent-cool) 34%, var(--border));
+    background: linear-gradient(145deg, color-mix(in srgb, var(--accent-cool) 8%, var(--surface)), var(--surface));
+}
+
+.aniimo-card .card-head { align-items: center; }
+.aniimo-card .collapse-toggle h2::after {
+    content: ' WORKFORCE';
+    margin-left: .5rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono, monospace);
+    font-size: .56em;
+    letter-spacing: .12em;
+    vertical-align: middle;
+}
+
+.aniimo-card .ability-strip {
+    grid-template-columns: repeat(auto-fit, minmax(66px, 1fr));
+    gap: .45rem;
+    padding: .65rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--surface-raised, var(--surface)) 75%, transparent);
+}
+
+.aniimo-card .ability-cell {
+    min-height: 4.3rem;
+    justify-content: center;
+    border: 1px solid color-mix(in srgb, var(--ability) 32%, var(--border));
+    border-top: 3px solid var(--ability);
+    background: color-mix(in srgb, var(--ability) 8%, var(--surface));
+}
+
+.aniimo-card .aniimo-count {
+    width: fit-content;
+    margin: .65rem 0 .3rem;
+    padding: .28rem .6rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface-raised, var(--surface));
+    font-size: 1.12rem;
+}
+
+@media (max-width: 760px) {
+    .map-card-head { align-items: flex-start; flex-direction: column; }
+    .layout-controls { align-items: center; }
+    .layout-workspace { grid-template-columns: 1fr; }
+    .layout-diagram { min-height: 24rem; }
+    .layout-inspector { min-height: 0; }
+    .layout-inspector .layout-inspector-stat { margin-top: .8rem; }
+    .aniimo-card .card-head { align-items: flex-start; }
+}
+
 /* Homeland plots in the layout: open ones have lush green turf, locked ones are dark with hatch. */
 .layout-plot rect {
     fill: #8fbd6d;

@@ -212,7 +212,7 @@
                 <div id="results-content">
                     <div class="card aniimo-card" id="aniimo-card">
                         <div class="card-head">
-                            <button type="button" class="collapse-toggle" id="aniimo-toggle" aria-expanded="false" aria-controls="aniimo-body">
+                            <button type="button" class="collapse-toggle" id="aniimo-toggle" aria-expanded="true" aria-controls="aniimo-body">
                                 <span class="chevron" aria-hidden="true"></span>
                                 <h2>Aniimo Team</h2>
                             </button>
@@ -231,7 +231,7 @@
                         <p class="collapsed-summary" id="aniimo-collapsed-summary"></p>
                         <div class="ability-strip" id="aniimo-abilities" aria-label="Aniimo needed per ability"></div>
                         <p class="hint small" id="aniimo-pending" style="display: none;">Still working this setup out...</p>
-                        <div id="aniimo-body" hidden>
+                        <div id="aniimo-body">
                             <details class="explain">
                                 <summary>How the team is worked out</summary>
                                 <p><strong>Best</strong>: the best Aniimo you have of each ability (pick its level above), with each facility's personality. <strong>My Aniimo</strong>: the Aniimo you list; each works what its abilities allow, for the hours it has. <strong>Minimum</strong>: the lowest ability level each recipe accepts, with no personality bonus. The plan below follows whichever is picked.</p>
@@ -299,7 +299,13 @@
                     </div>
 
                     <div class="card production-steps" id="layout-card" style="display: none;">
-                        <h2>Homeland Layout</h2>
+                        <div class="map-card-head">
+                            <div>
+                                <span class="section-kicker">LIVE PLAN VIEW</span>
+                                <h2>Homeland Layout</h2>
+                            </div>
+                            <span class="map-status"><i></i> Ready to explore</span>
+                        </div>
                         <p class="hint" id="layout-summary"></p>
                         <details class="explain">
                             <summary>How it's laid out</summary>
@@ -309,10 +315,23 @@
                             <span class="layout-toggles">
                                 <label class="layout-whole"><input type="checkbox" id="layout-whole"> Show the whole homeland</label>
                             </span>
+                            <div class="layout-zoom-controls" role="group" aria-label="Map controls">
+                                <button type="button" class="map-control" id="layout-zoom-out" title="Zoom out" aria-label="Zoom out">−</button>
+                                <button type="button" class="map-control map-control-fit" id="layout-zoom-fit" title="Fit map to view">Fit</button>
+                                <button type="button" class="map-control" id="layout-zoom-in" title="Zoom in" aria-label="Zoom in">+</button>
+                            </div>
                             <input type="checkbox" id="layout-sim-on" style="display: none;">
                             <span class="layout-sim" id="layout-sim" style="display: none;" hidden><span id="layout-clock">0h 00m</span><button type="button" class="toggle-button small" id="layout-replay">Replay</button></span>
                         </div>
-                        <div class="layout-diagram" id="layout-diagram"></div>
+                        <div class="layout-workspace">
+                            <div class="layout-diagram" id="layout-diagram" aria-live="polite"></div>
+                            <aside class="layout-inspector" id="layout-inspector" aria-live="polite">
+                                <span class="inspector-kicker">SELECT A BUILDING</span>
+                                <h3 id="layout-inspector-title">Explore your plan</h3>
+                                <p id="layout-inspector-detail">Tap a facility on the map to see its job, route and Aniimo recommendation.</p>
+                                <p class="layout-inspector-stat" id="layout-inspector-stat">Use the + / − buttons, mouse wheel or pinch-to-zoom.</p>
+                            </aside>
+                        </div>
                     </div>
 
                     <div class="card production-steps" id="goal-section">
