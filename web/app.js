@@ -2538,7 +2538,7 @@ function homelandSvg(layout, homeLevel) {
         const unlockInfo = PLOT_UNLOCK_INFO[p.number] || { rv: p.number, price: 0 };
         if (open) {
             return `<g class="layout-plot open" data-plot-number="${p.number}">
-                <rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="0" fill="url(#layout-grass)" />
+                <rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="0" />
             </g>`;
         } else {
             return `<g class="layout-plot locked" data-plot-number="${p.number}">
@@ -2553,17 +2553,15 @@ function homelandSvg(layout, homeLevel) {
     const homelandMaxX = Math.max(...plots.map(p => p.x + p.w));
     const homelandMaxY = Math.max(...plots.map(p => p.y + p.h));
     const lines = [];
-    // In-game homeland grid (matches official game layout):
-    // Even coordinates (0, 2, 4...) are solid white lines forming 2x2 building blocks.
-    // Odd coordinates (1, 3, 5...) are dashed white lines bisecting each block.
+    // Clean gray homeland grid with whole-tile 1x1 blocks:
     for (let x = 0; x <= homelandMaxX; x++) {
-        const isSolid = (x % 2 === 0);
-        const cls = isSolid ? 'grid-solid' : 'grid-dashed';
+        const isPlotEdge = (x % HOMELAND_PLOT_SIZE.w === 0);
+        const cls = isPlotEdge ? 'grid-line plot-boundary' : 'grid-line';
         lines.push(`<line class="${cls}" x1="${x}" y1="0" x2="${x}" y2="${homelandMaxY}" />`);
     }
     for (let y = 0; y <= homelandMaxY; y++) {
-        const isSolid = (y % 2 === 0);
-        const cls = isSolid ? 'grid-solid' : 'grid-dashed';
+        const isPlotEdge = (y % HOMELAND_PLOT_SIZE.h === 0);
+        const cls = isPlotEdge ? 'grid-line plot-boundary' : 'grid-line';
         lines.push(`<line class="${cls}" x1="0" y1="${y}" x2="${homelandMaxX}" y2="${y}" />`);
     }
     // Power Grid boundaries ("กรอบเสาไฟ"):
@@ -2714,12 +2712,8 @@ function homelandSvg(layout, homeLevel) {
 
     return `<svg class="layout-svg" viewBox="${minX} ${minY} ${maxX - minX} ${maxY - minY}" role="img" aria-label="Homeland layout">
         <defs>
-            <pattern id="layout-grass" width="2" height="2" patternUnits="userSpaceOnUse">
-                <rect width="2" height="2" fill="#729f31" />
-                <image href="grass-pattern.png" width="2" height="2" preserveAspectRatio="none" />
-            </pattern>
             <pattern id="layout-locked" width="1" height="1" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                <rect width="1" height="1" fill="#1f271a" />
+                <rect width="1" height="1" fill="#1b1f26" />
                 <line x1="0" y1="0" x2="0" y2="1" class="layout-hatch" />
             </pattern>
             <clipPath id="circle-avatar-clip" clipPathUnits="objectBoundingBox">

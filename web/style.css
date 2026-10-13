@@ -2882,9 +2882,9 @@ tr:hover .skip-row,
     .aniimo-card .card-head { align-items: flex-start; }
 }
 
-/* Homeland plots in the layout: in-game green grassland with seamless borders. */
+/* Homeland plots in the layout: clean dark gray background. */
 .layout-plot.open rect {
-    fill: url(#layout-grass), #719f30;
+    fill: #262b33;
     fill-opacity: 1;
     stroke: none;
 }
@@ -3884,34 +3884,24 @@ tbody tr:hover {
     padding: .85rem;
     border: 1px solid var(--border);
     border-radius: 14px;
-    background-color: #171d14;
+    background-color: #1a1e24;
 }
 .layout-svg {
     min-width: 560px;
-    background-color: #557922;
-    background-image: url('grass-pattern.png');
+    background-color: #21252b;
     border-radius: 12px;
 }
-/* In-game homeland gridlines */
+/* Clean gray homeland gridlines conforming to whole-tile 1x1 blocks */
 .layout-svg .env-grid line {
-    stroke: rgba(255, 255, 255, 0.85);
+    stroke: rgba(255, 255, 255, 0.16);
     stroke-opacity: 1;
-    stroke-width: 0.045;
-}
-.layout-svg .env-grid line.grid-solid,
-.layout-svg .env-grid line.major {
-    stroke: rgba(255, 255, 255, 0.95);
-    stroke-opacity: 1;
-    stroke-width: 0.055;
+    stroke-width: 0.04;
     stroke-linecap: square;
     stroke-dasharray: none;
 }
-.layout-svg .env-grid line.grid-dashed {
-    stroke: rgba(255, 255, 255, 0.82);
-    stroke-opacity: 1;
-    stroke-width: 0.040;
-    stroke-dasharray: 0.10 0.10;
-    stroke-linecap: square;
+.layout-svg .env-grid line.plot-boundary {
+    stroke: rgba(255, 255, 255, 0.38);
+    stroke-width: 0.08;
 }
 .layout-storage { fill: #2563eb; fill-opacity: 0.92; stroke: #1d4ed8; }
 .layout-flow-line { stroke: var(--accent-cool); }

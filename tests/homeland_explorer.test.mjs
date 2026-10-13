@@ -286,10 +286,9 @@ test('clicking generator or environment building toggles active-radius on matchi
     assert.ok(!mockGenFrame.classList.contains('active-radius'));
 });
 
-test('homelandSvg renders in-game grid with solid and dashed lines, grass pattern, and seamless plots', () => {
-    assert.ok(source.includes("cls = isSolid ? 'grid-solid' : 'grid-dashed'"));
-    assert.ok(source.includes('id="layout-grass"'));
-    assert.ok(source.includes('fill="url(#layout-grass)"'));
+test('homelandSvg renders clean gray grid conforming to whole-tile blocks and seamless plots', () => {
+    assert.ok(source.includes("cls = isPlotEdge ? 'grid-line plot-boundary' : 'grid-line'"));
     assert.ok(source.includes('rx="0"'));
+    assert.ok(!source.includes('fill="url(#layout-grass)"'));
 });
 

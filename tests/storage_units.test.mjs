@@ -128,3 +128,28 @@ test('storage units stay near the active farm and avoid outer corner coordinates
         assert.ok(!isExtremeCorner, `Storage at (${s.x}, ${s.y}) should not be in extreme corners`);
     }
 });
+
+test('layOutHomeland places all facilities strictly on integer grid tiles conforming to blocks', () => {
+    const cells = [
+        { x: 40, y: 45, w: 20, h: 15 },
+        { x: 20, y: 45, w: 20, h: 15 },
+        { x: 40, y: 30, w: 20, h: 15 },
+    ];
+    const pieces = [
+        { members: [{ x: 0, y: 0, w: 2, h: 2, weight: 120, facility: 'Farmland' }] },
+        { members: [{ x: 0, y: 0, w: 3, h: 3, weight: 110, facility: 'Mine' }] },
+        { members: [{ x: 0, y: 0, w: 2, h: 2, weight: 90, facility: 'Chimney Kiln' }] },
+        { members: [{ x: 0, y: 0, w: 4, h: 4, weight: 50, facility: 'Crafting Table' }] },
+    ];
+    const res = layOutHomeland(pieces, cells, { w: 2, h: 2 }, 3);
+    for (const p of res.pieces) {
+        for (const m of p.members) {
+            assert.ok(Number.isInteger(m.x), `Piece ${m.facility} x: ${m.x} must be integer`);
+            assert.ok(Number.isInteger(m.y), `Piece ${m.facility} y: ${m.y} must be integer`);
+        }
+    }
+    for (const s of res.storages) {
+        assert.ok(Number.isInteger(s.x), `Storage x: ${s.x} must be integer`);
+        assert.ok(Number.isInteger(s.y), `Storage y: ${s.y} must be integer`);
+    }
+});
