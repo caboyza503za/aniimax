@@ -3891,17 +3891,30 @@ tbody tr:hover {
     background-color: #21252b;
     border-radius: 12px;
 }
-/* Clean gray homeland gridlines conforming to whole-tile 1x1 blocks */
+/* Clean gray homeland gridlines: 3 layers per 1 block conforming to game hierarchy */
 .layout-svg .env-grid line {
-    stroke: rgba(255, 255, 255, 0.16);
-    stroke-opacity: 1;
-    stroke-width: 0.04;
     stroke-linecap: square;
-    stroke-dasharray: none;
+    pointer-events: none;
 }
 .layout-svg .env-grid line.plot-boundary {
-    stroke: rgba(255, 255, 255, 0.38);
+    stroke: rgba(255, 255, 255, 0.45);
     stroke-width: 0.08;
+    stroke-dasharray: none;
+}
+.layout-svg .env-grid line.grid-major {
+    stroke: rgba(255, 255, 255, 0.28);
+    stroke-width: 0.045;
+    stroke-dasharray: none;
+}
+.layout-svg .env-grid line.grid-mid {
+    stroke: rgba(255, 255, 255, 0.16);
+    stroke-width: 0.030;
+    stroke-dasharray: 0.10 0.08;
+}
+.layout-svg .env-grid line.grid-sub {
+    stroke: rgba(255, 255, 255, 0.08);
+    stroke-width: 0.018;
+    stroke-dasharray: 0.05 0.05;
 }
 .layout-storage { fill: #2563eb; fill-opacity: 0.92; stroke: #1d4ed8; }
 .layout-flow-line { stroke: var(--accent-cool); }
