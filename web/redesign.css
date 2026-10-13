@@ -476,7 +476,7 @@ h3 { font-size: 1.05rem; font-weight: 700; letter-spacing: 0; text-transform: no
 .chip-count { color: var(--accent); font-family: var(--font-display); font-weight: 800; }
 
 details.explain { border: 1px solid var(--border); border-radius: 14px; background: transparent; }
-details.explain summary { list-style: none; font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; }
+details.explain summary { list-style: none; font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; cursor: pointer; user-select: none; }
 details.explain summary::-webkit-details-marker { display: none; }
 details.explain summary::before {
     content: '▸';

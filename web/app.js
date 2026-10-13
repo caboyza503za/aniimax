@@ -3155,7 +3155,7 @@ function showSetupOnly() {
     content.classList.add('setup-only');
     document.getElementById('aniimo-collapsed-summary').textContent = '';
     document.getElementById('aniimo-summary').innerHTML = '';
-    document.getElementById('aniimo-abilities').innerHTML = '';
+    renderInitialAbilities();
     document.getElementById('aniimo-count').hidden = true;
 }
 
@@ -3321,7 +3321,7 @@ function renderRosterSummary(plan) {
         : `${emodeBannerHtml}<p class="hint">Add the Aniimo you have under My Aniimo to plan with them.</p>`;
     translateTree(summaryEl);
     document.getElementById('aniimo-collapsed-summary').textContent = '';
-    document.getElementById('aniimo-abilities').innerHTML = '';
+    renderInitialAbilities();
     const count = document.getElementById('aniimo-count');
     document.getElementById('aniimo-count-have').textContent = working;
     const of = document.getElementById('aniimo-count-of');
@@ -4261,6 +4261,18 @@ const ABILITIES = [
 ];
 const ABILITY_BY_NAME = new Map(ABILITIES.map(a => [a.name, a]));
 
+export function renderInitialAbilities() {
+    const abStrip = document.getElementById('aniimo-abilities');
+    if (!abStrip) return;
+    abStrip.style.display = 'grid';
+    abStrip.innerHTML = ABILITIES.map(a => {
+        return `<div class="ability-col" style="--ability:${a.color}">
+            <div class="ability-cell zero" title="${translate(a.name)}: ${translate(a.about)}">
+                <span class="ability-count">0</span><span class="ability-name">${translate(a.name)}</span>
+            </div></div>`;
+    }).join('');
+}
+
 // The ability each environment building's Aniimo needs (confirmed in game).
 const ENVIRONMENT_BUILDING_ABILITY = {
     'Heat Furnace': 'Fire',
@@ -4536,7 +4548,7 @@ function renderAniimoSummary(plan) {
         collapsedSummary.textContent = translate('No Aniimo needed.');
         const count = document.getElementById('aniimo-count');
         if (count) count.hidden = true;
-        document.getElementById('aniimo-abilities').innerHTML = '';
+        renderInitialAbilities();
         return;
     }
     // Each row gets its own Aniimo, which is the clearer team to keep. Only when that asks for
@@ -5883,6 +5895,22 @@ async function initApp() {
     attachPriorityHandlers();
     showAniimoSetup();
     applyConfigMode();
+    renderInitialAbilities();
+    const abilityDetails = document.getElementById('ability-strip-details');
+    if (abilityDetails) {
+        const summary = abilityDetails.querySelector('summary');
+        if (summary) {
+            summary.addEventListener('click', () => {
+                const abStrip = document.getElementById('aniimo-abilities');
+                if (abStrip) {
+                    abStrip.style.display = 'grid';
+                    if (!abStrip.innerHTML || abStrip.innerHTML.trim() === '') {
+                        renderInitialAbilities();
+                    }
+                }
+            });
+        }
+    }
     initWasm();
 
     document.getElementById('optimize-btn').addEventListener('click', runFindPlan);
@@ -6052,7 +6080,12 @@ function renderConcreteWorkforce(plan, kept = []) {
     const abStrip = document.getElementById('aniimo-abilities');
     if (!grid) return;
 
-    if (abStrip) abStrip.style.display = 'none';
+    if (abStrip) {
+        abStrip.style.display = 'grid';
+        if (!abStrip.innerHTML || abStrip.innerHTML.trim() === '') {
+            renderInitialAbilities();
+        }
+    }
     if (section) section.style.display = 'block';
 
     if (!kept.length) {

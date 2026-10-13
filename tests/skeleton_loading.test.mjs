@@ -46,7 +46,8 @@ const {
     getWorkforceSkeletonHtml,
     getAbilitiesSkeletonHtml,
     getTableSkeletonHtml,
-    getImprovementSkeletonHtml
+    getImprovementSkeletonHtml,
+    renderInitialAbilities
 } = await import('../web/app.js');
 
 test('getLayoutSkeletonHtml renders animated blueprint map structure', () => {
@@ -88,4 +89,19 @@ test('getImprovementSkeletonHtml renders 3 opportunity skeleton cards', () => {
     assert.ok(html.includes('skeleton-improve-list'));
     const items = html.split('skeleton-improve-item').length - 1;
     assert.equal(items, 3);
+});
+
+test('renderInitialAbilities populates aniimo-abilities with 13 element tiles and display grid', () => {
+    const strip = { innerHTML: '', style: {} };
+    const prevGetElementById = globalThis.document.getElementById;
+    globalThis.document.getElementById = (id) => (id === 'aniimo-abilities' ? strip : null);
+    try {
+        renderInitialAbilities();
+        assert.equal(strip.style.display, 'grid');
+        assert.ok(strip.innerHTML.includes('ability-col'));
+        const cols = strip.innerHTML.split('ability-col').length - 1;
+        assert.equal(cols, 13);
+    } finally {
+        globalThis.document.getElementById = prevGetElementById;
+    }
 });
