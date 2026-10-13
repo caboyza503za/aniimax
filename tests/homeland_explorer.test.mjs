@@ -295,3 +295,86 @@ test('homelandSvg renders clean gray grid with 3 layers per block matching in-ga
     assert.ok(!source.includes('fill="url(#layout-grass)"'));
 });
 
+test('clicking Storage Unit renders delivery flow animation lines and clears on deselect', async () => {
+    assert.ok(source.includes('id="storage-flows-layer"'), 'homelandSvg should include storage-flows-layer');
+
+    const cssSource = await readFile(new URL('../web/style.css', import.meta.url), 'utf8');
+    assert.ok(cssSource.includes('@keyframes flowToStorage'), 'style.css should define flowToStorage keyframe animation');
+    assert.ok(cssSource.includes('.storage-flow-pulse'), 'style.css should style storage-flow-pulse');
+    assert.ok(cssSource.includes('.storage-flow-track'), 'style.css should style storage-flow-track');
+
+    const storageFlowsLayer = { innerHTML: '' };
+    const mockStoragePiece = {
+        classList: {
+            contains: (cls) => cls === 'layout-storage-unit',
+            add() {},
+            remove() {},
+        },
+        dataset: { facility: 'Storage Unit', storageIndex: '0', x: '10', y: '10' },
+        getAttribute: (attr) => (attr === 'data-facility' ? 'Storage Unit' : null),
+    };
+    const mockOtherPiece = {
+        classList: {
+            contains: () => false,
+            add() {},
+            remove() {},
+        },
+        dataset: { facility: 'Dewy House', x: '5', y: '5' },
+        getAttribute: (attr) => (attr === 'data-facility' ? 'Dewy House' : null),
+    };
+
+    const mockLayout = {
+        layout: {
+            storages: [{ x: 10, y: 10, w: 2, h: 2 }],
+            pieces: [
+                {
+                    members: [
+                        { facility: 'Dewy House', x: 5, y: 5, w: 2, h: 2, weight: 1.5 },
+                        { facility: 'Farmland', x: 7, y: 7, w: 2, h: 2, weight: 2.0 },
+                    ],
+                },
+            ],
+        },
+    };
+
+    const context = {
+        document: {
+            querySelector: () => null,
+            querySelectorAll: () => [],
+            getElementById: (id) => {
+                if (id === 'storage-flows-layer') return storageFlowsLayer;
+                return { textContent: '', classList: { add() {}, remove() {} } };
+            },
+        },
+        lastLayout: mockLayout,
+        nearestStorageIndex: () => 0,
+        STORAGE_THEMES: [
+            { track: '#059669', pulse: '#34d399', glow: 'rgba(52, 211, 153, 0.6)' },
+        ],
+        translate: (v) => v,
+        Math,
+    };
+
+    runInNewContext(
+        `${source.slice(start, end)}\nglobalThis.explorer = { setLayoutInspector, renderStorageFlows, clearStorageFlows };`,
+        context
+    );
+
+    // Clicking Storage Unit activates flow animation lines
+    context.explorer.setLayoutInspector(mockStoragePiece);
+    assert.ok(storageFlowsLayer.innerHTML.includes('storage-flow-track'), 'Track lines should be drawn');
+    assert.ok(storageFlowsLayer.innerHTML.includes('storage-flow-pulse'), 'Animated pulse lines should be drawn');
+    assert.ok(storageFlowsLayer.innerHTML.includes('storage-flow-endpoint'), 'Source endpoint circles should be drawn');
+    assert.ok(storageFlowsLayer.innerHTML.includes('storage-flow-target'), 'Target Storage Unit circle should be drawn');
+
+    // Clicking another facility clears storage flows
+    context.explorer.setLayoutInspector(mockOtherPiece);
+    assert.equal(storageFlowsLayer.innerHTML, '', 'Flows layer should be emptied when another facility is selected');
+
+    // Deselecting also ensures storage flows are cleared
+    context.explorer.setLayoutInspector(mockStoragePiece);
+    assert.ok(storageFlowsLayer.innerHTML.length > 0);
+    context.explorer.setLayoutInspector(null);
+    assert.equal(storageFlowsLayer.innerHTML, '', 'Flows layer should be emptied on deselect');
+});
+

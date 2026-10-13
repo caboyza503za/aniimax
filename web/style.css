@@ -4592,3 +4592,50 @@ footer p { margin: 0; }
     user-select: none;
     opacity: 0.92;
 }
+
+/* Delivery flow lines & animation to Storage Unit on click */
+.storage-flow-track {
+    stroke-opacity: 0.35;
+    stroke-width: 0.055;
+    stroke-linecap: round;
+    pointer-events: none;
+}
+
+.storage-flow-pulse {
+    stroke-opacity: 0.95;
+    stroke-width: 0.095;
+    stroke-linecap: round;
+    stroke-dasharray: 0.18 0.57;
+    animation: flowToStorage 0.85s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes flowToStorage {
+    from {
+        stroke-dashoffset: 0;
+    }
+    to {
+        stroke-dashoffset: -0.75;
+    }
+}
+
+.storage-flow-endpoint {
+    fill-opacity: 0.95;
+    stroke: rgba(0, 0, 0, 0.45);
+    stroke-width: 0.03;
+    pointer-events: none;
+}
+
+.storage-flow-target {
+    fill-opacity: 0.95;
+    stroke: #ffffff;
+    stroke-width: 0.05;
+    pointer-events: none;
+}
+
+.layout-piece.storage-source-active rect {
+    stroke: var(--storage-glow, #34d399) !important;
+    stroke-width: 0.12 !important;
+    filter: drop-shadow(0 0 0.18rem var(--storage-glow, rgba(52, 211, 153, 0.75)));
+}
+

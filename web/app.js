@@ -1688,6 +1688,7 @@ function attachLayoutHandlers() {
 }
 
 function drawLayout(drawn) {
+    clearStorageFlows();
     const diagram = document.getElementById('layout-diagram');
     diagram.innerHTML = homelandSvg(drawn.layout, drawn.homeLevel);
     diagram.classList.add('content-loaded');
@@ -1765,6 +1766,72 @@ function updateRadiusDisplay(piece = null) {
     });
 }
 
+const STORAGE_THEMES = [
+    { track: '#059669', pulse: '#34d399', glow: 'rgba(52, 211, 153, 0.6)' }, // Storage #1: Emerald
+    { track: '#0284c7', pulse: '#38bdf8', glow: 'rgba(56, 189, 248, 0.6)' }, // Storage #2: Sky Blue
+    { track: '#d97706', pulse: '#fbbf24', glow: 'rgba(251, 191, 36, 0.6)' }, // Storage #3: Amber
+    { track: '#7c3aed', pulse: '#c084fc', glow: 'rgba(192, 132, 252, 0.6)' }, // Storage #4: Violet
+];
+
+function renderStorageFlows(storageIdx) {
+    clearStorageFlows();
+    if (typeof document === 'undefined' || storageIdx == null) return;
+    const flowsLayer = document.getElementById('storage-flows-layer');
+    if (!flowsLayer) return;
+
+    const storages = (lastLayout?.layout?.storages || (lastLayout?.layout?.storage ? [lastLayout.layout.storage] : []));
+    if (!storages || !storages[storageIdx]) return;
+    const targetStorage = storages[storageIdx];
+
+    const allMembers = (lastLayout?.layout?.pieces?.flatMap(p => p.members)) || [];
+    const deliveringMembers = allMembers.filter(m =>
+        (m.weight || 0) > 0 &&
+        !m.building &&
+        !m.isGenerator &&
+        !m.isPowerPole &&
+        nearestStorageIndex(m, storages) === storageIdx
+    );
+
+    const theme = STORAGE_THEMES[storageIdx % STORAGE_THEMES.length];
+    const sx = targetStorage.x + targetStorage.w / 2;
+    const sy = targetStorage.y + targetStorage.h / 2;
+
+    const elements = [];
+    deliveringMembers.forEach(m => {
+        const mx = m.x + m.w / 2;
+        const my = m.y + m.h / 2;
+        elements.push(`<line class="storage-flow-track" x1="${mx}" y1="${my}" x2="${sx}" y2="${sy}" style="stroke:${theme.track};" />`);
+        elements.push(`<line class="storage-flow-pulse" x1="${mx}" y1="${my}" x2="${sx}" y2="${sy}" style="stroke:${theme.pulse};" />`);
+        elements.push(`<circle class="storage-flow-endpoint" cx="${mx}" cy="${my}" r="0.14" style="fill:${theme.pulse};" />`);
+    });
+    elements.push(`<circle class="storage-flow-target" cx="${sx}" cy="${sy}" r="0.22" style="fill:${theme.pulse};" />`);
+
+    flowsLayer.innerHTML = elements.join('');
+
+    // Highlight the source facilities on the map
+    if (typeof document.querySelectorAll === 'function') {
+        deliveringMembers.forEach(m => {
+            const el = document.querySelector?.(`#layout-diagram .layout-piece[data-x="${m.x}"][data-y="${m.y}"]`);
+            if (el) {
+                el.classList?.add?.('storage-source-active');
+                el.style?.setProperty?.('--storage-glow', theme.glow);
+            }
+        });
+    }
+}
+
+function clearStorageFlows() {
+    if (typeof document === 'undefined') return;
+    const flowsLayer = document.getElementById?.('storage-flows-layer');
+    if (flowsLayer) flowsLayer.innerHTML = '';
+    if (typeof document.querySelectorAll === 'function') {
+        document.querySelectorAll('#layout-diagram .layout-piece.storage-source-active')?.forEach?.(el => {
+            el.classList?.remove?.('storage-source-active');
+            el.style?.removeProperty?.('--storage-glow');
+        });
+    }
+}
+
 function setLayoutInspector(piece = null) {
     const title = document.getElementById('layout-inspector-title');
     const detail = document.getElementById('layout-inspector-detail');
@@ -1779,9 +1846,18 @@ function setLayoutInspector(piece = null) {
         if (detail) detail.textContent = translate('Tap a facility on the map to see its job, route and Aniimo recommendation.');
         if (stat) stat.textContent = translate('Use the + / − buttons, mouse wheel or pinch-to-zoom.');
         hideFacilityDetailDrawer();
+        clearStorageFlows();
         return;
     }
     piece.classList.add('selected');
+
+    const isStorageUnit = piece.classList?.contains?.('layout-storage-unit') || piece.dataset?.facility === 'Storage Unit';
+    if (isStorageUnit) {
+        const sIdx = piece.dataset?.storageIndex != null ? Number(piece.dataset.storageIndex) : 0;
+        renderStorageFlows(sIdx);
+    } else {
+        clearStorageFlows();
+    }
     const rawTitle = piece.dataset?.tip || piece.getAttribute?.('data-tip') || 'Facility';
     const rawDetail = piece.dataset?.tipDetail || piece.getAttribute?.('data-tip-detail') || translate('No production assignment.');
     const rawStats = piece.dataset?.tipStats || piece.getAttribute?.('data-tip-stats') || translate('No delivery route is needed.');
@@ -1871,7 +1947,52 @@ function showFacilityDetailDrawer(piece, facilityName) {
     let itemTitle = producedItem ? (typeof prettyItem === 'function' ? prettyItem(producedItem) : producedItem) : translate('Idle');
     if (activeMember.storageNumber) {
         itemTitle = `${translate('Storage Unit')} #${activeMember.storageNumber}`;
-        recipeInputsHtml = `<div class="hint small" style="margin-top:0.35rem;">${translate('Shared inventory connected to all Storage Units')}</div>`;
+        const sIdx = activeMember.storageNumber - 1;
+        const incomingMembers = pieceMembers.filter(m =>
+            (m.weight || 0) > 0 &&
+            !m.building &&
+            !m.isGenerator &&
+            !m.isPowerPole &&
+            nearestStorageIndex(m, storages) === sIdx
+        );
+        const incomingPlots = [...new Set(incomingMembers.map(m => typeof getPlotForCoordinate === 'function' ? getPlotForCoordinate(m.x + m.w / 2, m.y + m.h / 2) : 1))].sort((a, b) => a - b);
+        const itemMap = new Map();
+        incomingMembers.forEach(m => {
+            const it = m.jobs?.[0]?.item || m.crop || m.facility;
+            const cur = itemMap.get(it) || { item: it, count: 0, dailyRate: 0 };
+            cur.count += 1;
+            cur.dailyRate += (m.weight * 24);
+            itemMap.set(it, cur);
+        });
+        const totalIncomingRate = incomingMembers.reduce((sum, m) => sum + (m.weight * 24), 0);
+
+        const incomingItemsChips = Array.from(itemMap.values()).map(it => {
+            const icon = typeof getItemIconUrl === 'function' ? getItemIconUrl(it.item) : null;
+            const name = typeof prettyItem === 'function' ? prettyItem(it.item) : it.item;
+            const rate = typeof formatRate === 'function' ? `${formatRate(it.dailyRate)}/วัน` : `${Math.round(it.dailyRate)}/วัน`;
+            return `<span class="hp-chip" style="font-size:0.8rem;padding:0.25rem 0.5rem;display:inline-flex;align-items:center;gap:0.35rem;">
+                ${icon ? `<img src="${icon}" alt="" style="width:18px;height:18px;object-fit:contain;" loading="lazy">` : '📦'}
+                <b>${name}</b> (${it.count} แปลง · ${rate})
+            </span>`;
+        }).join('');
+
+        recipeInputsHtml = `
+            <div style="margin-top:0.6rem;padding:0.6rem;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.25);border-radius:8px;">
+                <div style="font-weight:600;color:var(--text, #38bdf8);margin-bottom:0.35rem;">
+                    📦 ข้อมูลการจัดเก็บของยูนิตนี้ (#${activeMember.storageNumber}):
+                </div>
+                <div class="hint small" style="margin-bottom:0.4rem;">
+                    มีเครื่องจักร/แปลงส่งของเข้าคลังนี้ทั้งหมด <b>${incomingMembers.length}</b> แปลง (รวม <b>${typeof formatNumber === 'function' ? formatNumber(Math.round(totalIncomingRate)) : Math.round(totalIncomingRate)}</b> ชิ้น/วัน)
+                </div>
+                <div class="hint small" style="margin-bottom:0.5rem;">
+                    🗺️ โซน/แปลงที่จัดส่งเข้าคลังนี้: ${incomingPlots.length ? incomingPlots.map(p => `<b>แปลง ${p}</b>`).join(', ') : 'ไม่มี'}
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:0.35rem;">
+                    ${incomingItemsChips || '<span class="hint small">ยังไม่มีรายการส่งเข้าคลังนี้</span>'}
+                </div>
+            </div>
+            <div class="hint small" style="margin-top:0.4rem;">${translate('Shared inventory connected to all Storage Units')}</div>
+        `;
     } else if (activeMember.isGenerator) {
         itemTitle = `${translate('Crackle Generator')} Lv.${activeMember.genLevel || 1}`;
         recipeInputsHtml = `<div class="hint small" style="margin-top:0.35rem;">⚡ ${translate('Outputs {watts}W (Currently powering {used}W)').replace('{watts}', activeMember.outputWatts || 120).replace('{used}', activeMember.totalWatts || 0)}</div>`;
@@ -2741,6 +2862,7 @@ function homelandSvg(layout, homeLevel) {
         ${shapes}
         <g class="layout-coverage-edges" pointer-events="none">${coverageEdges}</g>
         <g class="layout-power-grid-edges" pointer-events="none">${powerGridEdges}</g>
+        <g class="layout-storage-flows" id="storage-flows-layer" pointer-events="none"></g>
         ${storageShapes}
     </svg>`;
 }
