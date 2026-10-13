@@ -1052,3 +1052,277 @@ body.has-results #layout-card .layout-svg { min-width: 0; }
     border: 1px solid color-mix(in srgb, var(--ab-color, var(--text)) 30%, transparent);
     white-space: nowrap;
 }
+
+/* ==========================================================================
+   Skeleton Loading Framework (แอนิเมชันโครงร่างทั่วทั้งเว็บ)
+   ========================================================================== */
+
+@keyframes skeleton-shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+@keyframes skeleton-pulse {
+    0%, 100% { opacity: 0.65; transform: scale(0.995); }
+    50% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes skeleton-fade-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes radar-sweep {
+    0% { transform: translateY(-100%); opacity: 0.3; }
+    50% { opacity: 0.8; }
+    100% { transform: translateY(100%); opacity: 0.3; }
+}
+
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--surface-2) 80%, transparent) 0%,
+        color-mix(in srgb, var(--surface-raised) 92%, #ffffff 8%) 50%,
+        color-mix(in srgb, var(--surface-2) 80%, transparent) 100%
+    );
+    background-size: 250% 100%;
+    animation: skeleton-shimmer 1.8s ease-in-out infinite;
+    border-radius: 8px;
+    color: transparent !important;
+    user-select: none;
+    pointer-events: none;
+}
+
+.skeleton-text {
+    height: 1rem;
+    margin-bottom: 0.4rem;
+    border-radius: 6px;
+}
+
+.skeleton-text.short { width: 35%; }
+.skeleton-text.medium { width: 65%; }
+.skeleton-text.long { width: 90%; }
+.skeleton-text.full { width: 100%; }
+
+.skeleton-circle {
+    border-radius: 50% !important;
+}
+
+/* Skeleton Layout Map Blueprint */
+.skeleton-map-wrapper {
+    position: relative;
+    width: 100%;
+    min-height: 440px;
+    height: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--surface-2) 90%, #1e293b 10%) 0%, var(--surface-2) 100%);
+    border: 1px dashed var(--border-strong);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.skeleton-map-grid-bg {
+    position: absolute;
+    inset: 0;
+    background-size: 32px 32px;
+    background-image: 
+        linear-gradient(to right, color-mix(in srgb, var(--border) 45%, transparent) 1px, transparent 1px),
+        linear-gradient(to bottom, color-mix(in srgb, var(--border) 45%, transparent) 1px, transparent 1px);
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+.skeleton-map-radar {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 0%, color-mix(in srgb, var(--accent) 18%, transparent) 50%, transparent 100%);
+    animation: radar-sweep 2.8s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.skeleton-map-plots {
+    position: absolute;
+    inset: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 1rem;
+    pointer-events: none;
+    opacity: 0.75;
+}
+
+.skeleton-plot-box {
+    border: 1.5px dashed color-mix(in srgb, var(--accent) 40%, var(--border-strong));
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--surface) 35%, transparent);
+    padding: 0.65rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    align-content: flex-start;
+}
+
+.skeleton-facility-tile {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--surface-raised) 70%, transparent) 0%,
+        color-mix(in srgb, var(--accent) 25%, transparent) 50%,
+        color-mix(in srgb, var(--surface-raised) 70%, transparent) 100%
+    );
+    background-size: 250% 100%;
+    animation: skeleton-shimmer 2s ease-in-out infinite;
+    border: 1px solid var(--border);
+}
+
+.skeleton-map-center-card {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.25rem 2rem;
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    border: 1px solid var(--border-strong);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(12px);
+    text-align: center;
+    animation: skeleton-pulse 2.2s ease-in-out infinite;
+    max-width: 90%;
+}
+
+.skeleton-spinner {
+    width: 34px;
+    height: 34px;
+    border: 3.5px solid color-mix(in srgb, var(--accent) 25%, transparent);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: step-spin 0.75s linear infinite;
+}
+
+.skeleton-map-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    font-family: var(--font-display);
+    color: var(--text);
+}
+
+.skeleton-map-subtitle {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+/* Skeleton Table Rows */
+.skeleton-table-wrapper {
+    width: 100%;
+    border-radius: 14px;
+    border: 1px solid var(--border-strong);
+    overflow: hidden;
+    background: var(--surface);
+    margin-bottom: 1rem;
+}
+
+.skeleton-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.skeleton-table th {
+    padding: 0.7rem 0.9rem;
+    background: color-mix(in srgb, var(--surface-2) 90%, transparent);
+    border-bottom: 1px solid var(--border-strong);
+}
+
+.skeleton-table td {
+    padding: 0.75rem 0.9rem;
+    background: transparent;
+    border-bottom: 1px solid var(--border);
+}
+
+.skeleton-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Skeleton Workforce Grid */
+.skeleton-workforce-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 0.75rem;
+}
+
+.skeleton-worker-card {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.75rem 0.85rem;
+    border-radius: 16px;
+    background: var(--surface-2);
+    border: 1px solid var(--border-strong);
+}
+
+.skeleton-worker-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.skeleton-worker-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+/* Skeleton Abilities Row */
+.skeleton-abilities-strip {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding: 0.5rem 0;
+    scrollbar-width: thin;
+}
+
+.skeleton-ability-pill {
+    width: 48px;
+    height: 64px;
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+
+/* Skeleton Opportunities Card */
+.skeleton-improve-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.skeleton-improve-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 14px;
+    background: var(--surface-2);
+    border: 1px solid var(--border-strong);
+}
+
+/* Content loaded transition */
+.content-loaded {
+    animation: skeleton-fade-in 0.3s ease-out;
+}
+
