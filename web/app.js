@@ -2553,16 +2553,30 @@ function homelandSvg(layout, homeLevel) {
     const homelandMaxX = Math.max(...plots.map(p => p.x + p.w));
     const homelandMaxY = Math.max(...plots.map(p => p.y + p.h));
     const lines = [];
-    // Clean gray homeland grid with whole-tile 1x1 blocks:
-    for (let x = 0; x <= homelandMaxX; x++) {
-        const isPlotEdge = (x % HOMELAND_PLOT_SIZE.w === 0);
-        const cls = isPlotEdge ? 'grid-line plot-boundary' : 'grid-line';
-        lines.push(`<line class="${cls}" x1="${x}" y1="0" x2="${x}" y2="${homelandMaxY}" />`);
+    // In-game homeland grid: 3 layers per 1 block (major tile, mid 0.5, and sub 0.25/0.75):
+    for (let x = 0; x <= homelandMaxX; x += 0.25) {
+        const roundX = Math.round(x * 100) / 100;
+        const isPlotEdge = (roundX % HOMELAND_PLOT_SIZE.w === 0);
+        const isInteger = Number.isInteger(roundX);
+        const isHalf = !isInteger && (Math.round(roundX * 10) % 5 === 0);
+        let cls;
+        if (isPlotEdge) cls = 'grid-line plot-boundary';
+        else if (isInteger) cls = 'grid-line grid-major';
+        else if (isHalf) cls = 'grid-line grid-mid';
+        else cls = 'grid-line grid-sub';
+        lines.push(`<line class="${cls}" x1="${roundX}" y1="0" x2="${roundX}" y2="${homelandMaxY}" />`);
     }
-    for (let y = 0; y <= homelandMaxY; y++) {
-        const isPlotEdge = (y % HOMELAND_PLOT_SIZE.h === 0);
-        const cls = isPlotEdge ? 'grid-line plot-boundary' : 'grid-line';
-        lines.push(`<line class="${cls}" x1="0" y1="${y}" x2="${homelandMaxX}" y2="${y}" />`);
+    for (let y = 0; y <= homelandMaxY; y += 0.25) {
+        const roundY = Math.round(y * 100) / 100;
+        const isPlotEdge = (roundY % HOMELAND_PLOT_SIZE.h === 0);
+        const isInteger = Number.isInteger(roundY);
+        const isHalf = !isInteger && (Math.round(roundY * 10) % 5 === 0);
+        let cls;
+        if (isPlotEdge) cls = 'grid-line plot-boundary';
+        else if (isInteger) cls = 'grid-line grid-major';
+        else if (isHalf) cls = 'grid-line grid-mid';
+        else cls = 'grid-line grid-sub';
+        lines.push(`<line class="${cls}" x1="0" y1="${roundY}" x2="${homelandMaxX}" y2="${roundY}" />`);
     }
     // Power Grid boundaries ("กรอบเสาไฟ"):
     // Facilities using E-Mode must sit within the power pole / generator frame.

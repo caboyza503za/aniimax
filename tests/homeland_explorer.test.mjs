@@ -286,8 +286,11 @@ test('clicking generator or environment building toggles active-radius on matchi
     assert.ok(!mockGenFrame.classList.contains('active-radius'));
 });
 
-test('homelandSvg renders clean gray grid conforming to whole-tile blocks and seamless plots', () => {
-    assert.ok(source.includes("cls = isPlotEdge ? 'grid-line plot-boundary' : 'grid-line'"));
+test('homelandSvg renders clean gray grid with 3 layers per block matching in-game hierarchy', () => {
+    assert.ok(source.includes("'grid-line plot-boundary'"));
+    assert.ok(source.includes("'grid-line grid-major'"));
+    assert.ok(source.includes("'grid-line grid-mid'"));
+    assert.ok(source.includes("'grid-line grid-sub'"));
     assert.ok(source.includes('rx="0"'));
     assert.ok(!source.includes('fill="url(#layout-grass)"'));
 });
