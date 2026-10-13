@@ -12,11 +12,8 @@
 // for. Anything else, including crops that need no environment, may stand anywhere. Pieces may touch but not overlap, sit on a quarter-tile grid (the smallest step in
 // any footprint), and may be turned a quarter at a time.
 //
-// Busiest pieces for their size go down first, each where it costs least; then each is lifted
-// and put back wherever is cheapest with the rest in place, until nothing moves. This is a
-// heuristic: it finds a good layout, not a proven best one.
-
-const STEP = 0.25;
+// Pieces sit on whole-tile grid blocks (STEP = 1) conforming strictly to homeland grid tiles.
+const STEP = 1;
 const EPSILON = 1e-6;
 const CELL = 4;
 const RADIUS = 4.5;
