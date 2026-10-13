@@ -1326,3 +1326,43 @@ body.has-results #layout-card .layout-svg { min-width: 0; }
     animation: skeleton-fade-in 0.3s ease-out;
 }
 
+/* Ability Strip Details Dropdown */
+.ability-strip-details {
+    margin-top: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface-2, rgba(255, 255, 255, 0.02));
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.ability-strip-details summary {
+    padding: 0.85rem 1.15rem;
+    cursor: pointer;
+    user-select: none;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.ability-strip-details summary:hover {
+    background: var(--surface-hover, rgba(255, 255, 255, 0.05));
+    color: var(--accent);
+}
+
+.ability-strip-details[open] summary {
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-hover, rgba(255, 255, 255, 0.03));
+}
+
+.ability-strip-details .ability-strip {
+    padding: 1rem !important;
+    margin: 0 !important;
+    display: grid !important;
+}
+
