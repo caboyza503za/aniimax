@@ -888,12 +888,14 @@ export const RECOMMENDED_WORKERS = {
     "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10041.webp"
   },
   "Tidewhisper Sandcastle": {
-    "name": "ปูหน่ออ่อน",
-    "nameEn": "Budclaw",
+    "name": "นากขี้อาย",
+    "nameEn": "Otterly",
     "ability": "Leisure",
     "abilityTh": "ไม่รีบร้อน",
     "level": 1,
-    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10161.webp"
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10171.webp",
+    "exclusive": true,
+    "note": "เกลือสมุทร/เกลือทะเลต้องใช้วงศ์นาก, ไข่มุกต้องใช้วงศ์ดาวจิ๋ว"
   },
   "Dewy House": {
     "name": "นกน้ำหอม",
@@ -903,7 +905,7 @@ export const RECOMMENDED_WORKERS = {
     "level": 3,
     "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10352.webp",
     "exclusive": true,
-    "note": "บังคับใช้เฉพาะนกน้ำหอม"
+    "note": "บังคับใช้เฉพาะแอนีโมจากวงศ์นกน้ำดอกไม้"
   },
   "Nimbus Bed": {
     "name": "แกะปุยเมฆ",
@@ -911,15 +913,19 @@ export const RECOMMENDED_WORKERS = {
     "ability": "Leisure",
     "abilityTh": "ไม่รีบร้อน",
     "level": 1,
-    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10261.webp"
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10261.webp",
+    "exclusive": true,
+    "note": "ขนแกะต้องใช้วงศ์แกะ, กลีบดอกไม้ต้องใช้วงศ์ไอริสน้อย"
   },
   "Starfall Hammock": {
-    "name": "ดาวจิ๋ว",
-    "nameEn": "Shelly",
+    "name": "กระรอกจ้าวเวหา",
+    "nameEn": "Glider",
     "ability": "Leisure",
     "abilityTh": "ไม่รีบร้อน",
     "level": 1,
-    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10191.webp"
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10011.webp",
+    "exclusive": true,
+    "note": "บังคับใช้เฉพาะแอนีโมจากวงศ์กระรอกเจ้าเวหา"
   },
   "Floral Windmill": {
     "name": "แกะปุยเมฆ",
@@ -1100,7 +1106,124 @@ export function getFacilityGlyphUrl(facilityName) {
     return FACILITY_GLYPHS[facilityName] || null;
 }
 
-export function getRecommendedWorker(facilityName) {
+// Family requirements for Aniimo Materials facilities:
+// - Nimbus Bed (เตียงเมฆฝน): Wool -> วงศ์แกะ, Petals -> วงศ์ไอริสน้อย
+// - Tidewhisper Sandcastle (ปราสาททราย): Sea Salt -> วงศ์นาก, Pearl -> วงศ์ดาวจิ๋ว
+// - Dewy House (บ้านน้ำค้าง): วงศ์นกน้ำดอกไม้
+// - Starfall Hammock (เปลดาวตก): วงศ์กระรอกเจ้าเวหา
+export const ANIMAL_MATERIAL_FAMILIES = {
+    'Nimbus Bed': {
+        'Wool': {
+            familyNameTh: 'วงศ์แกะ',
+            primary: { name: 'แกะปุยเมฆ', nameEn: 'Nimbi', ability: 'Leisure', abilityTh: 'ไม่รีบร้อน', level: 1, avatar: 'https://aniidex.com/images/aniimo/UI_PetHead_10261.webp' },
+            alts: ['แกะเทอร์โบ', 'แกะแดนฝัน'],
+            familyIds: ['10261', '10262', '10263'],
+            note: 'ขนแกะต้องใช้แอนีโมจากวงศ์แกะเท่านั้น'
+        },
+        'Quick Wool': {
+            familyNameTh: 'วงศ์แกะ',
+            primary: { name: 'แกะปุยเมฆ', nameEn: 'Nimbi', ability: 'Leisure', abilityTh: 'ไม่รีบร้อน', level: 1, avatar: 'https://aniidex.com/images/aniimo/UI_PetHead_10261.webp' },
+            alts: ['แกะเทอร์โบ', 'แกะแดนฝัน'],
+            familyIds: ['10261', '10262', '10263'],
+            note: 'ขนแกะต้องใช้แอนีโมจากวงศ์แกะเท่านั้น'
+        },
+        'Petals': {
+            familyNameTh: 'วงศ์ไอริสน้อย',
+            primary: { name: 'ไอริสน้อย', nameEn: 'Iris', ability: 'Leisure', abilityTh: 'ไม่รีบร้อน', level: 1, avatar: 'https://aniidex.com/images/aniimo/UI_PetHead_10211.webp' },
+            alts: ['ไอริสเริงระบำ'],
+            familyIds: ['10211', '10212'],
+            note: 'กลีบดอกไม้ต้องใช้แอนีโมจากวงศ์ไอริสน้อยเท่านั้น'
+        }
+    },
+    'Tidewhisper Sandcastle': {
+        'Sea Salt': {
+            familyNameTh: 'วงศ์นาก',
+            primary: { name: 'นากขี้อาย', nameEn: 'Otterly', ability: 'Leisure', abilityTh: 'ไม่รีบร้อน', level: 1, avatar: 'https://aniidex.com/images/aniimo/UI_PetHead_10171.webp' },
+            alts: ['นากแอบรัก', 'นากเจ้าเสน่ห์', 'นากนักสร้าง'],
+            familyIds: ['10171', '10172', '10173', '10174'],
+            note: 'เกลือสมุทร/เกลือทะเลต้องใช้แอนีโมจากวงศ์นากเท่านั้น'
+        },
+        'Quick Sea Salt': {
+            familyNameTh: 'วงศ์นาก',
+            primary: { name: 'นากขี้อาย', nameEn: 'Otterly', ability: 'Leisure', abilityTh: 'ไม่รีบร้อน', level: 1, avatar: 'https://aniidex.com/images/aniimo/UI_PetHead_10171.webp' },
+            alts: ['นากแอบรัก', 'นากเจ้าเสน่ห์', 'นากนักสร้าง'],
+            familyIds: ['10171', '10172', '10173', '10174'],
+            note: 'เกลือสมุทร/เกลือทะเลต้องใช้แอนีโมจากวงศ์นากเท่านั้น'
+        },
+        'Pearl': {
+            familyNameTh: 'วงศ์ดาวจิ๋ว',
+            primary: { name: 'ดาวจิ๋ว', nameEn: 'Shelly', ability: 'Leisure', abilityTh: 'ไม่รีบร้อน', level: 1, avatar: 'https://aniidex.com/images/aniimo/UI_PetHead_10191.webp' },
+            alts: ['ดาวติดเกราะ', 'ดาวนักรบ'],
+            familyIds: ['10191', '10192', '10194'],
+            note: 'ไข่มุกต้องใช้แอนีโมจากวงศ์ดาวจิ๋วเท่านั้น'
+        }
+    },
+    'Dewy House': {
+        default: {
+            familyNameTh: 'วงศ์นกน้ำดอกไม้',
+            primary: { name: 'นกน้ำหอม', nameEn: 'Fragrancier', ability: 'Leisure', abilityTh: 'ไม่รีบร้อน', level: 3, avatar: 'https://aniidex.com/images/aniimo/UI_PetHead_10352.webp' },
+            alts: ['นกน้ำดอกไม้'],
+            familyIds: ['10351', '10352'],
+            note: 'บังคับใช้เฉพาะแอนีโมจากวงศ์นกน้ำดอกไม้'
+        }
+    },
+    'Starfall Hammock': {
+        default: {
+            familyNameTh: 'วงศ์กระรอกเจ้าเวหา',
+            primary: { name: 'กระรอกจ้าวเวหา', nameEn: 'Glider', ability: 'Leisure', abilityTh: 'ไม่รีบร้อน', level: 1, avatar: 'https://aniidex.com/images/aniimo/UI_PetHead_10011.webp' },
+            alts: ['กระรอกจ้าวดารา'],
+            familyIds: ['10011', '10012'],
+            note: 'บังคับใช้เฉพาะแอนีโมจากวงศ์กระรอกเจ้าเวหา'
+        }
+    }
+};
+
+export function resolveFacilityFamilySpec(facilityName, item = null) {
+    if (!facilityName) return null;
+    const lowerFac = String(facilityName).toLowerCase();
+    let facKey = null;
+    if (lowerFac.includes('nimbus') || lowerFac.includes('เมฆฝน')) facKey = 'Nimbus Bed';
+    else if (lowerFac.includes('sandcastle') || lowerFac.includes('ปราสาททราย') || lowerFac.includes('ประสาททราย')) facKey = 'Tidewhisper Sandcastle';
+    else if (lowerFac.includes('dewy') || lowerFac.includes('น้ำค้าง')) facKey = 'Dewy House';
+    else if (lowerFac.includes('starfall') || lowerFac.includes('ดาวตก')) facKey = 'Starfall Hammock';
+
+    if (!facKey || !ANIMAL_MATERIAL_FAMILIES[facKey]) return null;
+    const facConfig = ANIMAL_MATERIAL_FAMILIES[facKey];
+
+    if (facConfig.default) return facConfig.default;
+
+    if (item) {
+        const lowerItem = String(item).toLowerCase();
+        if (facKey === 'Nimbus Bed') {
+            if (lowerItem.includes('petal') || lowerItem.includes('กลีบ') || lowerItem.includes('ดอกไม้')) {
+                return facConfig['Petals'];
+            }
+            return facConfig['Wool'];
+        }
+        if (facKey === 'Tidewhisper Sandcastle') {
+            if (lowerItem.includes('pearl') || lowerItem.includes('ไข่มุก')) {
+                return facConfig['Pearl'];
+            }
+            return facConfig['Sea Salt'];
+        }
+    }
+
+    if (facKey === 'Nimbus Bed') return facConfig['Wool'];
+    if (facKey === 'Tidewhisper Sandcastle') return facConfig['Sea Salt'];
+    return null;
+}
+
+export function getRecommendedWorker(facilityName, item = null) {
+    const familySpec = resolveFacilityFamilySpec(facilityName, item);
+    if (familySpec) {
+        return {
+            ...familySpec.primary,
+            exclusive: true,
+            exclusiveNote: `[${familySpec.note}]`,
+            alts: familySpec.alts,
+            familyNameTh: familySpec.familyNameTh,
+        };
+    }
     return RECOMMENDED_WORKERS[facilityName] || null;
 }
 
@@ -4371,9 +4494,13 @@ export const ABILITY_TH_MAP = {
 
 export const EXCLUDED_FROM_WORKFORCE = new Set([
     'สิงโตแสงตะวัน', 'ราชสีห์สุริยัน', 'จิ้งจอกแสงจันทร์', 'เฟนเนกจันทรา',
+    'มังกรโลกันตร์', 'ไอริสสายรุ้ง',
     'helion', 'soleon', 'lunara', 'fennelun',
+    'infergon', 'irisalis',
     '10361', '10363', '10371', '10373',
+    '10025', '10213',
     '1036100', '1036300', '1037100', '1037300',
+    '1002500', '1021300', '1002503',
 ]);
 
 export function isExcludedFromWorkforce(aniimo) {
@@ -4394,11 +4521,18 @@ export function findAniimosByAbility(ability, minLevel = 1) {
         .sort((a, b) => (b.skills[engAbility] || 0) - (a.skills[engAbility] || 0));
 }
 
-export function getBestAniimoForFacility(facilityName, ability, minLevel = 1) {
-    if (facilityName === 'Dewy House' || facilityName === 'บ้านน้ำค้าง' || facilityName === 'dewy-house') {
-        const base = RECOMMENDED_WORKERS['Dewy House'];
-        const ani = ALL_ANIIMOS.find(a => a.name === base.name);
-        return { ...base, skills: ani?.skills || { Leisure: 3 } };
+export function getBestAniimoForFacility(facilityName, ability, minLevel = 1, item = null) {
+    const familySpec = typeof resolveFacilityFamilySpec === 'function' ? resolveFacilityFamilySpec(facilityName, item) : null;
+    if (familySpec) {
+        const ani = ALL_ANIIMOS.find(a => a.name === familySpec.primary.name);
+        return {
+            ...familySpec.primary,
+            exclusive: true,
+            exclusiveNote: `[${familySpec.note}]`,
+            alts: familySpec.alts,
+            familyNameTh: familySpec.familyNameTh,
+            skills: ani?.skills || { Leisure: familySpec.primary.level || 1 }
+        };
     }
     if (RECOMMENDED_WORKERS[facilityName]) {
         const base = RECOMMENDED_WORKERS[facilityName];

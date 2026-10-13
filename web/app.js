@@ -1614,7 +1614,8 @@ function facilityWorkerBadge(m) {
     const facConfig = FACILITIES.find(f => f.name === m.facility);
     if (!facConfig?.hasWorker) return '';
 
-    const worker = getRecommendedWorker(m.facility);
+    const item = m.jobs?.[0]?.item || m.crop || null;
+    const worker = getRecommendedWorker(m.facility, item);
     if (!worker?.avatar) return '';
 
     const wr = Math.min(0.42, Math.max(0.24, minDim * 0.16));
@@ -1952,7 +1953,7 @@ function showFacilityDetailDrawer(piece, facilityName) {
     const activePlot = typeof getPlotForCoordinate === 'function' ? getPlotForCoordinate(activeMember.x + (activeMember.w || 2) / 2, activeMember.y + (activeMember.h || 2) / 2) : 1;
     const producedItem = activeMember.jobs?.[0]?.item || activeMember.crop || null;
     const itemIcon = producedItem && typeof getItemIconUrl === 'function' ? getItemIconUrl(producedItem) : null;
-    const worker = typeof getRecommendedWorker === 'function' ? getRecommendedWorker(fac) : null;
+    const worker = typeof getRecommendedWorker === 'function' ? getRecommendedWorker(fac, producedItem) : null;
     const prodRateDaily = activeMember.weight ? (typeof formatRate === 'function' ? `${formatRate(activeMember.weight * 24)}/วัน` : `${Math.round(activeMember.weight * 24)}/วัน`) : null;
     const distanceToStorage = storages.length ? Math.min(...storages.map(s => Math.hypot(activeMember.x + (activeMember.w || 2) / 2 - (s.x + s.w / 2), activeMember.y + (activeMember.h || 2) / 2 - (s.y + s.h / 2)))) : 0;
 
@@ -2040,12 +2041,14 @@ function showFacilityDetailDrawer(piece, facilityName) {
             </div>
         </div>`;
     } else if (worker) {
-        const exclText = (worker.exclusive || fac === 'Dewy House') ? ` [${translate('Exclusively requires Fragrancier')}]` : '';
+        const exclText = worker.exclusiveNote ? ` ${worker.exclusiveNote}` : ((worker.exclusive || fac === 'Dewy House') ? ` [${translate('Exclusively requires Fragrancier')}]` : '');
+        const altsText = worker.alts && worker.alts.length > 0 ? `<div class="hint small" style="margin-top:0.25rem;">💡 สมาชิกในวงศ์ที่ใช้แทนได้: <b>${worker.alts.join(', ')}</b></div>` : '';
         workerHtml = `<div class="fd-worker-box">
             <img class="fd-worker-avatar" src="${worker.avatar}" alt="${worker.name}" loading="lazy">
             <div>
                 <span class="fd-worker-name">👷 ${worker.name}${exclText}</span>
                 <span class="fd-worker-skill">${translate(worker.abilityTh)} Lv.${worker.level} (${translate('Increases work speed')})</span>
+                ${altsText}
             </div>
         </div>`;
     }
@@ -2338,13 +2341,13 @@ function updatePlotDropdownContent(plotNumber = null) {
         const facName = m.storageNumber
             ? `${translate('Storage Unit')} #${m.storageNumber}`
             : (m.facility || (m.isGenerator ? translate('Crackle Generator') : m.isPowerPole ? translate('Crackle Power Pole') : translate('Storage Unit')));
-        const worker = typeof getRecommendedWorker === 'function' ? getRecommendedWorker(m.facility) : null;
         const producedItem = m.jobs?.[0]?.item || m.crop || null;
+        const worker = typeof getRecommendedWorker === 'function' ? getRecommendedWorker(m.facility, producedItem) : null;
         const itemIcon = producedItem && typeof getItemIconUrl === 'function' ? getItemIconUrl(producedItem) : null;
         const facilityGlyph = typeof getFacilityGlyphUrl === 'function' ? getFacilityGlyphUrl(m.facility || (m.isGenerator ? 'Crackle Generator' : m.isPowerPole ? 'Crackle Power Pole' : (m.storageNumber ? 'Storage Unit' : ''))) : null;
         const iconUrl = itemIcon || facilityGlyph;
         const prodRate = m.weight && typeof formatRate === 'function' ? `${formatRate(m.weight * 24)}/วัน` : (m.weight ? `${Math.round(m.weight * 24)}/วัน` : '');
-        const exclText = (worker?.exclusive || m.facility === 'Dewy House') ? ` - ${translate('Exclusively requires Fragrancier')}` : '';
+        const exclText = worker?.exclusiveNote ? ` - ${worker.exclusiveNote}` : ((worker?.exclusive || m.facility === 'Dewy House') ? ` - ${translate('Exclusively requires Fragrancier')}` : '');
 
         let subText = '';
         if (m.storageNumber) {
@@ -2794,9 +2797,10 @@ function homelandSvg(layout, homeLevel) {
         const facConfig = FACILITIES.find(f => f.name === m.facility);
         let workerSuffix = '';
         if (facConfig?.hasWorker && !m.emode) {
-            const w = getRecommendedWorker(m.facility);
+            const item = m.jobs?.[0]?.item || m.crop || null;
+            const w = getRecommendedWorker(m.facility, item);
             if (w) {
-                const exclNote = (w.exclusive || m.facility === 'Dewy House') ? ` [${translate('Exclusively requires Fragrancier')}]` : '';
+                const exclNote = w.exclusiveNote ? ` ${w.exclusiveNote}` : ((w.exclusive || m.facility === 'Dewy House') ? ` [${translate('Exclusively requires Fragrancier')}]` : '');
                 workerSuffix = ` · 👷 ${translate('Recommended Aniimo')}: ${w.name} (${translate(w.abilityTh)} Lv.${w.level})${exclNote}`;
             }
         }
@@ -4754,7 +4758,8 @@ function renderAniimoSummary(plan) {
             const where = whereText(g);
             const facNames = [...g.where.keys()].map(k => k.split(' (')[0]);
             const primaryFac = facNames[0] || (g.jobs.size ? [...g.jobs.values()][0]?.values()?.next()?.value : '') || '';
-            const worker = getBestAniimoForFacility(primaryFac, g.ability, g.level);
+            const primaryItem = [...g.jobs.keys()][0] || null;
+            const worker = getBestAniimoForFacility(primaryFac, g.ability, g.level, primaryItem);
             const avatarHtml = worker?.avatar ? `<img src="${worker.avatar}" class="aniimo-row-avatar" alt="${worker.name}" loading="lazy">` : '';
             const workerNameHtml = worker?.name ? `<strong class="aniimo-row-name">${worker.name}</strong>` : '';
             return `<tr><td data-label="Aniimo"><div class="aniimo-row-identity">${avatarHtml}<div>${workerNameHtml}<div class="hint small">${abilityTag(g.ability)} ${aniimoNeeds(g)}</div></div></div></td><td data-label="How many"><strong>${g.count}</strong></td><td data-label="Busy on average">${g.busy.toFixed(1)}</td><td data-label="Where">${where}</td></tr>`;
@@ -6253,16 +6258,17 @@ function renderConcreteWorkforce(plan, kept = []) {
     kept.forEach(g => {
         const facNames = [...g.where.keys()].map(k => k.split(' (')[0]);
         const primaryFac = facNames[0] || (g.jobs.size ? [...g.jobs.values()][0]?.values()?.next()?.value : '') || '';
-        const worker = getBestAniimoForFacility(primaryFac, g.ability, g.level);
+        const primaryItem = [...g.jobs.keys()][0] || null;
+        const worker = getBestAniimoForFacility(primaryFac, g.ability, g.level, primaryItem);
         if (!worker) return;
 
-        const isDewy = primaryFac === 'Dewy House' || primaryFac === 'บ้านน้ำค้าง' || worker.exclusive;
-        let candidates = [];
         let alts = [];
-        if (isDewy) {
-            alts = ['นกน้ำดอกไม้'];
+        if (worker.alts && worker.alts.length > 0) {
+            alts = worker.alts;
+        } else if (worker.exclusive) {
+            alts = [];
         } else {
-            candidates = typeof findAniimosByAbility === 'function' ? findAniimosByAbility(g.ability, g.level) : [];
+            const candidates = typeof findAniimosByAbility === 'function' ? findAniimosByAbility(g.ability, g.level) : [];
             const isCommon = c => !isExcludedFromWorkforce(c) && c.id && c.id.length === 5 && !c.id.startsWith('6') && !c.id.startsWith('9');
             const commonAlts = candidates.filter(c => c.name !== worker.name && isCommon(c));
             const list = commonAlts.length > 0 ? commonAlts : candidates.filter(c => c.name !== worker.name && !isExcludedFromWorkforce(c));
@@ -6280,7 +6286,8 @@ function renderConcreteWorkforce(plan, kept = []) {
             count: g.count,
             places: whereStr,
             personalityBonus: g.bonus,
-            exclusive: isDewy,
+            exclusive: Boolean(worker.exclusive),
+            exclusiveNote: worker.exclusiveNote || (primaryFac === 'Dewy House' ? `[${translate('Exclusively requires Fragrancier')}]` : ''),
             alts: alts.join(', '),
             skills: worker.skills || (ALL_ANIIMOS.find(a => a.name === worker.name)?.skills) || { [g.ability]: g.level },
         });
@@ -6331,10 +6338,10 @@ function renderConcreteWorkforce(plan, kept = []) {
             ? `<span class="aniimo-worker-bonus">✨ ${translate('Personality match (+20% speed)')}</span>`
             : '';
         const exclusiveTag = w.exclusive
-            ? `<span class="aniimo-worker-exclusive">🔒 ${translate('Exclusively requires Fragrancier')}</span>`
+            ? `<span class="aniimo-worker-exclusive">🔒 ${w.exclusiveNote || translate('Exclusively requires Fragrancier')}</span>`
             : '';
         const countBadge = `<span class="aniimo-worker-count-pill">×${w.count}</span>`;
-        const altLabel = w.exclusive ? translate('Or earlier tier:') : translate('Or use:');
+        const altLabel = w.exclusive ? (translate('Or earlier tier:') || 'หรือสมาชิกในวงศ์:') : translate('Or use:');
         const altHtml = w.alts ? `<div class="aniimo-worker-alts">💡 ${altLabel} <b>${w.alts}</b></div>` : '';
         return `
             <div class="aniimo-worker-card">
