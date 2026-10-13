@@ -129,7 +129,7 @@ test('storage units stay near the active farm and avoid outer corner coordinates
     }
 });
 
-test('layOutHomeland places all facilities strictly on integer grid tiles conforming to blocks', () => {
+test('layOutHomeland places all facilities conforming strictly to the 3-layer grid system', () => {
     const cells = [
         { x: 40, y: 45, w: 20, h: 15 },
         { x: 20, y: 45, w: 20, h: 15 },
@@ -144,12 +144,12 @@ test('layOutHomeland places all facilities strictly on integer grid tiles confor
     const res = layOutHomeland(pieces, cells, { w: 2, h: 2 }, 3);
     for (const p of res.pieces) {
         for (const m of p.members) {
-            assert.ok(Number.isInteger(m.x), `Piece ${m.facility} x: ${m.x} must be integer`);
-            assert.ok(Number.isInteger(m.y), `Piece ${m.facility} y: ${m.y} must be integer`);
+            assert.ok(Math.abs(Math.round(m.x * 4) - m.x * 4) < 1e-4, `Piece ${m.facility} x: ${m.x} must conform to 3-layer grid`);
+            assert.ok(Math.abs(Math.round(m.y * 4) - m.y * 4) < 1e-4, `Piece ${m.facility} y: ${m.y} must conform to 3-layer grid`);
         }
     }
     for (const s of res.storages) {
-        assert.ok(Number.isInteger(s.x), `Storage x: ${s.x} must be integer`);
-        assert.ok(Number.isInteger(s.y), `Storage y: ${s.y} must be integer`);
+        assert.ok(Math.abs(Math.round(s.x * 4) - s.x * 4) < 1e-4, `Storage x: ${s.x} must conform to 3-layer grid`);
+        assert.ok(Math.abs(Math.round(s.y * 4) - s.y * 4) < 1e-4, `Storage y: ${s.y} must conform to 3-layer grid`);
     }
 });

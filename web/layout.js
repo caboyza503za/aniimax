@@ -12,11 +12,23 @@
 // for. Anything else, including crops that need no environment, may stand anywhere. Pieces may touch but not overlap, sit on a quarter-tile grid (the smallest step in
 // any footprint), and may be turned a quarter at a time.
 //
-// Pieces sit on whole-tile grid blocks (STEP = 1) conforming strictly to homeland grid tiles.
-const STEP = 1;
+// Pieces sit on a quarter-tile grid (STEP = 0.25) conforming strictly to the 3-layer homeland grid.
+const STEP = 0.25;
 const EPSILON = 1e-6;
 const CELL = 4;
 const RADIUS = 4.5;
+
+function contactLength(r1, r2) {
+    if (Math.abs(r1.x + r1.w - r2.x) < 0.01 || Math.abs(r2.x + r2.w - r1.x) < 0.01) {
+        const overlapY = Math.min(r1.y + r1.h, r2.y + r2.h) - Math.max(r1.y, r2.y);
+        if (overlapY > 0) return overlapY;
+    }
+    if (Math.abs(r1.y + r1.h - r2.y) < 0.01 || Math.abs(r2.y + r2.h - r1.y) < 0.01) {
+        const overlapX = Math.min(r1.x + r1.w, r2.x + r2.w) - Math.max(r1.x, r2.x);
+        if (overlapX > 0) return overlapX;
+    }
+    return 0;
+}
 // Building positions tried past the first that works, since a building's plots can go anywhere
 // in its square and the nearest building isn't always the cheapest; of those, how many also try
 // packing the plots afresh, which is slow and seldom beats the plan's own arrangement when a
@@ -120,9 +132,25 @@ export function layOut(pieces, options = {}) {
                 const touchy = rects.filter((r, j) => shape.members[j].sensitive);
                 if (touchy.some(r => inOtherSquare(r, i))) continue;
                 if (firstFit === null) firstFit = distance;
+                let contact = 0;
+                let sameFacContact = 0;
+                const myFac = shape.members[0]?.facility;
+                for (const r of rects) {
+                    for (const [key, otherList] of placedRects) {
+                        const otherFac = pieces[key]?.members?.[0]?.facility;
+                        for (const o of otherList) {
+                            const cl = contactLength(r, o);
+                            if (cl > 0) {
+                                contact += cl;
+                                if (myFac && otherFac && myFac === otherFac) sameFacContact += cl;
+                            }
+                        }
+                    }
+                }
                 const cost = shape.members.reduce((sum, m) => sum + m.weight * centerDistance(m, x, y), 0)
                     // Pieces nobody visits still go as close as they can, to keep the homeland tight.
-                    + EPSILON * Math.hypot(shape.cx + x, shape.cy + y);
+                    + EPSILON * Math.hypot(shape.cx + x, shape.cy + y)
+                    - contact * 0.10 - sameFacContact * 0.30;
                 if (!best || cost < best.cost - EPSILON) best = { cost, x, y, shape, rects, sensitive: touchy };
             }
         }
@@ -156,7 +184,17 @@ export function layOut(pieces, options = {}) {
             if (packed && costOf(packed) < costOf(plots) - EPSILON) plots = packed;
         }
         if (!plots) return null;
-        return { cost: costOf(plots), x, y, shape, rects: [...buildings, ...plots], squares: own, sensitive: plots };
+        let contact = 0;
+        for (const r of [...buildings, ...plots]) {
+            for (const [key, otherList] of placedRects) {
+                if (key === i) continue;
+                for (const o of otherList) {
+                    const cl = contactLength(r, o);
+                    if (cl > 0) contact += cl;
+                }
+            }
+        }
+        return { cost: costOf(plots) - contact * 0.10, x, y, shape, rects: [...buildings, ...plots], squares: own, sensitive: plots };
     };
 
     const placeCluster = i => {
