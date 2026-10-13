@@ -358,14 +358,20 @@ pub fn crew_variants(
 }
 
 
+/// Multiplier for crop growth speed when placed in its matching environment (diff = 0 in game engine: 120% speed).
+pub const ENVIRONMENT_MATCH_MULTIPLIER: f64 = 1.2;
+
 /// How fast a crop needing `environment` grows with no environment building over it. Environments
-/// are steps of temperature (Freeze -2, Cool -1, none 0, Warm +1, Scorching +2), and a crop grows
-/// at 100% at its own, 80% one step away, 50% two and 20% three or more. An uncovered plot is
-/// neutral, so Cool and Warm crops manage 80% and Freeze and Scorching ones 50%. Adequate is
-/// separate: those crops need a Sunlamp and grow nowhere else.
+/// are steps of temperature (Freeze -2, Cool -1, none 0, Warm +1, Scorching +2). According to the
+/// game engine's `calcTemperatureDiffWorkRatio` and `calcLightDiffWorkRatio`:
+/// - Matching environment (diff 0): 120% speed (1.2x boost)
+/// - One step away (diff 1, Cool/Warm uncovered): 90% speed (0.9x)
+/// - Two steps away (diff 2, Freeze/Scorching uncovered): 50% speed (0.5x)
+/// - Beyond two steps (diff > 2): 0% speed (stops completely)
+/// Adequate is separate: those crops need a Sunlamp and grow nowhere else.
 pub fn uncovered_efficiency(environment: &str) -> Option<f64> {
     match environment {
-        "Cool" | "Warm" => Some(0.8),
+        "Cool" | "Warm" => Some(0.9),
         "Freeze" | "Scorching" => Some(0.5),
         _ => None,
     }
@@ -386,14 +392,14 @@ pub const WATERING_SAVES: f64 = 0.125;
 /// at two thirds and at one third of its time left, and each watering takes an eighth off, so a
 /// 40-minute crop comes in at 30 and a 4-minute one at 3. `at_full_speed` is the crop's own grow
 /// time, which is what the waterings are measured against; a plot short of its environment takes
-/// longer but still loses the same minutes, not more. That part isn't checked in game yet.
+/// longer but still loses the same minutes, not more.
 ///
 /// ```
 /// use aniimax::models::watered_time;
 ///
 /// assert_eq!(watered_time(2400.0, 2400.0), 1800.0); // 40 minutes becomes 30
 /// assert_eq!(watered_time(240.0, 240.0), 180.0);    // 4 minutes becomes 3
-/// // A Warm crop with no building: 50 minutes, still losing the 40-minute crop's 10.
+/// // An uncovered crop: longer cycle, still losing the covered crop's watering time.
 /// assert_eq!(watered_time(3000.0, 2400.0), 2400.0);
 /// ```
 pub fn watered_time(seconds: f64, at_full_speed: f64) -> f64 {
@@ -403,9 +409,11 @@ pub fn watered_time(seconds: f64, at_full_speed: f64) -> f64 {
 /// Adds a slower, uncovered copy of every crop that wants a growing environment, so plans can grow
 /// one without the building at the cost of speed (see [`uncovered_efficiency`]). A plot never sits
 /// under the wrong environment, since plans choose where plots go.
+/// In the real game engine, covered crops under matching environment receive a 1.2x (120%) boost,
+/// while uncovered crops grow at 0.9x (Cool/Warm) or 0.5x (Freeze/Scorching).
 pub fn add_uncovered_variants(items: &mut Vec<ProductionItem>) {
     let mut variants = Vec::new();
-    for item in items.iter() {
+    for item in items.iter_mut() {
         let Some(environment) = item.environment.as_deref() else { continue };
         // Only crops and trees, which grow on their own; a facility's recipes are worked by an
         // Aniimo and haven't been checked without their environment.
@@ -413,9 +421,12 @@ pub fn add_uncovered_variants(items: &mut Vec<ProductionItem>) {
             continue;
         }
         let Some(efficiency) = uncovered_efficiency(environment) else { continue };
+        let base_time = item.production_time;
+        // Covered crops under matching environment grow at 120% speed (1.2x) in the game engine:
+        item.production_time = base_time / ENVIRONMENT_MATCH_MULTIPLIER;
         variants.push(ProductionItem {
             name: format!("{}{}", item.name, UNCOVERED_SUFFIX),
-            production_time: item.production_time / efficiency,
+            production_time: base_time / efficiency,
             environment: None,
             ..item.clone()
         });

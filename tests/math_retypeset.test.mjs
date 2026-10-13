@@ -3,7 +3,7 @@ import { test } from 'node:test';
 
 import { createMathRetypeset } from '../web/math-retypeset.js';
 
-// A language code that stands for any language other than zh-TW.
+// A language code that stands for any language other than th.
 const OTHER = 'xx';
 
 const SOURCE = '<p>Each recipe \\(r\\) gets a rate.</p>';
@@ -55,29 +55,29 @@ function fakeMathJax({ startup = Promise.resolve(), typesetDelay = null } = {}) 
     };
 }
 
-test('a saved zh-TW waits for the MathJax startup typeset, then retypesets the source', async () => {
+test('a saved th waits for the MathJax startup typeset, then retypesets the source', async () => {
     const startup = deferred();
     const mathJax = fakeMathJax({ startup: startup.promise });
-    const { state, body, queue } = page({ language: 'zh-TW', mathJax });
+    const { state, body, queue } = page({ language: 'th', mathJax });
     const done = queue();
     await new Promise(resolve => setImmediate(resolve));
     assert.equal(body.innerHTML, TYPESET_ENGLISH, 'nothing changes while MathJax still typesets');
     startup.resolve();
     await done;
-    assert.equal(body.innerHTML, `[zh-TW]${SOURCE}`);
-    assert.deepEqual(mathJax.calls, [['clear', TYPESET_ENGLISH], ['typeset', `[zh-TW]${SOURCE}`]]);
-    assert.deepEqual(state.translated, ['zh-TW']);
+    assert.equal(body.innerHTML, `[th]${SOURCE}`);
+    assert.deepEqual(mathJax.calls, [['clear', TYPESET_ENGLISH], ['typeset', `[th]${SOURCE}`]]);
+    assert.deepEqual(state.translated, ['th']);
 });
 
-test('before MathJax loads, zh-TW still puts the translated source in place', async () => {
-    const { body, queue } = page({ language: 'zh-TW', mathJax: null });
+test('before MathJax loads, th still puts the translated source in place', async () => {
+    const { body, queue } = page({ language: 'th', mathJax: null });
     await queue();
-    assert.equal(body.innerHTML, `[zh-TW]${SOURCE}`);
+    assert.equal(body.innerHTML, `[th]${SOURCE}`);
 });
 
-test('a change away from zh-TW puts the source back for the new language', async () => {
+test('a change away from th puts the source back for the new language', async () => {
     const mathJax = fakeMathJax();
-    const { state, body, queue } = page({ language: 'zh-TW', mathJax });
+    const { state, body, queue } = page({ language: 'th', mathJax });
     await queue();
     state.language = 'en';
     await queue();
@@ -88,7 +88,7 @@ test('a change away from zh-TW puts the source back for the new language', async
     assert.equal(body.innerHTML, SOURCE, 'a change between two other languages does not touch the math window');
 });
 
-test('a session that never uses zh-TW keeps the math window as MathJax typeset it', async () => {
+test('a session that never uses th keeps the math window as MathJax typeset it', async () => {
     const mathJax = fakeMathJax();
     const { state, body, queue } = page({ language: OTHER, mathJax });
     await queue();
@@ -105,16 +105,16 @@ test('a language change during a typeset waits its turn and ends in the last lan
     const { state, body, queue } = page({ mathJax });
     const settle = () => new Promise(resolve => setImmediate(resolve));
     const runs = [];
-    state.language = 'zh-TW';
+    state.language = 'th';
     runs.push(queue());
     await settle();
-    // The zh-TW typeset is still running when the player picks another language, then zh-TW again.
+    // The th typeset is still running when the player picks another language, then th again.
     state.language = OTHER;
     runs.push(queue());
     holds.shift()();
     await settle();
     assert.equal(body.innerHTML, `[${OTHER}]${SOURCE}`, 'the turn for the other language puts the source back in that language');
-    state.language = 'zh-TW';
+    state.language = 'th';
     runs.push(queue());
     holds.shift()();
     await settle();
@@ -122,36 +122,36 @@ test('a language change during a typeset waits its turn and ends in the last lan
     await Promise.all(runs);
     assert.equal(mathJax.mostAtOnce(), 1, 'only one typeset runs at a time');
     assert.deepEqual(mathJax.calls.filter(([kind]) => kind === 'typeset').map(([, html]) => html),
-        [`[zh-TW]${SOURCE}`, `[${OTHER}]${SOURCE}`, `[zh-TW]${SOURCE}`]);
-    assert.equal(body.innerHTML, `[zh-TW]${SOURCE}`);
+        [`[th]${SOURCE}`, `[${OTHER}]${SOURCE}`, `[th]${SOURCE}`]);
+    assert.equal(body.innerHTML, `[th]${SOURCE}`);
 });
 
 test('changes queued before a turn runs end in the last language with one typeset', async () => {
     const mathJax = fakeMathJax();
     const { state, body, queue } = page({ mathJax });
     const runs = [];
-    for (const language of ['zh-TW', OTHER, 'zh-TW']) {
+    for (const language of ['th', OTHER, 'th']) {
         state.language = language;
         runs.push(queue());
     }
     await Promise.all(runs);
-    assert.equal(body.innerHTML, `[zh-TW]${SOURCE}`);
+    assert.equal(body.innerHTML, `[th]${SOURCE}`);
     assert.equal(mathJax.calls.filter(([kind]) => kind === 'typeset').length, 1);
 });
 
 test('the same language twice does no extra work', async () => {
     const mathJax = fakeMathJax();
-    const { queue, state } = page({ language: 'zh-TW', mathJax });
+    const { queue, state } = page({ language: 'th', mathJax });
     await queue();
     await queue();
     assert.equal(mathJax.calls.length, 2);
-    assert.deepEqual(state.translated, ['zh-TW']);
+    assert.deepEqual(state.translated, ['th']);
 });
 
 test('a typeset failure does not stop later language changes', async () => {
     const mathJax = fakeMathJax();
     mathJax.typesetPromise = async () => { throw new Error('typeset failed'); };
-    const { state, body, queue } = page({ language: 'zh-TW', mathJax });
+    const { state, body, queue } = page({ language: 'th', mathJax });
     const warn = console.warn;
     console.warn = () => {};
     try {
@@ -167,13 +167,13 @@ test('a typeset failure does not stop later language changes', async () => {
 test('without a math window or its source, nothing happens', async () => {
     const queue = createMathRetypeset({
         body: null, source: SOURCE, initialLanguage: 'en',
-        getLanguage: () => 'zh-TW', getMathJax: () => null, translateTree: () => assert.fail('no translation'),
+        getLanguage: () => 'th', getMathJax: () => null, translateTree: () => assert.fail('no translation'),
     });
     await queue();
     const body = { innerHTML: TYPESET_ENGLISH };
     const noSource = createMathRetypeset({
         body, source: undefined, initialLanguage: 'en',
-        getLanguage: () => 'zh-TW', getMathJax: () => null, translateTree: () => assert.fail('no translation'),
+        getLanguage: () => 'th', getMathJax: () => null, translateTree: () => assert.fail('no translation'),
     });
     await noSource();
     assert.equal(body.innerHTML, TYPESET_ENGLISH);

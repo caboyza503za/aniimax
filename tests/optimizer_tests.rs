@@ -1081,12 +1081,17 @@ fn test_prioritize_byproducts_remains_feasible_and_does_not_reduce_byproduct_out
         find_production_plan(&items, "coins", &counts, &modules, false).expect("plan should be feasible");
     // The one Mill turns out a lavender_powder every 68s, which is all 28 watered plots can keep
     // up with bar a little lavender that sells as it is; walnut takes the 4 Woodland plots the
-    // Sunlamp still reaches, and uncovered chestnut the other 10 at 80% speed.
+    // Sunlamp still reaches, and uncovered chestnut the other 10 at 90% speed.
+    // In game engine: covered crops have 1.2x speed (1500s watered), and uncovered chestnut (Warm)
+    // runs at 0.9x speed (2166.67s watered).
     let powder = 1.0 / 68.0;
-    let lavender = 28.0 * 7.0 / 1800.0;
-    let expected = powder * 650.0 + (lavender - 7.0 * powder) * 69.0 - 28.0 * 32.0 / 1800.0
-        + 4.0 * (6.0 * 120.0 - 47.0) / 1800.0
-        + 10.0 * (7.0 * 100.0 - 47.0) / 2400.0;
+    let lavender_cycle = 1500.0;
+    let walnut_cycle = 1500.0;
+    let chestnut_uncovered_cycle = 2400.0 / 0.9 - 2.0 * 0.125 * 2000.0;
+    let lavender = 28.0 * 7.0 / lavender_cycle;
+    let expected = powder * 650.0 + (lavender - 7.0 * powder) * 69.0 - 28.0 * 32.0 / lavender_cycle
+        + 4.0 * (6.0 * 120.0 - 47.0) / walnut_cycle
+        + 10.0 * (7.0 * 100.0 - 47.0) / chestnut_uncovered_cycle;
     assert!(
         (unprioritized.rate_per_second - expected).abs() < 1e-4,
         "expected {expected}/sec, got {}",

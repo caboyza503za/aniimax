@@ -41,8 +41,10 @@ pub fn format_time(seconds: f64) -> String {
 
 fn format_time_in(seconds: f64, language: Language) -> String {
     if language == Language::En { return format_time(seconds); }
-    if language == Language::ZhTw { return crate::locale::zh_tw::format_duration(seconds); }
-    format_time(seconds).replace('h', "ч").replace('m', "м").replace('s', "с")
+    if language == Language::Th {
+        return format_time(seconds).replace('h', " ชม.").replace('m', " นาที").replace('s', " วินาที");
+    }
+    format_time(seconds)
 }
 
 /// Displays the complete optimization results to stdout.
@@ -185,11 +187,6 @@ pub fn display_results_in(
             }
         }
     }
-
-    if language == Language::ZhTw {
-        crate::locale::zh_tw::print_all_options(efficiencies, optimize_energy);
-        return;
-    }
     println!();
     println!(
         "{} ({} {})",
@@ -263,10 +260,6 @@ pub fn display_energy_recommendations_in(efficiencies: &[ProductionEfficiency], 
     if items_with_energy.is_empty() {
         println!();
         println!("{}", language.text("[ENERGY] No items with energy data available."));
-        return;
-    }
-    if language == Language::ZhTw {
-        crate::locale::zh_tw::print_energy_rankings(&items_with_energy);
         return;
     }
 

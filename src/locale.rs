@@ -4,16 +4,12 @@ use clap::ValueEnum;
 use std::collections::HashMap;
 use std::sync::OnceLock;
 
-pub mod zh_tw;
-
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, ValueEnum)]
 pub enum Language {
     #[default]
     En,
-    Ru,
-    // The other spellings of the zh-TW code are in zh_tw::CODES.
-    #[value(name = "zh-tw", alias = "zh-TW", alias = "ZH-TW")]
-    ZhTw,
+    #[value(name = "th", alias = "TH")]
+    Th,
 }
 
 impl Language {
@@ -21,12 +17,9 @@ impl Language {
         if self == Self::En {
             return english;
         }
-        if self == Self::ZhTw {
-            return zh_tw::text(english);
-        }
-        static RUSSIAN: OnceLock<HashMap<String, String>> = OnceLock::new();
-        RUSSIAN
-            .get_or_init(|| serde_json::from_str(include_str!("../web/locales/ru.json")).expect("valid Russian catalog"))
+        static THAI: OnceLock<HashMap<String, String>> = OnceLock::new();
+        THAI
+            .get_or_init(|| serde_json::from_str(include_str!("../web/locales/th.json")).expect("valid Thai catalog"))
             .get(english)
             .map(String::as_str)
             .unwrap_or(english)
