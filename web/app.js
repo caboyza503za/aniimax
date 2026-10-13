@@ -193,6 +193,10 @@ function showSelectedPlan() {
     content.classList.toggle('stale', !plan);
     if (!plan) {
         pending.style.display = 'block';
+        const grid = document.getElementById('aniimo-workforce-grid');
+        const ab = document.getElementById('homeland-ability-table-wrapper');
+        if (grid) grid.innerHTML = getWorkforceSkeletonHtml();
+        if (ab) ab.innerHTML = getAbilitiesSkeletonHtml();
         return;
     }
     pending.style.display = 'none';
@@ -1158,7 +1162,7 @@ function renderImprovements() {
     const open = !!document.querySelector('#improve-list .improve-checked')?.open;
     document.getElementById('improve-list').innerHTML = improvementsChecked(best, status, open) + (rows.length
         ? `<ol class="improve-list">${rows.map(r => `<li><span class="improve-name">${r.candidate.label}</span><span class="improve-gain">${r.gain.text}</span></li>`).join('')}</ol>`
-        : '');
+        : (!ranking.done ? getImprovementSkeletonHtml() : ''));
 }
 
 // Everything the ranking tries, by kind, each with how it came out: the gain, "no gain", or
@@ -1686,6 +1690,7 @@ function attachLayoutHandlers() {
 function drawLayout(drawn) {
     const diagram = document.getElementById('layout-diagram');
     diagram.innerHTML = homelandSvg(drawn.layout, drawn.homeLevel);
+    diagram.classList.add('content-loaded');
     translateTree(diagram);
     diagram.classList.add('no-sim');
     stopLayoutSim();
@@ -2424,8 +2429,11 @@ function renderHomelandLayout(plan) {
     stopLayoutSim();
     setStep('layout', 'start');
     card.style.display = 'block';
-    document.getElementById('layout-summary').textContent = 'Laying out…';
-    document.getElementById('layout-diagram').innerHTML = '';
+    document.getElementById('layout-summary').textContent = translate('Arranging optimal homeland layout...');
+    const diagramEl = document.getElementById('layout-diagram');
+    if (diagramEl && !diagramEl.querySelector('.skeleton-map-wrapper')) {
+        diagramEl.innerHTML = getLayoutSkeletonHtml();
+    }
     // Worked out in a worker of its own: a large homeland takes a few seconds.
     const { pieces, unplaced } = homelandPieces(plan, lastPlanInput);
     const homeLevel = layoutHomeLevel();
@@ -5208,6 +5216,167 @@ function updateRateUnitDisplays() {
     }
 }
 
+export function getLayoutSkeletonHtml() {
+    return `
+        <div class="skeleton-map-wrapper">
+            <div class="skeleton-map-grid-bg"></div>
+            <div class="skeleton-map-radar"></div>
+            <div class="skeleton-map-plots">
+                <div class="skeleton-plot-box">
+                    <div class="skeleton-facility-tile"></div>
+                    <div class="skeleton-facility-tile"></div>
+                    <div class="skeleton-facility-tile"></div>
+                </div>
+                <div class="skeleton-plot-box">
+                    <div class="skeleton-facility-tile"></div>
+                    <div class="skeleton-facility-tile"></div>
+                </div>
+                <div class="skeleton-plot-box">
+                    <div class="skeleton-facility-tile"></div>
+                    <div class="skeleton-facility-tile"></div>
+                    <div class="skeleton-facility-tile"></div>
+                </div>
+                <div class="skeleton-plot-box">
+                    <div class="skeleton-facility-tile"></div>
+                    <div class="skeleton-facility-tile"></div>
+                </div>
+                <div class="skeleton-plot-box">
+                    <div class="skeleton-facility-tile"></div>
+                    <div class="skeleton-facility-tile"></div>
+                    <div class="skeleton-facility-tile"></div>
+                </div>
+                <div class="skeleton-plot-box">
+                    <div class="skeleton-facility-tile"></div>
+                    <div class="skeleton-facility-tile"></div>
+                </div>
+            </div>
+            <div class="skeleton-map-center-card">
+                <div class="skeleton-spinner"></div>
+                <div class="skeleton-map-title">${translate('Arranging optimal homeland layout...')}</div>
+                <div class="skeleton-map-subtitle">${translate('Optimizing hauling paths and facility placement...')}</div>
+            </div>
+        </div>
+    `;
+}
+
+export function getWorkforceSkeletonHtml() {
+    return `
+        <div class="skeleton-workforce-grid">
+            ${Array.from({ length: 6 }).map(() => `
+                <div class="skeleton-worker-card">
+                    <div class="skeleton skeleton-circle skeleton-worker-avatar"></div>
+                    <div class="skeleton-worker-details">
+                        <div class="skeleton skeleton-text short"></div>
+                        <div class="skeleton skeleton-text medium"></div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+export function getAbilitiesSkeletonHtml() {
+    return `
+        <div class="skeleton-abilities-strip">
+            ${Array.from({ length: 13 }).map(() => `
+                <div class="skeleton skeleton-ability-pill"></div>
+            `).join('')}
+        </div>
+    `;
+}
+
+export function getTableSkeletonHtml(cols = 4, rows = 4) {
+    return `
+        <div class="skeleton-table-wrapper">
+            <table class="skeleton-table">
+                <tbody>
+                    ${Array.from({ length: rows }).map(() => `
+                        <tr>
+                            ${Array.from({ length: cols }).map((_, i) => `
+                                <td><div class="skeleton skeleton-text ${i === 0 ? 'medium' : 'short'}"></div></td>
+                            `).join('')}
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+export function getImprovementSkeletonHtml() {
+    return `
+        <div class="skeleton-improve-list">
+            ${Array.from({ length: 3 }).map(() => `
+                <div class="skeleton-improve-item">
+                    <div style="flex:1;">
+                        <div class="skeleton skeleton-text medium"></div>
+                        <div class="skeleton skeleton-text short"></div>
+                    </div>
+                    <div class="skeleton skeleton-text" style="width:70px; height:24px; border-radius:99px;"></div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+export function renderAllSkeletons() {
+    const resultsSection = document.getElementById('results-section');
+    const resultsContent = document.getElementById('results-content');
+    const layoutCard = document.getElementById('layout-card');
+    const layoutDiagram = document.getElementById('layout-diagram');
+    const layoutSummary = document.getElementById('layout-summary');
+    const aniimoCard = document.getElementById('aniimo-card');
+    const workforceGrid = document.getElementById('aniimo-workforce-grid');
+    const abilitiesWrapper = document.getElementById('homeland-ability-table-wrapper');
+    const abilitiesSection = document.getElementById('homeland-abilities-section');
+    const aniimoSummary = document.getElementById('aniimo-summary');
+    const facilityContainer = document.getElementById('facility-plan-container');
+    const seedCard = document.getElementById('seed-card');
+    const seedContainer = document.getElementById('seed-table-container');
+    const improveCard = document.getElementById('improve-card');
+    const improveList = document.getElementById('improve-list');
+    const planRate = document.getElementById('plan-rate');
+    const totalTime = document.getElementById('total-time');
+
+    if (resultsSection) resultsSection.style.display = 'block';
+    if (resultsContent) {
+        resultsContent.style.display = 'block';
+        resultsContent.classList.remove('setup-only', 'stale');
+    }
+
+    if (planRate) {
+        planRate.innerHTML = `<span class="skeleton skeleton-text" style="display:inline-block; width:130px; height:1.6rem; vertical-align:middle;"></span>`;
+    }
+    if (totalTime) {
+        totalTime.innerHTML = `<span class="skeleton skeleton-text" style="display:inline-block; width:65px; height:1.4rem; vertical-align:middle;"></span>`;
+    }
+
+    if (layoutCard) layoutCard.style.display = 'block';
+    if (layoutSummary) layoutSummary.textContent = translate('Arranging optimal homeland layout...');
+    if (layoutDiagram) layoutDiagram.innerHTML = getLayoutSkeletonHtml();
+
+    if (aniimoCard) {
+        if (abilitiesSection) abilitiesSection.style.display = 'block';
+        if (abilitiesWrapper) abilitiesWrapper.innerHTML = getAbilitiesSkeletonHtml();
+        if (workforceGrid) workforceGrid.innerHTML = getWorkforceSkeletonHtml();
+        if (aniimoSummary) aniimoSummary.innerHTML = getTableSkeletonHtml(4, 3);
+    }
+
+    if (facilityContainer) {
+        facilityContainer.innerHTML = getTableSkeletonHtml(5, 5);
+    }
+
+    if (seedCard && seedContainer) {
+        seedCard.style.display = 'block';
+        seedContainer.innerHTML = getTableSkeletonHtml(3, 3);
+    }
+
+    if (improveCard && improveList) {
+        improveCard.style.display = 'block';
+        improveList.innerHTML = getImprovementSkeletonHtml();
+    }
+}
+
 // Render a successfully computed plan: rate summary + facility plan table. Goal-independent,
 // called once per Calculate click (or facility/currency/module change), not on every goal
 // keystroke.
@@ -5348,6 +5517,7 @@ async function runFindPlan() {
             simple: isSimpleMode(),
         };
         startProgress(input, runId);
+        renderAllSkeletons();
 
         // Runs in the worker (see worker.js); the main thread stays free to paint the progress
         // bar above for however long this takes, instead of freezing. `onTrialProgress` receives

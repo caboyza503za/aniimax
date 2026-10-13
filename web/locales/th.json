@@ -1017,5 +1017,10 @@
     "No multi-skill Aniimo needed for current demands.": "ไม่ต้องใช้แอนิโมสกิลผสมสำหรับความต้องการในปัจจุบัน",
     "Satisfies multiple roles in 1 slot": "ตอบโจทย์ได้หลายสายใน 1 ช่อง",
     "Abilities": "ความสามารถ",
-    "Status": "สถานะ"
+    "Status": "สถานะ",
+    "Arranging optimal homeland layout...": "กำลังจัดวางผังบ้านที่เหมาะสมที่สุด...",
+    "Optimizing hauling paths and facility placement...": "กำลังคำนวณเส้นทางขนส่งและการจัดวางสิ่งก่อสร้าง...",
+    "Calculating optimal production plan...": "กำลังคำนวณแผนการผลิตที่คุ้มค่าที่สุด...",
+    "Optimizing workforce and abilities...": "กำลังคำนวณแรงงานและทักษะแอนิโม...",
+    "Analyzing improvement opportunities...": "กำลังวิเคราะห์โอกาสในการอัปเกรด..."
 }
