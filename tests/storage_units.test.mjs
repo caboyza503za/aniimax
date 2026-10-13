@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { layOutHomeland } from '../web/layout.js';
+import { STORAGE_UNIT_CONFIG, simpleSetup } from '../web/facility-config.js';
 
 test('layOutHomeland places up to 4 storage units across open plots', () => {
     // 4 open plots (each 20x15)
@@ -153,3 +154,71 @@ test('layOutHomeland places all facilities conforming strictly to the 3-layer gr
         assert.ok(Math.abs(Math.round(s.y * 4) - s.y * 4) < 1e-4, `Storage y: ${s.y} must conform to 3-layer grid`);
     }
 });
+
+test('STORAGE_UNIT_CONFIG automatically sets 5 storage units at RV Level 13 and correct counts for all levels', () => {
+    assert.equal(STORAGE_UNIT_CONFIG.maxCountByLevel(1), 1);
+    assert.equal(STORAGE_UNIT_CONFIG.maxCountByLevel(3), 1);
+    assert.equal(STORAGE_UNIT_CONFIG.maxCountByLevel(4), 2);
+    assert.equal(STORAGE_UNIT_CONFIG.maxCountByLevel(6), 2);
+    assert.equal(STORAGE_UNIT_CONFIG.maxCountByLevel(7), 3);
+    assert.equal(STORAGE_UNIT_CONFIG.maxCountByLevel(9), 3);
+    assert.equal(STORAGE_UNIT_CONFIG.maxCountByLevel(10), 4);
+    assert.equal(STORAGE_UNIT_CONFIG.maxCountByLevel(12), 4);
+    assert.equal(STORAGE_UNIT_CONFIG.maxCountByLevel(13), 5);
+    assert.equal(STORAGE_UNIT_CONFIG.maxCountByLevel(16), 5);
+});
+
+test('layOutHomeland places 5 storage units across open plots at RV Level 13', () => {
+    // 6 open plots
+    const cells = [
+        { x: 40, y: 45, w: 20, h: 15 }, // Plot 1
+        { x: 20, y: 45, w: 20, h: 15 }, // Plot 2
+        { x: 40, y: 30, w: 20, h: 15 }, // Plot 3
+        { x: 20, y: 30, w: 20, h: 15 }, // Plot 4
+        { x: 60, y: 45, w: 20, h: 15 }, // Plot 5
+        { x: 60, y: 30, w: 20, h: 15 }, // Plot 6
+    ];
+
+    const pieces = [
+        { members: [{ x: 0, y: 0, w: 2, h: 2, weight: 150, facility: 'Farmland' }] },
+        { members: [{ x: 0, y: 0, w: 4, h: 4, weight: 120, facility: 'Woodland' }] },
+        { members: [{ x: 0, y: 0, w: 5, h: 5, weight: 100, facility: 'Mine' }] },
+        { members: [{ x: 0, y: 0, w: 2, h: 2, weight: 200, facility: 'Woodworking Bench' }] },
+    ];
+
+    const result = layOutHomeland(pieces, cells, { w: 2, h: 2 }, 5);
+    assert.equal(result.storages.length, 5, 'should place exactly 5 storage units at RV 13');
+
+    // Verify all 5 storage units do not overlap each other
+    for (let i = 0; i < result.storages.length; i++) {
+        const s1 = result.storages[i];
+        for (let j = i + 1; j < result.storages.length; j++) {
+            const s2 = result.storages[j];
+            const overlap = !(s1.x + s1.w <= s2.x || s2.x + s2.w <= s1.x || s1.y + s1.h <= s2.y || s2.y + s2.h <= s1.y);
+            assert.ok(!overlap, `storage ${i} and storage ${j} should not overlap`);
+        }
+    }
+
+    // Verify all 5 storage units do not overlap placed piece members
+    const allMembers = result.pieces.flatMap(p => p.members);
+    for (const s of result.storages) {
+        for (const m of allMembers) {
+            const overlap = !(s.x + s.w <= m.x || m.x + m.w <= s.x || s.y + s.h <= m.y || m.y + m.h <= s.y);
+            assert.ok(!overlap, `storage at (${s.x},${s.y}) should not overlap member at (${m.x},${m.y})`);
+        }
+    }
+});
+
+test('environment buildings in data provide 2 Cooling Units, 2 Sunlamps, and 2 Heat Furnaces at RV Level 13', () => {
+    const setup13 = simpleSetup(13);
+    assert.deepEqual(setup13.facilities['Cooling Unit'], [{ count: 2, level: 1 }], 'Cooling Unit should have count 2 at RV 13');
+    assert.deepEqual(setup13.facilities['Sunlamp'], [{ count: 2, level: 1 }], 'Sunlamp should have count 2 at RV 13');
+    assert.deepEqual(setup13.facilities['Heat Furnace'], [{ count: 2, level: 1 }], 'Heat Furnace should have count 2 at RV 13');
+
+    // Contrast with RV 12 where Cooling Unit and Sunlamp were still 1
+    const setup12 = simpleSetup(12);
+    assert.deepEqual(setup12.facilities['Cooling Unit'], [{ count: 1, level: 1 }]);
+    assert.deepEqual(setup12.facilities['Sunlamp'], [{ count: 1, level: 1 }]);
+    assert.deepEqual(setup12.facilities['Heat Furnace'], [{ count: 2, level: 1 }]);
+});
+

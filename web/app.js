@@ -7,7 +7,7 @@ import {
     FACILITIES, FACILITY_CATEGORIES, FACILITY_CATEGORY_BY_NAME, FACILITY_FOOTPRINTS, HOMELAND_PLOTS, HOMELAND_PLOT_SIZE,
     MAX_HOME_LEVEL, ANIIMO_MAX, simpleSetup,
     LEVEL_UP_COSTS, LEVEL_UP_CHAINS, SPECIAL_RECIPES, SEASON, ANIIPOD_TIERS, PERSONALITY_PAIRS, personalityLetter, opposedPersonality,
-    CRACKLE_GENERATOR, CRACKLE_POWER_POLE,
+    CRACKLE_GENERATOR, CRACKLE_POWER_POLE, STORAGE_UNIT_CONFIG,
 } from './facility-config.js';
 import { allocateTurnFacilities, redistributeTurnFacilityRows } from './turn-jobs.js';
 import { createShareUrl, readShareHash, urlWithoutShare } from './share-config.js';
@@ -1659,10 +1659,21 @@ function layoutHomeLevel() {
     return isSimpleMode() ? selectedHomeLevel() : homeLevelCovering(lastPlanInput);
 }
 
-function selectedStorageCount() {
-    const el = document.getElementById('layout-storage-count');
-    const val = parseInt(el?.value, 10);
-    return Number.isInteger(val) && val >= 1 && val <= 4 ? val : 4;
+function selectedStorageCount(homeLevel = null) {
+    const level = homeLevel || layoutHomeLevel() || activeHomelandLevel() || 13;
+    return typeof STORAGE_UNIT_CONFIG?.maxCountByLevel === 'function'
+        ? STORAGE_UNIT_CONFIG.maxCountByLevel(level)
+        : (level >= 13 ? 5 : (level >= 10 ? 4 : (level >= 7 ? 3 : (level >= 4 ? 2 : 1))));
+}
+
+function updateStorageControlDisplay(count, homeLevel) {
+    if (typeof document === 'undefined') return;
+    const labelEl = document.getElementById('layout-storage-count-label');
+    const badgeEl = document.getElementById('layout-storage-badge');
+    const wrapEl = document.getElementById('layout-storage-control-wrap');
+    if (labelEl) labelEl.textContent = `${count} ${translate('Storage Units')}`;
+    if (badgeEl) badgeEl.textContent = `Auto (RV ${homeLevel})`;
+    if (wrapEl) wrapEl.title = `${translate('Automatic storage calculation')}: ${count} ${translate('units placed at RV level')} ${homeLevel}`;
 }
 
 function attachLayoutHandlers() {
@@ -1771,6 +1782,8 @@ const STORAGE_THEMES = [
     { track: '#0284c7', pulse: '#38bdf8', glow: 'rgba(56, 189, 248, 0.6)' }, // Storage #2: Sky Blue
     { track: '#d97706', pulse: '#fbbf24', glow: 'rgba(251, 191, 36, 0.6)' }, // Storage #3: Amber
     { track: '#7c3aed', pulse: '#c084fc', glow: 'rgba(192, 132, 252, 0.6)' }, // Storage #4: Violet
+    { track: '#e11d48', pulse: '#fb7185', glow: 'rgba(251, 113, 133, 0.6)' }, // Storage #5: Rose
+    { track: '#0891b2', pulse: '#22d3ee', glow: 'rgba(34, 211, 238, 0.6)' }, // Storage #6: Cyan
 ];
 
 function renderStorageFlows(storageIdx) {
@@ -2559,7 +2572,8 @@ function renderHomelandLayout(plan) {
     const { pieces, unplaced } = homelandPieces(plan, lastPlanInput);
     const homeLevel = layoutHomeLevel();
     const cells = homelandPlots().filter(p => p.number <= homeLevel);
-    const storageCount = selectedStorageCount();
+    const storageCount = selectedStorageCount(homeLevel);
+    updateStorageControlDisplay(storageCount, homeLevel);
     if (layoutWorker) layoutWorker.terminate();
     layoutWorker = new Worker(WORKER_URL.replace('worker.js', 'layout-worker.js'), { type: 'module' });
     layoutWorker.onmessage = (event) => {
