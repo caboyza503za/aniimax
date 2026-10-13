@@ -280,10 +280,10 @@ export function layOut(pieces, options = {}) {
 // Lays the homeland out within its open `cells` (in homeland tiles), trying the Storage Unit at
 // the middle of the open area and at the middles of the open plots nearest it, and keeping
 // whichever walks least with everything placed. Returns what `layOut` does, moved into the
-// homeland's own frame, plus `storageAt`, the Storage Unit's center, and up to 4 distributed
-// `storages` across the homeland plots.
-export function layOutHomeland(pieces, cells, storage = { w: 2, h: 2 }, storageCount = 4) {
-    const targetStorageCount = Math.max(1, Math.min(4, Number.isInteger(storageCount) ? storageCount : 4));
+// homeland's own frame, plus `storageAt`, the Storage Unit's center, and distributed
+// `storages` across the homeland plots (up to 5 at RV Level 13).
+export function layOutHomeland(pieces, cells, storage = { w: 2, h: 2 }, storageCount = 5) {
+    const targetStorageCount = Math.max(1, Math.min(6, Number.isInteger(storageCount) ? storageCount : 5));
     const area = cells.reduce((sum, c) => sum + c.w * c.h, 0);
     const mid = {
         x: cells.reduce((sum, c) => sum + (c.x + c.w / 2) * c.w * c.h, 0) / area,

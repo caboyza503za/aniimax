@@ -396,3 +396,22 @@ export function simpleSetup(homeLevel) {
     return { facilities, modules };
 }
 
+// Storage Unit count progression across Homeland (RV) levels:
+// Up to 5 Storage Units unlock at RV Level 13 (and 4 at RV 10, 3 at RV 7, 2 at RV 4, 1 at RV 1).
+export const STORAGE_UNIT_CONFIG = {
+    name: 'Storage Unit',
+    slug: 'storage-unit',
+    category: 'Auxiliary',
+    unlocks: { 1: 1, 2: 4, 3: 7, 4: 10, 5: 13 },
+    counts: [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5],
+    maxCountByLevel: (level) => {
+        if (!level || level < 1) return 1;
+        if (level >= 13) return 5;
+        if (level >= 10) return 4;
+        if (level >= 7) return 3;
+        if (level >= 4) return 2;
+        return 1;
+    }
+};
+
+
