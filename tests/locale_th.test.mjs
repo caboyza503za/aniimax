@@ -50,5 +50,7 @@ assert.equal(i18n.translate('Crackle Power Pole'), 'เสาไฟฟ้าเ�
 assert.equal(i18n.translate('E-Mode'), 'โหมด E');
 assert.equal(i18n.translate('Faster than E-Mode'), 'ผลิตเร็วกว่าโหมด E');
 assert.equal(i18n.translate('E-Mode (Electric):'), 'โหมด E (ไฟฟ้า):');
+assert.equal(i18n.translate('Aniimo Homeland — Production Planner'), 'Aniimo Homeland — เครื่องมือวางแผนการผลิตดินแดนบ้านเกิดแอนิโม');
+assert.equal(i18n.translate('Aniimo Homeland home'), 'หน้าแรก Aniimo Homeland');
 
 console.log('All Thai locale tests passed successfully!');

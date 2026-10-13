@@ -1,4 +1,4 @@
-// Aniimax Web Application
+// Aniimo Homeland Web Application
 
 import { currentLocale, sourceAttribute, translate, translateTree } from './i18n.js';
 import './math-translation.js';
@@ -682,7 +682,7 @@ async function initWasm() {
         document.getElementById('version').textContent = version;
         loadRecipeIndex();
 
-        console.log(`Aniimax v${version} loaded successfully`);
+        console.log(`Aniimo Homeland v${version} loaded successfully`);
     } catch (error) {
         console.error('Failed to initialize WASM:', error);
         showError('Failed to load the optimizer. Please refresh the page.');
