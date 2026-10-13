@@ -872,28 +872,28 @@ export const FACILITY_GLYPHS = {
 
 export const RECOMMENDED_WORKERS = {
   "Mine": {
-    "name": "ตุ่นทลายภูผา",
-    "nameEn": "Mole",
+    "name": "กิ้งก่าหินจิ๋ว",
+    "nameEn": "Pebbling",
     "ability": "Earth",
     "abilityTh": "ดิน",
-    "level": 3,
-    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10162.webp"
+    "level": 1,
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10281.webp"
   },
   "Well": {
-    "name": "อิกัวนาคลื่นยักษ์",
-    "nameEn": "Iguana",
+    "name": "ปลาจอมโดด",
+    "nameEn": "Skippy",
     "ability": "Water",
     "abilityTh": "น้ำ",
-    "level": 4,
-    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10043.webp"
+    "level": 1,
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10041.webp"
   },
   "Tidewhisper Sandcastle": {
-    "name": "ปูก้ามโต",
-    "nameEn": "Crab",
+    "name": "ปูหน่ออ่อน",
+    "nameEn": "Budclaw",
     "ability": "Leisure",
     "abilityTh": "ไม่รีบร้อน",
-    "level": 4,
-    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10213.webp"
+    "level": 1,
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10161.webp"
   },
   "Dewy House": {
     "name": "นกน้ำหอม",
@@ -907,139 +907,187 @@ export const RECOMMENDED_WORKERS = {
   },
   "Nimbus Bed": {
     "name": "แกะปุยเมฆ",
-    "nameEn": "Cloudsheep",
+    "nameEn": "Nimbi",
     "ability": "Leisure",
     "abilityTh": "ไม่รีบร้อน",
-    "level": 4,
+    "level": 1,
     "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10261.webp"
   },
   "Starfall Hammock": {
-    "name": "กระรอกจ้าวดารา",
-    "nameEn": "Stellarys",
+    "name": "ดาวจิ๋ว",
+    "nameEn": "Shelly",
     "ability": "Leisure",
     "abilityTh": "ไม่รีบร้อน",
-    "level": 4,
-    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10012.webp"
+    "level": 1,
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10191.webp"
   },
   "Floral Windmill": {
-    "name": "ปูก้ามโต",
-    "nameEn": "Crab",
+    "name": "แกะปุยเมฆ",
+    "nameEn": "Nimbi",
     "ability": "Leisure",
     "abilityTh": "ไม่รีบร้อน",
-    "level": 4,
-    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10213.webp"
+    "level": 1,
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10261.webp"
   },
   "Carousel Mill": {
-    "name": "จิ๊บแตรน้อย",
-    "nameEn": "Hornbill",
+    "name": "จิ๊บจิ๊บ",
+    "nameEn": "Chirpi",
     "ability": "Wind",
     "abilityTh": "ลม",
-    "level": 4,
-    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10185.webp"
+    "level": 1,
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10181.webp"
   },
   "Crafting Table": {
-    "name": "ตั๊กแตนพราย",
-    "nameEn": "Prysmantis",
+    "name": "ตั๊กแตนพรายจิ๋ว",
+    "nameEn": "Wisptis",
     "ability": "Artisanship",
     "abilityTh": "ช่างฝีมือ",
-    "level": 4,
-    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10033.webp"
+    "level": 1,
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10031.webp"
   },
   "Claw Game Cooker": {
-    "name": "เจ้าเพลิงคำราม",
-    "nameEn": "Pyroroar",
+    "name": "เจ้าหมาถ่าน",
+    "nameEn": "Emberpup",
     "ability": "Fire",
     "abilityTh": "ไฟ",
-    "level": 4,
-    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10053.webp"
+    "level": 1,
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10051.webp"
   },
   "Jukebox Dryer": {
-    "name": "กระรอกจ้าวดารา",
-    "nameEn": "Stellarys",
+    "name": "กระรอกจ้าวเวหา",
+    "nameEn": "Celestis",
     "ability": "Dark",
     "abilityTh": "ความมืด",
-    "level": 4,
-    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10012.webp"
+    "level": 1,
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10011.webp"
   },
   "Simmering Pot": {
-    "name": "เจ้าเพลิงคำราม",
-    "nameEn": "Pyroroar",
+    "name": "เจ้าหมาถ่าน",
+    "nameEn": "Emberpup",
     "ability": "Fire",
     "abilityTh": "ไฟ",
-    "level": 4,
-    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10053.webp"
+    "level": 1,
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10051.webp"
   },
   "Phonolfactory Table": {
-    "name": "พัฟฟ์น้ำหอม",
-    "nameEn": "Perfume Puff",
+    "name": "นกน้ำดอกไม้",
+    "nameEn": "Dewy",
     "ability": "Perfumery",
     "abilityTh": "การผลิตน้ำหอม",
-    "level": 3,
-    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10352.webp"
+    "level": 1,
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10351.webp"
   },
   "Bouncy Brew Keg": {
-    "name": "อิกัวนาคลื่นยักษ์",
-    "nameEn": "Iguana",
+    "name": "ปลาจอมโดด",
+    "nameEn": "Skippy",
     "ability": "Water",
     "abilityTh": "น้ำ",
-    "level": 4,
-    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10043.webp"
+    "level": 1,
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10041.webp"
   },
   "Blazing Stove": {
-    "name": "เจ้าเพลิงคำราม",
-    "nameEn": "Pyroroar",
+    "name": "เจ้าหมาถ่าน",
+    "nameEn": "Emberpup",
     "ability": "Fire",
     "abilityTh": "ไฟ",
-    "level": 4,
-    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10053.webp"
+    "level": 1,
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10051.webp"
   },
   "Pickling Jar": {
-    "name": "กระรอกจ้าวดารา",
-    "nameEn": "Stellarys",
+    "name": "กระรอกจ้าวเวหา",
+    "nameEn": "Celestis",
     "ability": "Dark",
     "abilityTh": "ความมืด",
-    "level": 4,
-    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10012.webp"
+    "level": 1,
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10011.webp"
   },
   "Joy Wheel Loom": {
-    "name": "จิ๊บแตรน้อย",
-    "nameEn": "Hornbill",
+    "name": "จิ๊บจิ๊บ",
+    "nameEn": "Chirpi",
     "ability": "Wind",
     "abilityTh": "ลม",
-    "level": 4,
-    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10185.webp"
+    "level": 1,
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10181.webp"
   },
   "Dance Pad Polisher": {
-    "name": "ตั๊กแตนพรายสายฟ้า",
-    "nameEn": "Prysmantis",
+    "name": "เจ้าจิ๋วสายฟ้าแลบ",
+    "nameEn": "Bolty",
     "ability": "Lightning",
     "abilityTh": "สายฟ้า",
-    "level": 4,
-    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10033.webp"
+    "level": 1,
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10221.webp"
   },
   "Aniipod Maker": {
-    "name": "ตั๊กแตนพรายสายฟ้า",
-    "nameEn": "Prysmantis",
+    "name": "เจ้าจิ๋วสายฟ้าแลบ",
+    "nameEn": "Bolty",
     "ability": "Lightning",
     "abilityTh": "สายฟ้า",
-    "level": 4,
-    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10033.webp"
+    "level": 1,
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10221.webp"
   },
   "Woodworking Bench": {
-    "name": "ตั๊กแตนพรายใหญ่",
-    "nameEn": "Prysmantis",
+    "name": "ตั๊กแตนพรายจิ๋ว",
+    "nameEn": "Wisptis",
     "ability": "Artisanship",
     "abilityTh": "ช่างฝีมือ",
-    "level": 4,
-    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10033.webp"
+    "level": 1,
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10031.webp"
   },
   "Chimney Kiln": {
-    "name": "เจ้าเพลิงคำราม",
-    "nameEn": "Pyroroar",
+    "name": "เจ้าหมาถ่าน",
+    "nameEn": "Emberpup",
     "ability": "Fire",
     "abilityTh": "ไฟ",
-    "level": 4,
-    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10053.webp"
+    "level": 1,
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10051.webp"
+  },
+  "Storage Unit": {
+    "name": "ปูหน่ออ่อน",
+    "nameEn": "Budclaw",
+    "ability": "Hauling",
+    "abilityTh": "แบก",
+    "level": 1,
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10161.webp"
+  },
+  "Farmland": {
+    "name": "ผักร่าเริง",
+    "nameEn": "Hummin",
+    "ability": "Grass",
+    "abilityTh": "หญ้า",
+    "level": 1,
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10201.webp"
+  },
+  "Woodland": {
+    "name": "ปูหน่ออ่อน",
+    "nameEn": "Budclaw",
+    "ability": "Grass",
+    "abilityTh": "หญ้า",
+    "level": 1,
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10161.webp"
+  },
+  "Heat Furnace": {
+    "name": "เจ้าหมาถ่าน",
+    "nameEn": "Emberpup",
+    "ability": "Fire",
+    "abilityTh": "ไฟ",
+    "level": 1,
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10051.webp"
+  },
+  "Cooling Unit": {
+    "name": "จิ้งจอกโครงฟ้า",
+    "nameEn": "Bonesky",
+    "ability": "Ice",
+    "abilityTh": "น้ำแข็ง",
+    "level": 1,
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10131.webp"
+  },
+  "Sunlamp": {
+    "name": "หลอดไฟจิ๋ว",
+    "nameEn": "Bulbly",
+    "ability": "Lightning",
+    "abilityTh": "สายฟ้า",
+    "level": 1,
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10141.webp"
   }
 };
 
@@ -4342,7 +4390,9 @@ export function getBestAniimoForFacility(facilityName, ability, minLevel = 1) {
     }
     const candidates = findAniimosByAbility(ability, minLevel);
     if (candidates.length > 0) {
-        const top = candidates[0];
+        const commonCandidates = candidates.filter(a => a.id && a.id.length === 5 && a.id.endsWith('1') && !a.id.startsWith('6') && !a.id.startsWith('9'));
+        const standardCandidates = candidates.filter(a => a.id && a.id.length === 5 && !a.id.startsWith('6') && !a.id.startsWith('9'));
+        const top = commonCandidates[0] || standardCandidates[0] || candidates[0];
         const engAbility = Object.keys(ABILITY_TH_MAP).find(k => k.toLowerCase() === (ability || '').toLowerCase() || ABILITY_TH_MAP[k] === ability) || ability;
         return {
             name: top.name,
