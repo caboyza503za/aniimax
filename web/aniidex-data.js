@@ -4369,11 +4369,28 @@ export const ABILITY_TH_MAP = {
     'Leisure': 'ไม่รีบร้อน', 'Perfumery': 'การผลิตน้ำหอม'
 };
 
+export const EXCLUDED_FROM_WORKFORCE = new Set([
+    'สิงโตแสงตะวัน', 'ราชสีห์สุริยัน', 'จิ้งจอกแสงจันทร์', 'เฟนเนกจันทรา',
+    'helion', 'soleon', 'lunara', 'fennelun',
+    '10361', '10363', '10371', '10373',
+    '1036100', '1036300', '1037100', '1037300',
+]);
+
+export function isExcludedFromWorkforce(aniimo) {
+    if (!aniimo) return false;
+    if (typeof aniimo === 'string') return EXCLUDED_FROM_WORKFORCE.has(aniimo);
+    if (aniimo.name && EXCLUDED_FROM_WORKFORCE.has(aniimo.name)) return true;
+    if (aniimo.slug && EXCLUDED_FROM_WORKFORCE.has(aniimo.slug)) return true;
+    if (aniimo.id && EXCLUDED_FROM_WORKFORCE.has(String(aniimo.id))) return true;
+    if (aniimo.petId && EXCLUDED_FROM_WORKFORCE.has(String(aniimo.petId))) return true;
+    return false;
+}
+
 export function findAniimosByAbility(ability, minLevel = 1) {
     if (!ability) return [];
     const engAbility = Object.keys(ABILITY_TH_MAP).find(k => k.toLowerCase() === ability.toLowerCase() || ABILITY_TH_MAP[k] === ability) || ability;
     return ALL_ANIIMOS
-        .filter(a => a.skills && a.skills[engAbility] >= minLevel)
+        .filter(a => !isExcludedFromWorkforce(a) && a.skills && a.skills[engAbility] >= minLevel)
         .sort((a, b) => (b.skills[engAbility] || 0) - (a.skills[engAbility] || 0));
 }
 
@@ -4447,26 +4464,94 @@ export const HOMELAND_ABILITY_META = {
     'Perfumery':   { th: 'การผลิตน้ำหอม', en: 'Perfumery', icon: '🧴', desc: 'บ้านน้ำค้าง (เฉพาะนกน้ำหอม)', color: '#8b5cf6' }
 };
 
-export function calculateHomelandDemands(plan = null, lastLayout = null) {
+export function calculateHomelandDemands(plan = null, lastLayout = null, kept = null) {
     const demands = {};
     for (const key of HOMELAND_ABILITY_KEYS) demands[key] = 0;
+
+    // 1. If kept list from workforce solver is provided, it contains the exact required roles
+    if (Array.isArray(kept) && kept.length > 0) {
+        let totalCount = 0;
+        for (const g of kept) {
+            const ab = HOMELAND_ABILITY_KEYS.find(k => k.toLowerCase() === (g.ability || '').toLowerCase());
+            if (ab) {
+                const count = g.count || Math.max(1, Math.ceil((g.busy || 1) - 1e-6));
+                demands[ab] = (demands[ab] || 0) + count;
+                totalCount += count;
+            }
+        }
+        demands.Hauling = Math.max(1, Math.min(4, Math.ceil(totalCount / 4)));
+        return demands;
+    }
 
     let croplandCount = 0;
     let woodlandCount = 0;
     let totalFacilities = 0;
 
-    if (lastLayout?.layout) {
-        croplandCount = lastLayout.layout.croplandCount || 0;
-        woodlandCount = lastLayout.layout.woodlandCount || 0;
-    }
-
-    if (plan?.steps) {
-        for (const step of plan.steps) {
-            const count = step.building_count || 1;
+    // 2. Parse from plan.coin_items (the real solver output structure)
+    if (plan?.coin_items && Array.isArray(plan.coin_items)) {
+        for (const step of plan.coin_items) {
+            const count = step.facility_count || 1;
             const fac = (step.facility || '').toLowerCase();
             totalFacilities += count;
 
-            if (fac.includes('cropland') || fac === 'crop' || fac.includes('แปลงเกษตร')) {
+            if (fac.includes('cropland') || fac === 'crop' || fac.includes('farmland') || fac.includes('แปลงเกษตร')) {
+                croplandCount += count;
+            } else if (fac.includes('woodland') || fac.includes('แปลงป่าไม้')) {
+                woodlandCount += count;
+            }
+
+            if (Array.isArray(step.aniimo_tasks) && step.aniimo_tasks.length > 0) {
+                for (const task of step.aniimo_tasks) {
+                    const reqAb = HOMELAND_ABILITY_KEYS.find(k => k.toLowerCase() === (task.ability || '').toLowerCase());
+                    if (reqAb) {
+                        const busyWorkers = Math.max(1, Math.ceil((task.busy || 1) - 1e-6));
+                        demands[reqAb] += busyWorkers;
+                    }
+                }
+            } else {
+                if (fac.includes('kiln') || fac.includes('เตาเผา') || fac.includes('cooker') || fac.includes('ครัว') || fac.includes('stove')) {
+                    demands.Fire += count;
+                } else if (fac.includes('mine') || fac.includes('เหมือง') || fac.includes('clay') || fac.includes('บ่อดิน')) {
+                    demands.Earth += count;
+                } else if (fac.includes('bench') || fac.includes('โรงไม้') || fac.includes('craft') || fac.includes('โต๊ะคราฟต์')) {
+                    demands.Artisanship += count;
+                } else if (fac.includes('well') || fac.includes('บ่อน้ำ')) {
+                    demands.Water += count;
+                } else if (fac.includes('dewy') || fac.includes('บ้านน้ำค้าง')) {
+                    demands.Perfumery += count;
+                } else if (fac.includes('carousel') || fac.includes('windmill') || fac.includes('กังหัน') || fac.includes('loom')) {
+                    demands.Wind += count;
+                } else if (fac.includes('dryer') || fac.includes('pickling')) {
+                    demands.Dark += count;
+                } else if (fac.includes('polisher') || fac.includes('aniipod')) {
+                    demands.Lightning += count;
+                }
+            }
+        }
+    }
+
+    // 3. Parse environment assignments from plan
+    if (plan?.environment_assignments && Array.isArray(plan.environment_assignments)) {
+        for (const a of plan.environment_assignments) {
+            const b = a.building || '';
+            const units = a.units || 1;
+            totalFacilities += units;
+            if (b.includes('Heat Furnace') || b.includes('เตาทำความร้อน')) demands.Fire += units;
+            else if (b.includes('Cooling Unit') || b.includes('เครื่องทำความเย็น')) demands.Ice += units;
+            else if (b.includes('Sunlamp') || b.includes('โคมไฟ')) demands.Light += units;
+            else if (b.includes('Sandcastle') || b.includes('ปราสาททราย')) demands.Leisure += units;
+            else if (b.includes('Dewy') || b.includes('บ้านน้ำค้าง')) demands.Perfumery += units;
+        }
+    }
+
+    // 4. Parse from plan.steps (for mock test data compatibility)
+    if (plan?.steps && Array.isArray(plan.steps)) {
+        for (const step of plan.steps) {
+            const count = step.building_count || step.facility_count || 1;
+            const fac = (step.facility || '').toLowerCase();
+            totalFacilities += count;
+
+            if (fac.includes('cropland') || fac === 'crop' || fac.includes('farmland') || fac.includes('แปลงเกษตร')) {
                 croplandCount = Math.max(croplandCount, count);
             } else if (fac.includes('woodland') || fac.includes('แปลงป่าไม้')) {
                 woodlandCount = Math.max(woodlandCount, count);
@@ -4493,6 +4578,32 @@ export function calculateHomelandDemands(plan = null, lastLayout = null) {
         }
     }
 
+    // 5. Parse from lastLayout pieces
+    if (lastLayout?.layout) {
+        if (lastLayout.layout.croplandCount) croplandCount = Math.max(croplandCount, lastLayout.layout.croplandCount);
+        if (lastLayout.layout.woodlandCount) woodlandCount = Math.max(woodlandCount, lastLayout.layout.woodlandCount);
+
+        const members = lastLayout.layout.pieces?.flatMap(p => p.members || []) || [];
+        for (const m of members) {
+            totalFacilities++;
+            if (m.isGenerator) demands.Lightning = Math.max(demands.Lightning, 1);
+            if (m.building) {
+                const b = m.building || m.facility || '';
+                if (b.includes('Heat Furnace')) demands.Fire = Math.max(demands.Fire, 1);
+                else if (b.includes('Cooling Unit')) demands.Ice = Math.max(demands.Ice, 1);
+                else if (b.includes('Sunlamp')) demands.Light = Math.max(demands.Light, 1);
+                else if (b.includes('Sandcastle')) demands.Leisure = Math.max(demands.Leisure, 1);
+                else if (b.includes('Dewy')) demands.Perfumery = Math.max(demands.Perfumery, 1);
+            }
+            if (m.facility === 'Farmland') croplandCount = Math.max(croplandCount, 1);
+            else if (m.facility === 'Woodland') woodlandCount = Math.max(woodlandCount, 1);
+            else if (m.facility === 'Mine') demands.Earth = Math.max(demands.Earth, 1);
+            else if (m.facility === 'Well') demands.Water = Math.max(demands.Water, 1);
+            else if (m.facility === 'Chimney Kiln') demands.Fire = Math.max(demands.Fire, 1);
+            else if (m.facility === 'Woodworking Bench' || m.facility === 'Crafting Table') demands.Artisanship = Math.max(demands.Artisanship, 1);
+        }
+    }
+
     if (plan?.has_generator || lastLayout?.layout?.pieces?.some(p => (p.facility || '').toLowerCase().includes('generator'))) {
         demands.Lightning = Math.max(demands.Lightning, 1);
     }
@@ -4501,16 +4612,17 @@ export function calculateHomelandDemands(plan = null, lastLayout = null) {
     if (croplandCount > 0 || woodlandCount > 0) {
         const totalPlots = croplandCount + woodlandCount;
         // Grass: harvesting and planting: 1 worker per 1-3 plots (min 1)
-        demands.Grass += Math.max(1, Math.ceil(totalPlots / 3));
+        demands.Grass = Math.max(demands.Grass, Math.max(1, Math.ceil(totalPlots / 3)));
         // Water: watering croplands: 1 worker per 1-4 plots (min 1 if croplands > 0)
         if (croplandCount > 0) {
-            demands.Water += Math.max(1, Math.ceil(croplandCount / 4));
+            demands.Water = Math.max(demands.Water, Math.max(1, Math.ceil(croplandCount / 4)));
         }
     }
 
     // Hauling demand based on total producing facilities and plots
     const totalWorkingUnits = totalFacilities + croplandCount + woodlandCount;
-    if (totalWorkingUnits > 0) {
+    const hasAnyWork = totalWorkingUnits > 0 || Object.values(demands).some(v => v > 0);
+    if (hasAnyWork) {
         if (totalWorkingUnits <= 3) demands.Hauling = Math.max(demands.Hauling, 1);
         else if (totalWorkingUnits <= 7) demands.Hauling = Math.max(demands.Hauling, 2);
         else if (totalWorkingUnits <= 12) demands.Hauling = Math.max(demands.Hauling, 3);
@@ -4542,25 +4654,27 @@ export function findBestMultiSkillAniimos(demands = {}) {
     const activeDemands = Object.entries(demands).filter(([_, count]) => count > 0).map(([k]) => k);
     if (activeDemands.length === 0) return [];
 
-    const scored = ALL_ANIIMOS.map(ani => {
-        const skills = ani.skills || {};
-        const matched = [];
-        let score = 0;
-        for (const req of activeDemands) {
-            if (skills[req] && skills[req] > 0) {
-                matched.push({ ability: req, level: skills[req], th: HOMELAND_ABILITY_META[req]?.th || req });
-                score += skills[req] * (req === 'Hauling' || req === 'Grass' || req === 'Water' ? 1.5 : 1.2);
+    const scored = ALL_ANIIMOS
+        .filter(ani => !isExcludedFromWorkforce(ani))
+        .map(ani => {
+            const skills = ani.skills || {};
+            const matched = [];
+            let score = 0;
+            for (const req of activeDemands) {
+                if (skills[req] && skills[req] > 0) {
+                    matched.push({ ability: req, level: skills[req], th: HOMELAND_ABILITY_META[req]?.th || req });
+                    score += skills[req] * (req === 'Hauling' || req === 'Grass' || req === 'Water' ? 1.5 : 1.2);
+                }
             }
-        }
-        return {
-            ...ani,
-            matchedAbilities: matched,
-            matchCount: matched.length,
-            score
-        };
-    })
-    .filter(a => a.matchCount >= 2)
-    .sort((a, b) => b.matchCount !== a.matchCount ? b.matchCount - a.matchCount : b.score - a.score);
+            return {
+                ...ani,
+                matchedAbilities: matched,
+                matchCount: matched.length,
+                score
+            };
+        })
+        .filter(a => a.matchCount >= 2)
+        .sort((a, b) => b.matchCount !== a.matchCount ? b.matchCount - a.matchCount : b.score - a.score);
 
     const unique = [];
     const seen = new Set();

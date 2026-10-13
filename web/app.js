@@ -15,7 +15,7 @@ import {
     getItemIconUrl, getFacilityGlyphUrl, getRecommendedWorker,
     getBestAniimoForFacility, findAniimosByAbility, ALL_ANIIMOS, ABILITY_TH_MAP, PLOT_UNLOCK_INFO,
     HOMELAND_ABILITY_KEYS, HOMELAND_ABILITY_META, calculateHomelandDemands,
-    calculateCurrentDistribution, findBestMultiSkillAniimos,
+    calculateCurrentDistribution, findBestMultiSkillAniimos, isExcludedFromWorkforce,
 } from './aniidex-data.js';
 
 let wasmReady = false;
@@ -2474,7 +2474,7 @@ function renderHomelandLayout(plan) {
         lastLayout = { layout, homeLevel };
         drawLayout(lastLayout);
         if (lastPlan && lastAssignedWorkers.length) {
-            renderHomelandAbilities(lastPlan, lastAssignedWorkers);
+            renderHomelandAbilities(lastPlan, lastAssignedWorkers, lastKept);
         }
         setStep('layout', 'done');
     };
@@ -6119,9 +6119,9 @@ function renderConcreteWorkforce(plan, kept = []) {
             alts = ['นกน้ำดอกไม้'];
         } else {
             candidates = typeof findAniimosByAbility === 'function' ? findAniimosByAbility(g.ability, g.level) : [];
-            const isCommon = c => c.id && c.id.length === 5 && !c.id.startsWith('6') && !c.id.startsWith('9');
+            const isCommon = c => !isExcludedFromWorkforce(c) && c.id && c.id.length === 5 && !c.id.startsWith('6') && !c.id.startsWith('9');
             const commonAlts = candidates.filter(c => c.name !== worker.name && isCommon(c));
-            const list = commonAlts.length > 0 ? commonAlts : candidates.filter(c => c.name !== worker.name);
+            const list = commonAlts.length > 0 ? commonAlts : candidates.filter(c => c.name !== worker.name && !isExcludedFromWorkforce(c));
             alts = [...new Set(list.map(c => c.name))].slice(0, 3);
         }
         const whereStr = whereText(g);
@@ -6151,9 +6151,9 @@ function renderConcreteWorkforce(plan, kept = []) {
         level: 1,
     };
     const haulingCandidates = typeof findAniimosByAbility === 'function' ? findAniimosByAbility('Hauling', 1) : [];
-    const isCommonHauler = c => c.id && c.id.length === 5 && !c.id.startsWith('6') && !c.id.startsWith('9');
+    const isCommonHauler = c => !isExcludedFromWorkforce(c) && c.id && c.id.length === 5 && !c.id.startsWith('6') && !c.id.startsWith('9');
     const commonHaulers = haulingCandidates.filter(c => c.name !== haulingWorker.name && isCommonHauler(c));
-    const listHaulers = commonHaulers.length > 0 ? commonHaulers : haulingCandidates.filter(c => c.name !== haulingWorker.name);
+    const listHaulers = commonHaulers.length > 0 ? commonHaulers : haulingCandidates.filter(c => c.name !== haulingWorker.name && !isExcludedFromWorkforce(c));
     const haulingAlts = [...new Set(listHaulers.map(c => c.name))].slice(0, 3);
 
     assignedWorkers.push({
@@ -6217,12 +6217,14 @@ function renderConcreteWorkforce(plan, kept = []) {
     }).join('');
 
     lastAssignedWorkers = assignedWorkers;
-    renderHomelandAbilities(plan, assignedWorkers);
+    lastKept = kept;
+    renderHomelandAbilities(plan, assignedWorkers, kept);
 }
 
 let lastAssignedWorkers = [];
+let lastKept = [];
 
-function renderHomelandAbilities(plan, assignedWorkers = []) {
+function renderHomelandAbilities(plan, assignedWorkers = [], kept = null) {
     const section = document.getElementById('homeland-abilities-section');
     const tableWrapper = document.getElementById('homeland-ability-table-wrapper');
     const statusBadge = document.getElementById('homeland-status-badge');
@@ -6235,7 +6237,7 @@ function renderHomelandAbilities(plan, assignedWorkers = []) {
     }
     section.style.display = 'block';
 
-    const demands = calculateHomelandDemands(plan, (typeof lastLayout !== 'undefined' ? lastLayout : null));
+    const demands = calculateHomelandDemands(plan, (typeof lastLayout !== 'undefined' ? lastLayout : null), kept || lastKept);
     const dist = calculateCurrentDistribution(assignedWorkers);
     const multiSkills = findBestMultiSkillAniimos(demands);
 
