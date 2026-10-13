@@ -221,6 +221,35 @@
                         </div>
                         <p class="aniimo-count" id="aniimo-count" hidden><span id="aniimo-count-have">0</span><span class="aniimo-count-of" id="aniimo-count-of"></span></p>
                         <p class="collapsed-summary" id="aniimo-collapsed-summary"></p>
+                        <!-- Homeland Abilities Section (ความสามารถของบ้าน 13 สาย) -->
+                        <div class="homeland-abilities-section" id="homeland-abilities-section" style="display: none;">
+                            <div class="homeland-abilities-head">
+                                <div>
+                                    <h3 class="homeland-abilities-title">Homeland Abilities</h3>
+                                    <p class="hint small homeland-abilities-desc">Comparison of recommended workforce distribution and estimated homeland requirements (13 abilities).</p>
+                                </div>
+                                <div class="homeland-abilities-status-wrap">
+                                    <span class="homeland-status-badge" id="homeland-status-badge"></span>
+                                </div>
+                            </div>
+                            <div class="homeland-ability-table-wrapper" id="homeland-ability-table-wrapper">
+                                <!-- Populated dynamically by app.js -->
+                            </div>
+                            <div class="multi-skill-section" id="multi-skill-section">
+                                <div class="multi-skill-head">
+                                    <div class="multi-skill-title-wrap">
+                                        <span class="multi-skill-icon">⭐</span>
+                                        <strong class="multi-skill-title">Recommended Multi-Skill Aniimos</strong>
+                                    </div>
+                                    <span class="multi-skill-badge">Satisfies multiple roles in 1 slot</span>
+                                </div>
+                                <p class="hint small multi-skill-desc">Multi-skill Aniimos satisfy multiple homeland requirements at once, saving worker slots.</p>
+                                <div class="multi-skill-grid" id="multi-skill-grid">
+                                    <!-- Populated dynamically with multi-skill cards -->
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Concrete Workforce Section with Real Aniimo Cards -->
                         <div class="aniimo-workforce-section" id="aniimo-workforce-section">
                             <div class="aniimo-workforce-head">

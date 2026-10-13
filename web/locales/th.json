@@ -1000,5 +1000,22 @@
     "1 Storage Unit": "1 อัน",
     "Storage Unit #{n}": "ยูนิตที่จัดเก็บ #{n}",
     "Exclusively requires Fragrancier": "บังคับใช้เฉพาะนกน้ำหอม",
-    "Or earlier tier:": "หรือร่างก่อนหน้า:"
+    "Or earlier tier:": "หรือร่างก่อนหน้า:",
+    "Homeland Abilities": "ความสามารถของบ้าน",
+    "Comparison of recommended workforce distribution and estimated homeland requirements (13 abilities).": "ตารางเปรียบเทียบระหว่าง การกระจายตัวของทีมที่แนะนำ กับ เงื่อนไขโดยประมาณของบ้าน (13 สายตามในเกม)",
+    "Recommended Multi-Skill Aniimos": "แอนิโมสกิลผสมสุดคุ้ม",
+    "Multi-skill Aniimos satisfy multiple homeland requirements at once, saving worker slots.": "แอนิโมที่มีความสามารถหลายสายในตัวเดียว ช่วยให้ผ่านเงื่อนไขโดยประมาณของบ้านได้ครบ โดยไม่เปลืองโควต้าจำนวนแอนิโม",
+    "Current Distribution": "การกระจายตัวปัจจุบัน",
+    "Estimated Requirements": "เงื่อนไขโดยประมาณ",
+    "All estimated requirements met ({met}/{total})": "ผ่านเงื่อนไขโดยประมาณครบทุกสาย ({met}/{total})",
+    "{count} requirements unmet from estimated requirements": "ขาดอีก {count} สาย จากเงื่อนไขโดยประมาณ",
+    "Saves {count} roles in 1 slot!": "ประหยัด {count} สายในตัวเดียว!",
+    "From assigned workforce": "คำนวณจากทีมที่จัดวาง",
+    "Plots & facilities in plan": "แปลงและสิ่งปลูกสร้างในแผน",
+    "No specific homeland requirements": "ไม่มีเงื่อนไขความสามารถเฉพาะ",
+    "Game has no penalty, but multi-skills can help!": "ในเกมไม่มีบทลงโทษ แต่จัดตัวสกิลผสมจะช่วยประหยัดช่องได้",
+    "No multi-skill Aniimo needed for current demands.": "ไม่ต้องใช้แอนิโมสกิลผสมสำหรับความต้องการในปัจจุบัน",
+    "Satisfies multiple roles in 1 slot": "ตอบโจทย์ได้หลายสายใน 1 ช่อง",
+    "Abilities": "ความสามารถ",
+    "Status": "สถานะ"
 }

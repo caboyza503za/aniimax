@@ -14,6 +14,8 @@ import { createShareUrl, readShareHash, urlWithoutShare } from './share-config.j
 import {
     getItemIconUrl, getFacilityGlyphUrl, getRecommendedWorker,
     getBestAniimoForFacility, findAniimosByAbility, ALL_ANIIMOS, ABILITY_TH_MAP, PLOT_UNLOCK_INFO,
+    HOMELAND_ABILITY_KEYS, HOMELAND_ABILITY_META, calculateHomelandDemands,
+    calculateCurrentDistribution, findBestMultiSkillAniimos,
 } from './aniidex-data.js';
 
 let wasmReady = false;
@@ -2463,6 +2465,9 @@ function renderHomelandLayout(plan) {
         document.getElementById('layout-summary').textContent = `${summaryText}${notes ? ` ${notes}` : ''}`;
         lastLayout = { layout, homeLevel };
         drawLayout(lastLayout);
+        if (lastPlan && lastAssignedWorkers.length) {
+            renderHomelandAbilities(lastPlan, lastAssignedWorkers);
+        }
         setStep('layout', 'done');
     };
     layoutWorker.onerror = (event) => {
@@ -5918,6 +5923,7 @@ function renderConcreteWorkforce(plan, kept = []) {
             personalityBonus: g.bonus,
             exclusive: isDewy,
             alts: alts.join(', '),
+            skills: worker.skills || (ALL_ANIIMOS.find(a => a.name === worker.name)?.skills) || { [g.ability]: g.level },
         });
     });
 
@@ -5943,6 +5949,7 @@ function renderConcreteWorkforce(plan, kept = []) {
         personalityBonus: false,
         exclusive: false,
         alts: haulingAlts.join(', '),
+        skills: (ALL_ANIIMOS.find(a => a.name === haulingWorker.name)?.skills) || { Hauling: 1 },
     });
 
     const totalCount = assignedWorkers.reduce((sum, w) => sum + w.count, 0);
@@ -5990,4 +5997,167 @@ function renderConcreteWorkforce(plan, kept = []) {
             </div>
         `;
     }).join('');
+
+    lastAssignedWorkers = assignedWorkers;
+    renderHomelandAbilities(plan, assignedWorkers);
+}
+
+let lastAssignedWorkers = [];
+
+function renderHomelandAbilities(plan, assignedWorkers = []) {
+    const section = document.getElementById('homeland-abilities-section');
+    const tableWrapper = document.getElementById('homeland-ability-table-wrapper');
+    const statusBadge = document.getElementById('homeland-status-badge');
+    const multiGrid = document.getElementById('multi-skill-grid');
+    if (!section || !tableWrapper) return;
+
+    if (!plan || !plan.success) {
+        section.style.display = 'none';
+        return;
+    }
+    section.style.display = 'block';
+
+    const demands = calculateHomelandDemands(plan, (typeof lastLayout !== 'undefined' ? lastLayout : null));
+    const dist = calculateCurrentDistribution(assignedWorkers);
+    const multiSkills = findBestMultiSkillAniimos(demands);
+
+    // Calculate pass/shortfall stats
+    const activeDemands = HOMELAND_ABILITY_KEYS.filter(k => demands[k] > 0);
+    const metDemands = activeDemands.filter(k => dist[k] >= demands[k]);
+    const isAllMet = activeDemands.length > 0 && metDemands.length === activeDemands.length;
+
+    if (statusBadge) {
+        if (activeDemands.length === 0) {
+            statusBadge.className = 'homeland-status-badge badge-neutral';
+            statusBadge.textContent = translate('No specific homeland requirements');
+        } else if (isAllMet) {
+            statusBadge.className = 'homeland-status-badge badge-passed';
+            statusBadge.innerHTML = `✅ ${translate('All estimated requirements met ({met}/{total})').replace('{met}', metDemands.length).replace('{total}', activeDemands.length)}`;
+        } else {
+            const shortfallCount = activeDemands.length - metDemands.length;
+            statusBadge.className = 'homeland-status-badge badge-shortfall';
+            statusBadge.innerHTML = `⚠️ ${translate('{count} requirements unmet from estimated requirements').replace('{count}', shortfallCount)} <span class="homeland-status-tip">(${translate('Game has no penalty, but multi-skills can help!')})</span>`;
+        }
+    }
+
+    // Build the 13-column table
+    let tableHtml = `
+        <div class="homeland-ability-scroll">
+            <table class="homeland-ability-table">
+                <thead>
+                    <tr>
+                        <th class="th-row-title">${translate('Abilities')}</th>
+                        ${HOMELAND_ABILITY_KEYS.map(key => {
+                            const meta = HOMELAND_ABILITY_META[key] || {};
+                            const abName = currentLocale() === 'th' ? (meta.th || key) : (meta.en || key);
+                            return `
+                                <th class="ability-th" style="--ab-color:${meta.color || '#3b82f6'};" title="${abName}: ${meta.desc || ''}">
+                                    <div class="ability-head-icon">${meta.icon || ''}</div>
+                                    <div class="ability-head-name">${abName}</div>
+                                </th>
+                            `;
+                        }).join('')}
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="tr-distribution">
+                        <td class="td-row-title">
+                            <span class="row-indicator row-dist-indicator">●</span>
+                            <strong>${translate('Current Distribution')}</strong>
+                            <div class="hint small">${translate('From assigned workforce')}</div>
+                        </td>
+                        ${HOMELAND_ABILITY_KEYS.map(key => {
+                            const dCount = dist[key] || 0;
+                            const reqCount = demands[key] || 0;
+                            let cellClass = 'ability-dist-cell';
+                            if (reqCount > 0) {
+                                cellClass += dCount >= reqCount ? ' status-passed' : ' status-shortfall';
+                            } else if (dCount > 0) {
+                                cellClass += ' status-surplus';
+                            } else {
+                                cellClass += ' status-zero';
+                            }
+                            return `
+                                <td class="${cellClass}">
+                                    <span class="ability-num">${dCount}</span>
+                                </td>
+                            `;
+                        }).join('')}
+                    </tr>
+                    <tr class="tr-requirement">
+                        <td class="td-row-title">
+                            <span class="row-indicator row-req-indicator">●</span>
+                            <strong>${translate('Estimated Requirements')}</strong>
+                            <div class="hint small">${translate('Plots & facilities in plan')}</div>
+                        </td>
+                        ${HOMELAND_ABILITY_KEYS.map(key => {
+                            const reqCount = demands[key] || 0;
+                            const cellClass = reqCount > 0 ? 'ability-req-cell req-active' : 'ability-req-cell req-zero';
+                            return `
+                                <td class="${cellClass}">
+                                    <span class="ability-num">${reqCount}</span>
+                                </td>
+                            `;
+                        }).join('')}
+                    </tr>
+                    <tr class="tr-status-row">
+                        <td class="td-row-title">${translate('Status')}</td>
+                        ${HOMELAND_ABILITY_KEYS.map(key => {
+                            const dCount = dist[key] || 0;
+                            const reqCount = demands[key] || 0;
+                            if (reqCount === 0) {
+                                return `<td class="status-cell cell-neutral"><span class="chip-dash">-</span></td>`;
+                            }
+                            if (dCount >= reqCount) {
+                                return `<td class="status-cell cell-passed"><span class="chip-pass">✓</span></td>`;
+                            }
+                            const missing = reqCount - dCount;
+                            return `<td class="status-cell cell-shortfall"><span class="chip-shortfall">-${missing}</span></td>`;
+                        }).join('')}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    tableWrapper.innerHTML = tableHtml;
+
+    // Render Multi-Skill Aniimos
+    if (multiGrid) {
+        if (!multiSkills.length) {
+            multiGrid.innerHTML = `<p class="hint small" style="margin:0.5rem 0;">${translate('No multi-skill Aniimo needed for current demands.')}</p>`;
+        } else {
+            multiGrid.innerHTML = multiSkills.map(ani => {
+                const skillsHtml = (ani.matchedAbilities || []).map(ma => {
+                    const meta = HOMELAND_ABILITY_META[ma.ability] || {};
+                    const name = currentLocale() === 'th' ? (meta.th || ma.ability) : (meta.en || ma.ability);
+                    return `
+                        <span class="multi-skill-pill" style="--ab-color:${meta.color || '#3b82f6'};">
+                            ${meta.icon || ''} ${name} Lv.${ma.level}
+                        </span>
+                    `;
+                }).join('');
+
+                const badgeText = translate('Saves {count} roles in 1 slot!').replace('{count}', ani.matchCount);
+                const aName = currentLocale() === 'th' ? ani.name : (ani.slug ? ani.slug.charAt(0).toUpperCase() + ani.slug.slice(1) : ani.name);
+
+                return `
+                    <div class="multi-skill-card">
+                        <div class="multi-card-avatar">
+                            <img src="${ani.avatar}" alt="${ani.name}" loading="lazy">
+                        </div>
+                        <div class="multi-card-body">
+                            <div class="multi-card-top">
+                                <strong class="multi-card-name">${aName}</strong>
+                                <span class="multi-card-save-badge">${badgeText}</span>
+                            </div>
+                            <div class="multi-card-skills">
+                                ${skillsHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+    }
 }

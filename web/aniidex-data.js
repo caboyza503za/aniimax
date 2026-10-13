@@ -4331,10 +4331,14 @@ export function findAniimosByAbility(ability, minLevel = 1) {
 
 export function getBestAniimoForFacility(facilityName, ability, minLevel = 1) {
     if (facilityName === 'Dewy House' || facilityName === 'บ้านน้ำค้าง' || facilityName === 'dewy-house') {
-        return RECOMMENDED_WORKERS['Dewy House'];
+        const base = RECOMMENDED_WORKERS['Dewy House'];
+        const ani = ALL_ANIIMOS.find(a => a.name === base.name);
+        return { ...base, skills: ani?.skills || { Leisure: 3 } };
     }
     if (RECOMMENDED_WORKERS[facilityName]) {
-        return RECOMMENDED_WORKERS[facilityName];
+        const base = RECOMMENDED_WORKERS[facilityName];
+        const ani = ALL_ANIIMOS.find(a => a.name === base.name);
+        return { ...base, skills: ani?.skills || { [base.ability]: base.level } };
     }
     const candidates = findAniimosByAbility(ability, minLevel);
     if (candidates.length > 0) {
@@ -4346,7 +4350,8 @@ export function getBestAniimoForFacility(facilityName, ability, minLevel = 1) {
             ability: engAbility,
             abilityTh: ABILITY_TH_MAP[engAbility] || engAbility,
             level: top.skills[engAbility] || minLevel,
-            avatar: top.avatar
+            avatar: top.avatar,
+            skills: top.skills
         };
     }
     return null;
@@ -4371,3 +4376,150 @@ export const PLOT_UNLOCK_INFO = {
     15: { rv: 15, price: 270000 },
     16: { rv: 16, price: 390000 },
 };
+
+export const HOMELAND_ABILITY_KEYS = [
+    'Fire', 'Grass', 'Water', 'Earth', 'Lightning', 'Ice', 'Wind', 'Dark', 'Light', 'Hauling', 'Artisanship', 'Leisure', 'Perfumery'
+];
+
+export const HOMELAND_ABILITY_META = {
+    'Fire':        { th: 'ไฟ', en: 'Fire', icon: '🔥', desc: 'ทำอาหาร การหลอม และให้ความร้อน', color: '#f97316' },
+    'Grass':       { th: 'หญ้า', en: 'Grass', icon: '🍃', desc: 'ปลูกเมล็ดและเก็บเกี่ยววัตถุดิบ', color: '#22c55e' },
+    'Water':       { th: 'น้ำ', en: 'Water', icon: '💧', desc: 'การต้ม ตักน้ำ และรดน้ำต้นไม้', color: '#06b6d4' },
+    'Earth':       { th: 'ดิน', en: 'Earth', icon: '⛰️', desc: 'ขุดแร่ บ่อดิน และสกัดหิน', color: '#eab308' },
+    'Lightning':   { th: 'สายฟ้า', en: 'Lightning', icon: '⚡', desc: 'ปั่นกระแสไฟฟ้าในเครื่องกำเนิดไฟ', color: '#a855f7' },
+    'Ice':         { th: 'น้ำแข็ง', en: 'Ice', icon: '❄️', desc: 'ทำความเย็นและควบคุมอุณหภูมิ', color: '#38bdf8' },
+    'Wind':        { th: 'ลม', en: 'Wind', icon: '🌀', desc: 'โรงสีและกังหันลม', color: '#10b981' },
+    'Dark':        { th: 'ความมืด', en: 'Dark', icon: '👁️', desc: 'สกัดพลังงานและวัตถุดิบสายมืด', color: '#6366f1' },
+    'Light':       { th: 'ส่องแสง', en: 'Light', icon: '☀️', desc: 'โคมไฟแสงแดดสำหรับแปลงเกษตร', color: '#f59e0b' },
+    'Hauling':     { th: 'แบก', en: 'Hauling', icon: '🛒', desc: 'ขนส่งผลผลิตทั้งหมดเข้าสู่โกดัง', color: '#94a3b8' },
+    'Artisanship': { th: 'ช่างฝีมือ', en: 'Artisanship', icon: '✂️', desc: 'งานแปรรูปไม้และประดิษฐ์สิ่งของ', color: '#d97706' },
+    'Leisure':     { th: 'ไม่รีบร้อน', en: 'Leisure', icon: '🌸', desc: 'สิ่งปลูกสร้างพักผ่อนและสันทนาการ', color: '#ec4899' },
+    'Perfumery':   { th: 'การผลิตน้ำหอม', en: 'Perfumery', icon: '🧴', desc: 'บ้านน้ำค้าง (เฉพาะนกน้ำหอม)', color: '#8b5cf6' }
+};
+
+export function calculateHomelandDemands(plan = null, lastLayout = null) {
+    const demands = {};
+    for (const key of HOMELAND_ABILITY_KEYS) demands[key] = 0;
+
+    let croplandCount = 0;
+    let woodlandCount = 0;
+    let totalFacilities = 0;
+
+    if (lastLayout?.layout) {
+        croplandCount = lastLayout.layout.croplandCount || 0;
+        woodlandCount = lastLayout.layout.woodlandCount || 0;
+    }
+
+    if (plan?.steps) {
+        for (const step of plan.steps) {
+            const count = step.building_count || 1;
+            const fac = (step.facility || '').toLowerCase();
+            totalFacilities += count;
+
+            if (fac.includes('cropland') || fac === 'crop' || fac.includes('แปลงเกษตร')) {
+                croplandCount = Math.max(croplandCount, count);
+            } else if (fac.includes('woodland') || fac.includes('แปลงป่าไม้')) {
+                woodlandCount = Math.max(woodlandCount, count);
+            } else if (step.aniimo?.[0]) {
+                const reqAb = HOMELAND_ABILITY_KEYS.find(k => k.toLowerCase() === step.aniimo[0].toLowerCase());
+                if (reqAb) demands[reqAb] += count;
+            } else if (fac.includes('kiln') || fac.includes('เตาเผา') || fac.includes('cooker') || fac.includes('ครัว')) {
+                demands.Fire += count;
+            } else if (fac.includes('mine') || fac.includes('เหมือง') || fac.includes('clay') || fac.includes('บ่อดิน')) {
+                demands.Earth += count;
+            } else if (fac.includes('bench') || fac.includes('โรงไม้') || fac.includes('craft') || fac.includes('โต๊ะคราฟต์')) {
+                demands.Artisanship += count;
+            } else if (fac.includes('well') || fac.includes('บ่อน้ำ')) {
+                demands.Water += count;
+            } else if (fac.includes('dewy') || fac.includes('บ้านน้ำค้าง')) {
+                demands.Perfumery += count;
+            } else if (fac.includes('carousel') || fac.includes('windmill') || fac.includes('กังหัน')) {
+                demands.Wind += count;
+            } else if (fac.includes('sandcastle') || fac.includes('ปราสาททราย') || fac.includes('bed') || fac.includes('hammock')) {
+                demands.Leisure += count;
+            } else if (fac.includes('generator') || fac.includes('เครื่องปั่นไฟ')) {
+                demands.Lightning += count;
+            }
+        }
+    }
+
+    if (plan?.has_generator || lastLayout?.layout?.pieces?.some(p => (p.facility || '').toLowerCase().includes('generator'))) {
+        demands.Lightning = Math.max(demands.Lightning, 1);
+    }
+
+    // Croplands and woodlands demands
+    if (croplandCount > 0 || woodlandCount > 0) {
+        const totalPlots = croplandCount + woodlandCount;
+        // Grass: harvesting and planting: 1 worker per 1-3 plots (min 1)
+        demands.Grass += Math.max(1, Math.ceil(totalPlots / 3));
+        // Water: watering croplands: 1 worker per 1-4 plots (min 1 if croplands > 0)
+        if (croplandCount > 0) {
+            demands.Water += Math.max(1, Math.ceil(croplandCount / 4));
+        }
+    }
+
+    // Hauling demand based on total producing facilities and plots
+    const totalWorkingUnits = totalFacilities + croplandCount + woodlandCount;
+    if (totalWorkingUnits > 0) {
+        if (totalWorkingUnits <= 3) demands.Hauling = Math.max(demands.Hauling, 1);
+        else if (totalWorkingUnits <= 7) demands.Hauling = Math.max(demands.Hauling, 2);
+        else if (totalWorkingUnits <= 12) demands.Hauling = Math.max(demands.Hauling, 3);
+        else demands.Hauling = Math.max(demands.Hauling, 4);
+    }
+
+    return demands;
+}
+
+export function calculateCurrentDistribution(assignedWorkers = []) {
+    const dist = {};
+    for (const key of HOMELAND_ABILITY_KEYS) dist[key] = 0;
+
+    for (const w of assignedWorkers) {
+        if (!w) continue;
+        const count = w.count || 1;
+        const skills = w.skills || (w.ability ? { [w.ability]: w.level || 1 } : {});
+        for (const [k, lv] of Object.entries(skills)) {
+            const canonicalKey = HOMELAND_ABILITY_KEYS.find(ak => ak.toLowerCase() === k.toLowerCase()) || k;
+            if (dist[canonicalKey] != null && lv > 0) {
+                dist[canonicalKey] += count;
+            }
+        }
+    }
+    return dist;
+}
+
+export function findBestMultiSkillAniimos(demands = {}) {
+    const activeDemands = Object.entries(demands).filter(([_, count]) => count > 0).map(([k]) => k);
+    if (activeDemands.length === 0) return [];
+
+    const scored = ALL_ANIIMOS.map(ani => {
+        const skills = ani.skills || {};
+        const matched = [];
+        let score = 0;
+        for (const req of activeDemands) {
+            if (skills[req] && skills[req] > 0) {
+                matched.push({ ability: req, level: skills[req], th: HOMELAND_ABILITY_META[req]?.th || req });
+                score += skills[req] * (req === 'Hauling' || req === 'Grass' || req === 'Water' ? 1.5 : 1.2);
+            }
+        }
+        return {
+            ...ani,
+            matchedAbilities: matched,
+            matchCount: matched.length,
+            score
+        };
+    })
+    .filter(a => a.matchCount >= 2)
+    .sort((a, b) => b.matchCount !== a.matchCount ? b.matchCount - a.matchCount : b.score - a.score);
+
+    const unique = [];
+    const seen = new Set();
+    for (const a of scored) {
+        if (!seen.has(a.name)) {
+            seen.add(a.name);
+            unique.push(a);
+        }
+    }
+    return unique.slice(0, 8);
+}
+

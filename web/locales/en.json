@@ -861,5 +861,22 @@
   "1 Storage Unit",
   "Storage Unit #{n}",
   "Exclusively requires Fragrancier",
-  "Or earlier tier:"
+  "Or earlier tier:",
+  "Homeland Abilities",
+  "Comparison of recommended workforce distribution and estimated homeland requirements (13 abilities).",
+  "Recommended Multi-Skill Aniimos",
+  "Multi-skill Aniimos satisfy multiple homeland requirements at once, saving worker slots.",
+  "Current Distribution",
+  "Estimated Requirements",
+  "All estimated requirements met ({met}/{total})",
+  "{count} requirements unmet from estimated requirements",
+  "Saves {count} roles in 1 slot!",
+  "From assigned workforce",
+  "Plots & facilities in plan",
+  "No specific homeland requirements",
+  "Game has no penalty, but multi-skills can help!",
+  "No multi-skill Aniimo needed for current demands.",
+  "Satisfies multiple roles in 1 slot",
+  "Abilities",
+  "Status"
 ]
