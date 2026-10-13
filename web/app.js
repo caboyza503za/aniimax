@@ -6110,7 +6110,10 @@ function renderConcreteWorkforce(plan, kept = []) {
             alts = ['นกน้ำดอกไม้'];
         } else {
             candidates = typeof findAniimosByAbility === 'function' ? findAniimosByAbility(g.ability, g.level) : [];
-            alts = candidates.filter(c => c.name !== worker.name).slice(0, 3).map(c => c.name);
+            const isCommon = c => c.id && c.id.length === 5 && !c.id.startsWith('6') && !c.id.startsWith('9');
+            const commonAlts = candidates.filter(c => c.name !== worker.name && isCommon(c));
+            const list = commonAlts.length > 0 ? commonAlts : candidates.filter(c => c.name !== worker.name);
+            alts = [...new Set(list.map(c => c.name))].slice(0, 3);
         }
         const whereStr = whereText(g);
 
@@ -6139,7 +6142,10 @@ function renderConcreteWorkforce(plan, kept = []) {
         level: 1,
     };
     const haulingCandidates = typeof findAniimosByAbility === 'function' ? findAniimosByAbility('Hauling', 1) : [];
-    const haulingAlts = haulingCandidates.filter(c => c.name !== haulingWorker.name).slice(0, 3).map(c => c.name);
+    const isCommonHauler = c => c.id && c.id.length === 5 && !c.id.startsWith('6') && !c.id.startsWith('9');
+    const commonHaulers = haulingCandidates.filter(c => c.name !== haulingWorker.name && isCommonHauler(c));
+    const listHaulers = commonHaulers.length > 0 ? commonHaulers : haulingCandidates.filter(c => c.name !== haulingWorker.name);
+    const haulingAlts = [...new Set(listHaulers.map(c => c.name))].slice(0, 3);
 
     assignedWorkers.push({
         name: haulingWorker.name,

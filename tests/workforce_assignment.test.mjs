@@ -24,24 +24,25 @@ test('findAniimosByAbility returns workers sorted by level descending', () => {
 test('getBestAniimoForFacility maps facilities to concrete Aniimo workers', () => {
     const kilnWorker = getBestAniimoForFacility('Chimney Kiln', 'Fire', 3);
     assert.ok(kilnWorker);
-    assert.equal(kilnWorker.name, 'เจ้าเพลิงคำราม');
-    assert.ok(kilnWorker.avatar.includes('UI_PetHead_10053'));
+    assert.equal(kilnWorker.name, 'เจ้าหมาถ่าน');
+    assert.ok(kilnWorker.avatar.includes('UI_PetHead_10051'));
 
     const mineWorker = getBestAniimoForFacility('Mine', 'Earth', 3);
     assert.ok(mineWorker);
-    assert.equal(mineWorker.name, 'ตุ่นทลายภูผา');
+    assert.equal(mineWorker.name, 'กิ้งก่าหินจิ๋ว');
+    assert.ok(mineWorker.avatar.includes('UI_PetHead_10281'));
 });
 
 test('workforce recommendation provides matching Aniimo and alternatives', () => {
     const worker = getBestAniimoForFacility('Clay Pit', 'Earth', 3);
     assert.ok(worker);
-    assert.equal(worker.name, 'ด้วงหินซิ่ง');
+    assert.equal(worker.name, 'ปูไม้พุ่ม');
     assert.ok(worker.avatar.includes('UI_PetHead_'));
 
     const candidates = findAniimosByAbility('Earth', 3);
     const alts = candidates.filter(c => c.name !== worker.name).slice(0, 3).map(c => c.name);
     assert.ok(alts.length > 0);
-    assert.ok(alts.includes('เจ้าหมีขี้เซา') || alts.includes('ปูไม้พุ่ม'));
+    assert.ok(alts.includes('เจ้าหมีขี้เซา') || alts.includes('ด้วงหินซิ่ง'));
 });
 
 test('Dewy House exclusively mandates Fragrancier (นกน้ำหอม)', () => {
