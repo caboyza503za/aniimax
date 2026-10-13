@@ -313,7 +313,7 @@
     "Reaping": "กําลังเก็บเกี่ยว",
     "Collecting": "กําลังรวบรวม",
     "Logging": "กําลังตัดไม้",
-    "Aniimax - Aniimo Production Optimizer": "Aniimax - เครื่องมือคำนวณการผลิตในดินแดนบ้านเกิดแอนีโม",
+    "Aniimax - Aniimo Production Optimizer": "Aniimo Homeland - เครื่องมือคำนวณการผลิตในดินแดนบ้านเกิดแอนีโม",
     "facilities": "สิ่งก่อสร้าง",
     "math": "คณิตศาสตร์",
     "aniimo homeland production optimizer": "เครื่องมือคำนวณการผลิตในดินแดนบ้านเกิดแอนีโม",
@@ -1022,5 +1022,10 @@
     "Optimizing hauling paths and facility placement...": "กำลังคำนวณเส้นทางขนส่งและการจัดวางสิ่งก่อสร้าง...",
     "Calculating optimal production plan...": "กำลังคำนวณแผนการผลิตที่คุ้มค่าที่สุด...",
     "Optimizing workforce and abilities...": "กำลังคำนวณแรงงานและทักษะแอนิโม...",
-    "Analyzing improvement opportunities...": "กำลังวิเคราะห์โอกาสในการอัปเกรด..."
+    "Analyzing improvement opportunities...": "กำลังวิเคราะห์โอกาสในการอัปเกรด...",
+    "Aniimo Homeland — Production Planner": "Aniimo Homeland — เครื่องมือวางแผนการผลิตดินแดนบ้านเกิดแอนิโม",
+    "Aniimo Homeland home": "หน้าแรก Aniimo Homeland",
+    "ANIIMO HOMELAND": "ANIIMO HOMELAND",
+    "Aniimo Homeland": "Aniimo Homeland",
+    "aniimo home land": "aniimo home land"
 }
