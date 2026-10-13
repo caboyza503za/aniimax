@@ -825,18 +825,18 @@ tbody tr:first-child td {
 }
 
 /* Whole-tile lines, a heavier major line every other tile, and faint quarter-tile lines. */
-.env-grid line {
+.env-diagram .env-grid line {
     stroke: currentColor;
     stroke-opacity: 0.2;
     stroke-width: 0.035;
 }
 
-.env-grid line.major {
+.env-diagram .env-grid line.major {
     stroke-opacity: 0.38;
     stroke-width: 0.08;
 }
 
-.env-grid line.quarter {
+.env-diagram .env-grid line.quarter {
     stroke-opacity: 0.05;
     stroke-width: 0.02;
 }
@@ -2882,22 +2882,20 @@ tr:hover .skip-row,
     .aniimo-card .card-head { align-items: flex-start; }
 }
 
-/* Homeland plots in the layout: gray background with crisp borders. */
-.layout-plot rect {
-    fill: #2d323b;
+/* Homeland plots in the layout: in-game green grassland with seamless borders. */
+.layout-plot.open rect {
+    fill: url(#layout-grass), #719f30;
     fill-opacity: 1;
-    stroke: rgba(255, 255, 255, 0.45);
-    stroke-opacity: 0.85;
-    stroke-width: 0.16;
+    stroke: none;
 }
 
-/* Locked plots: dark gray background, hatched, outlined and labelled in red. */
+/* Locked plots: dark earthy background, hatched, outlined and labelled in red. */
 .layout-plot.locked rect {
     fill: url(#layout-locked);
     fill-opacity: 1;
     stroke: #ef4444;
     stroke-opacity: 0.85;
-    stroke-width: 0.16;
+    stroke-width: 0.12;
 }
 
 .layout-svg .layout-plot.locked text {
@@ -3886,22 +3884,34 @@ tbody tr:hover {
     padding: .85rem;
     border: 1px solid var(--border);
     border-radius: 14px;
-    background-color: #21252b;
+    background-color: #171d14;
 }
 .layout-svg {
     min-width: 560px;
-    background-color: #2d323b;
+    background-color: #557922;
+    background-image: url('grass-pattern.png');
     border-radius: 12px;
 }
-.layout-svg .env-grid line,
-.env-grid line {
-    stroke: rgba(255, 255, 255, 0.50);
-    stroke-width: 0.07;
+/* In-game homeland gridlines */
+.layout-svg .env-grid line {
+    stroke: rgba(255, 255, 255, 0.85);
+    stroke-opacity: 1;
+    stroke-width: 0.045;
 }
-.layout-svg .env-grid line.major,
-.env-grid line.major {
-    stroke: rgba(255, 255, 255, 0.88);
-    stroke-width: 0.12;
+.layout-svg .env-grid line.grid-solid,
+.layout-svg .env-grid line.major {
+    stroke: rgba(255, 255, 255, 0.95);
+    stroke-opacity: 1;
+    stroke-width: 0.055;
+    stroke-linecap: square;
+    stroke-dasharray: none;
+}
+.layout-svg .env-grid line.grid-dashed {
+    stroke: rgba(255, 255, 255, 0.82);
+    stroke-opacity: 1;
+    stroke-width: 0.040;
+    stroke-dasharray: 0.10 0.10;
+    stroke-linecap: square;
 }
 .layout-storage { fill: #2563eb; fill-opacity: 0.92; stroke: #1d4ed8; }
 .layout-flow-line { stroke: var(--accent-cool); }
@@ -4544,25 +4554,22 @@ footer p { margin: 0; }
 }
 
 .layout-plot rect {
-    fill: #2d323b;
-    stroke: rgba(255, 255, 255, 0.45);
-    stroke-width: 0.16;
-    transition: fill 0.15s ease;
+    transition: filter 0.15s ease;
 }
 
-.layout-plot:hover rect {
-    fill: #363c46;
+.layout-plot.open:hover rect {
+    filter: brightness(1.08);
 }
 
 .layout-plot.locked rect {
-    fill: #1f1b20;
+    fill: url(#layout-locked);
     stroke: #ef4444;
     stroke-opacity: 0.85;
-    stroke-width: 0.16;
+    stroke-width: 0.12;
 }
 
 .layout-plot.locked:hover rect {
-    fill: #29222b;
+    filter: brightness(1.2);
 }
 
 .plot-title-label {

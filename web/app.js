@@ -2538,11 +2538,11 @@ function homelandSvg(layout, homeLevel) {
         const unlockInfo = PLOT_UNLOCK_INFO[p.number] || { rv: p.number, price: 0 };
         if (open) {
             return `<g class="layout-plot open" data-plot-number="${p.number}">
-                <rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="0.35" />
+                <rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="0" fill="url(#layout-grass)" />
             </g>`;
         } else {
             return `<g class="layout-plot locked" data-plot-number="${p.number}">
-                <rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="0.35" />
+                <rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="0" />
                 <g class="plot-lock-wrap" transform="translate(${(cx - 0.75).toFixed(2)}, ${(cy - 1.4).toFixed(2)})">
                     <path fill="#ffffff" fill-opacity="0.85" d="M0.75 0C0.34 0 0 0.34 0 0.75v0.5h1.5v-0.5c0-0.41-0.34-0.75-0.75-0.75zm-0.75 1.25v1.5c0 0.14 0.11 0.25 0.25 0.25h1c0.14 0 0.25-0.11 0.25-0.25v-1.5H0z" />
                 </g>
@@ -2553,13 +2553,18 @@ function homelandSvg(layout, homeLevel) {
     const homelandMaxX = Math.max(...plots.map(p => p.x + p.w));
     const homelandMaxY = Math.max(...plots.map(p => p.y + p.h));
     const lines = [];
+    // In-game homeland grid (matches official game layout):
+    // Even coordinates (0, 2, 4...) are solid white lines forming 2x2 building blocks.
+    // Odd coordinates (1, 3, 5...) are dashed white lines bisecting each block.
     for (let x = 0; x <= homelandMaxX; x++) {
-        const isMajor = (x % 5 === 0);
-        lines.push(`<line x1="${x}" y1="0" x2="${x}" y2="${homelandMaxY}" ${isMajor ? 'class="major"' : ''} />`);
+        const isSolid = (x % 2 === 0);
+        const cls = isSolid ? 'grid-solid' : 'grid-dashed';
+        lines.push(`<line class="${cls}" x1="${x}" y1="0" x2="${x}" y2="${homelandMaxY}" />`);
     }
     for (let y = 0; y <= homelandMaxY; y++) {
-        const isMajor = (y % 5 === 0);
-        lines.push(`<line x1="0" y1="${y}" x2="${homelandMaxX}" y2="${y}" ${isMajor ? 'class="major"' : ''} />`);
+        const isSolid = (y % 2 === 0);
+        const cls = isSolid ? 'grid-solid' : 'grid-dashed';
+        lines.push(`<line class="${cls}" x1="0" y1="${y}" x2="${homelandMaxX}" y2="${y}" />`);
     }
     // Power Grid boundaries ("กรอบเสาไฟ"):
     // Facilities using E-Mode must sit within the power pole / generator frame.
@@ -2709,8 +2714,12 @@ function homelandSvg(layout, homeLevel) {
 
     return `<svg class="layout-svg" viewBox="${minX} ${minY} ${maxX - minX} ${maxY - minY}" role="img" aria-label="Homeland layout">
         <defs>
+            <pattern id="layout-grass" width="2" height="2" patternUnits="userSpaceOnUse">
+                <rect width="2" height="2" fill="#729f31" />
+                <image href="grass-pattern.png" width="2" height="2" preserveAspectRatio="none" />
+            </pattern>
             <pattern id="layout-locked" width="1" height="1" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                <rect width="1" height="1" fill="#1f1b20" />
+                <rect width="1" height="1" fill="#1f271a" />
                 <line x1="0" y1="0" x2="0" y2="1" class="layout-hatch" />
             </pattern>
             <clipPath id="circle-avatar-clip" clipPathUnits="objectBoundingBox">
@@ -4889,8 +4898,8 @@ function renderEnvironmentDiagram(layout, mode, building, rows = [], unit = null
     // facilities snap to.
     const gridLines = [];
     for (let t = Math.ceil(viewMin * 4) / 4; t <= viewMin + Math.max(viewWidth, viewHeight); t += 0.25) {
-        // Every other tile line is a major one, in step with the 2x2 buildings.
-        const cls = !Number.isInteger(t) ? 'quarter' : t % 2 === 0 ? 'tile major' : 'tile';
+        // Every other tile line is a major solid one, odd whole tile lines are dashed.
+        const cls = !Number.isInteger(t) ? 'quarter' : t % 2 === 0 ? 'tile major grid-solid' : 'tile grid-dashed';
         if (t <= viewMin + viewWidth) {
             gridLines.push(`<line class="${cls}" x1="${t}" y1="${viewMin}" x2="${t}" y2="${viewMin + viewHeight}" />`);
         }
