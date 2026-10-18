@@ -158,11 +158,15 @@
         leftPane.appendChild(rateCard);
     }
 
-    // Right Pane gets error-message, solve-progress, and all tabbed cards inside #results-content
+    // Right Pane gets error-message, solve-progress, progress-bar, and all tabbed cards inside #results-content
     const errorEl = $('error-message');
     const solveProgress = $('solve-progress');
+    const progressBarContainer = $('progress-bar-container');
+    const progressBarCaption = $('progress-bar-caption');
     if (errorEl) tabViewport.appendChild(errorEl);
     if (solveProgress) tabViewport.appendChild(solveProgress);
+    if (progressBarContainer) tabViewport.appendChild(progressBarContainer);
+    if (progressBarCaption) tabViewport.appendChild(progressBarCaption);
 
     // Tag each card with its tab group
     if (aniimoCard) {
@@ -307,13 +311,19 @@
 
         const isSolving = origOptimizeBtn ? origOptimizeBtn.disabled : false;
         const solveTextEl = $('studio-solve-text');
+        const runningStep = document.querySelector('#solve-progress .progress-step.running .step-label');
         if (solveBtn && solveTextEl) {
-            solveBtn.classList.toggle('is-solving', isSolving);
-            const runningStep = document.querySelector('#solve-progress .progress-step.running .step-label');
-            if (isSolving) {
+            solveBtn.classList.toggle('is-solving', isSolving || Boolean(runningStep));
+            if (isSolving || runningStep) {
                 solveTextEl.textContent = runningStep ? `⏳ ${runningStep.textContent.trim()}` : '⏳ กำลังคำนวณแผน...';
             } else {
                 solveTextEl.textContent = '⚡ คำนวณอัตโนมัติ (พร้อม)';
+            }
+        }
+        if (solveProgress) {
+            const hasRunningOrFail = Boolean(solveProgress.querySelector('.progress-step.running, .progress-step.fail'));
+            if (!isSolving && !hasRunningOrFail && solveProgress.style.display === 'block') {
+                solveProgress.style.display = 'none';
             }
         }
 
@@ -333,13 +343,30 @@
             if (kpiRateVal) kpiRateVal.textContent = luTime && luTime !== '-' ? luTime : 'กำลังคำนวณ...';
             if (kpiRateSub) kpiRateSub.textContent = 'เวลาเร็วที่สุดในการอัปเลเวล RV';
         } else {
-            const rateText = ($('plan-rate')?.textContent || '').trim();
+            const prioRow = document.querySelector('#priority-rates tbody tr.top') || document.querySelector('#priority-rates tbody tr');
             const unitSel = $('rate-unit');
             const unitText = unitSel && unitSel.selectedIndex >= 0 ? unitSel.options[unitSel.selectedIndex].text : '';
-            if (kpiRateIcon) kpiRateIcon.textContent = '🪙';
-            if (kpiRateLabel) kpiRateLabel.textContent = 'อัตราผลิตเหรียญบ้าน';
-            if (kpiRateVal) kpiRateVal.textContent = rateText && rateText !== '-' ? `${rateText} ${unitText}`.trim() : 'กำลังคำนวณ...';
-            if (kpiRateSub) kpiRateSub.textContent = 'รายได้สุทธิสูงสุดตามลำดับความสำคัญ';
+            if (prioRow && prioRow.cells && prioRow.cells.length >= 3) {
+                const prioLabel = (prioRow.cells[1]?.textContent || 'อัตราการผลิต').trim();
+                const prioVal = (prioRow.cells[2]?.textContent || '').trim();
+                if (kpiRateIcon) kpiRateIcon.textContent = '🪙';
+                if (kpiRateLabel) kpiRateLabel.textContent = prioLabel;
+                if (kpiRateVal) kpiRateVal.textContent = prioVal ? `${prioVal} ${unitText}`.trim() : 'กำลังคำนวณ...';
+                if (kpiRateSub) kpiRateSub.textContent = 'ผลผลิตสูงสุดตามลำดับความสำคัญ';
+            } else {
+                const planRateEl = $('plan-rate');
+                const hasSkeleton = planRateEl && planRateEl.querySelector('.skeleton');
+                const rateText = hasSkeleton ? '' : (planRateEl?.textContent || '').trim();
+                if (kpiRateIcon) kpiRateIcon.textContent = '🪙';
+                if (kpiRateLabel) kpiRateLabel.textContent = 'อัตราผลิตเหรียญบ้าน';
+                if (kpiRateVal) {
+                    const displayRate = rateText && rateText !== '-'
+                        ? (rateText.includes('/') ? rateText : `${rateText} ${unitText}`.trim())
+                        : 'กำลังคำนวณ...';
+                    kpiRateVal.textContent = displayRate;
+                }
+                if (kpiRateSub) kpiRateSub.textContent = 'รายได้สุทธิสูงสุดตามลำดับความสำคัญ';
+            }
         }
 
         // KPI 2: Workforce & 13 Abilities

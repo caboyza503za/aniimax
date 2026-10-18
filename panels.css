@@ -370,16 +370,22 @@ body.studio-v4 .disclaimer {
     margin: 0;
 }
 
-/* Tab visibility filtering */
-.studio-right-pane [data-studio-tab] {
+/* Tab visibility filtering: hide inactive tabs with !important, let active tab respect inline style.display */
+.studio-right-pane[data-active-tab="workforce"] [data-studio-tab]:not([data-studio-tab="workforce"]),
+.studio-right-pane[data-active-tab="production"] [data-studio-tab]:not([data-studio-tab="production"]),
+.studio-right-pane[data-active-tab="goals"] [data-studio-tab]:not([data-studio-tab="goals"]),
+.studio-right-pane[data-active-tab="config"] [data-studio-tab]:not([data-studio-tab="config"]) {
     display: none !important;
 }
-.studio-right-pane[data-active-tab="workforce"] [data-studio-tab="workforce"],
-.studio-right-pane[data-active-tab="production"] [data-studio-tab="production"],
-.studio-right-pane[data-active-tab="goals"] [data-studio-tab="goals"],
-.studio-right-pane[data-active-tab="config"] [data-studio-tab="config"] {
-    display: block !important;
+.studio-right-pane [data-studio-tab] {
     animation: studio-tab-fade 0.2s ease-out;
+}
+#results-content.setup-only > #studio-split-grid {
+    display: grid !important;
+}
+#results-content.stale > #studio-split-grid {
+    opacity: 1 !important;
+    pointer-events: auto !important;
 }
 
 @keyframes studio-tab-fade {

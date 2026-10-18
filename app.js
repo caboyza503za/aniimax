@@ -292,8 +292,9 @@ function calculateOptimalEMode(plan) {
         const workerLevel = isMin ? 1 : (worker?.level ?? 1);
         const hasBonus = isMin ? false : !!worker?.personality_bonus;
         const above = Math.max(0, workerLevel - minLevel);
-        const baseSpeed = above === 0 ? 1.0 : (2.0 + above);
-        const workerSpeed = hasBonus ? baseSpeed * 1.2 : baseSpeed;
+        const noPersonality = FACILITIES_WITHOUT_PERSONALITY.has(step.facility);
+        const baseSpeed = noPersonality ? (1.0 + 0.4 * above) : (above === 0 ? 1.0 : (2.0 + above));
+        const workerSpeed = (hasBonus && !noPersonality) ? baseSpeed * 1.2 : baseSpeed;
         const eModeSpeed = 1.2; // 120% efficiency grid buff
         const f = FACILITIES.find(fac => fac.name === step.facility);
         const electricRequire = (f?.electricRequire || 60) * (step.facility_count || 1);
@@ -338,12 +339,21 @@ function calculateOptimalEMode(plan) {
     if (homelandCap && currentWatts + 60 <= maxWatts) {
         const estimateTotalAniimo = () => {
             let total = 1; // 1 for hauling
+            const growerTasks = new Set();
             (plan.coin_items || []).forEach(s => {
                 if (s.status !== 'producing') return;
+                if (s.facility === 'Farmland' || s.facility === 'Woodland') {
+                    (s.aniimo_tasks || []).forEach(t => growerTasks.add(t.ability));
+                    return;
+                }
                 const key = `${s.facility}|${s.item_name}`;
                 if (steps.has(key)) return;
-                total += s.facility_count;
+                const count = RESIDENT_FACILITIES.has(s.facility)
+                    ? (s.facility_count || 1)
+                    : Math.max(1, Math.ceil((s.busy_units ?? s.facility_count ?? 1) - 1e-6));
+                total += count;
             });
+            total += growerTasks.size;
             (plan.environment_assignments || []).forEach(a => {
                 total += a.units || 1;
             });
@@ -3465,7 +3475,9 @@ function renderRosterSummary(plan) {
         }
 
         const netSaved = Math.max(0, Math.round(emodeSavedWorkers) - 1);
-        const totalProcessing = (plan.coin_items || []).filter(s => s.status === 'producing' && FACILITIES.find(fac => fac.name === s.facility)?.supportsEMode).length;
+        const totalProcessing = (plan.coin_items || [])
+            .filter(s => s.status === 'producing' && FACILITIES.find(fac => fac.name === s.facility)?.supportsEMode)
+            .reduce((sum, s) => sum + (s.facility_count || 1), 0);
         const remainingWorkersCount = Math.max(0, totalProcessing - emodeMachineCount);
         const remainingNote = remainingWorkersCount > 0
             ? ` (${translate('another {n} machines use Aniimo workers because the generator output is capped at {watts}W').replace('{n}', remainingWorkersCount).replace('{watts}', maxWatts)})`
@@ -3503,6 +3515,8 @@ function renderRosterSummary(plan) {
            <p class="hint small">${working} of your ${have} Aniimo have work in this plan.</p>`
         : `${emodeBannerHtml}<p class="hint">Add the Aniimo you have under My Aniimo to plan with them.</p>`;
     translateTree(summaryEl);
+    const wfSection = document.getElementById('aniimo-workforce-section');
+    if (wfSection) wfSection.style.display = 'none';
     document.getElementById('aniimo-collapsed-summary').textContent = '';
     renderInitialAbilities();
     const count = document.getElementById('aniimo-count');
@@ -4311,10 +4325,16 @@ function showError(message) {
     const resultsContent = document.getElementById('results-content');
     const resultsSection = document.getElementById('results-section');
 
-    errorEl.textContent = message;
-    errorEl.style.display = 'block';
-    resultsContent.style.display = 'none';
-    resultsSection.style.display = 'block';
+    if (errorEl) {
+        errorEl.textContent = message;
+        errorEl.style.display = 'block';
+    }
+    if (resultsContent && !document.getElementById('studio-split-grid')) {
+        resultsContent.style.display = 'none';
+    }
+    if (resultsSection) {
+        resultsSection.style.display = 'block';
+    }
 }
 
 // The goal card's choices: coins and every priority that's on, in the player's order. Keeps the
@@ -4627,14 +4647,31 @@ function renderAniimoSummary(plan) {
             return;
         }
         (step.aniimo_tasks || []).forEach(task => {
-            const key = taskLabel(task, step.facility);
+            const familySpec = typeof resolveFacilityFamilySpec === 'function' ? resolveFacilityFamilySpec(step.facility, step.item_name) : null;
+            const familyKey = familySpec ? `${step.facility}|${familySpec.familyNameTh || step.item_name}` : '';
+            const baseLabel = taskLabel(task, step.facility);
+            const key = familyKey ? `${baseLabel} [${familyKey}]` : baseLabel;
             if (!groups.has(key)) {
                 const personality = task.personality_bonus
                     ? FACILITIES.find(f => f.name === step.facility)?.personality ?? null
                     : null;
-                groups.set(key, { label: key, ability: task.ability, level: task.level, bonus: task.personality_bonus, personality, busy: 0, where: new Map(), jobs: new Map() });
+                groups.set(key, {
+                    label: baseLabel,
+                    familyKey,
+                    rawFacility: step.facility,
+                    rawItem: step.item_name,
+                    ability: task.ability,
+                    level: task.level,
+                    bonus: task.personality_bonus,
+                    personality,
+                    busy: 0,
+                    where: new Map(),
+                    jobs: new Map()
+                });
             }
             const g = groups.get(key);
+            if (!g.rawFacility) g.rawFacility = step.facility;
+            if (!g.rawItem && step.item_name) g.rawItem = step.item_name;
             g.busy += task.busy;
             // A growing job reads as the job itself, however many crops it covers.
             if ((task.jobs || []).length) {
@@ -4656,9 +4693,10 @@ function renderAniimoSummary(plan) {
         if (!ability || !units) return;
         const key = `${ability} (environment)`;
         if (!groups.has(key)) {
-            groups.set(key, { label: `${ability} any level`, ability, level: 1, bonus: false, busy: 0, where: new Map(), jobs: new Map(), environment: true });
+            groups.set(key, { label: `${ability} any level`, rawFacility: building, ability, level: 1, bonus: false, busy: 0, where: new Map(), jobs: new Map(), environment: true });
         }
         const g = groups.get(key);
+        if (!g.rawFacility) g.rawFacility = building;
         g.busy += units;
         g.where.set(place, (g.where.get(place) || 0) + units);
     };
@@ -4690,6 +4728,7 @@ function renderAniimoSummary(plan) {
         if (!groups.has(key)) {
             groups.set(key, {
                 label: `Lightning any level`,
+                rawFacility: 'Crackle Generator',
                 ability: 'Lightning',
                 level: 1,
                 bonus: false,
@@ -4706,7 +4745,9 @@ function renderAniimoSummary(plan) {
         g.where.set(place, (g.where.get(place) || 0) + 1);
 
         const netSaved = Math.max(0, Math.round(emodeSavedWorkers) - 1);
-        const totalProcessing = (plan.coin_items || []).filter(s => s.status === 'producing' && FACILITIES.find(fac => fac.name === s.facility)?.supportsEMode).length;
+        const totalProcessing = (plan.coin_items || [])
+            .filter(s => s.status === 'producing' && FACILITIES.find(fac => fac.name === s.facility)?.supportsEMode)
+            .reduce((sum, s) => sum + (s.facility_count || 1), 0);
         const remainingWorkersCount = Math.max(0, totalProcessing - emodeMachineCount);
         const remainingNote = remainingWorkersCount > 0
             ? ` (${translate('another {n} machines use Aniimo workers because the generator output is capped at {watts}W').replace('{n}', remainingWorkersCount).replace('{watts}', maxWatts)})`
@@ -4754,15 +4795,18 @@ function renderAniimoSummary(plan) {
             .sort((a, b) => b.level - a.level || Number(b.bonus) - Number(a.bonus) || a.label.localeCompare(b.label));
         const kept = [];
         // One Aniimo can take another row's work when it has the ability at a high enough level,
-        // hours to spare, and nothing on it already wanting the opposite personality.
+        // hours to spare, and nothing on it already wanting the opposite personality or a different exclusive family.
         const holds = (host, g) => host.ability === g.ability && host.level >= g.level && host.spare >= g.busy - 1e-6
-            && (!g.personality || !host.personalities.has(opposedPersonality(g.personality)));
+            && (!g.personality || !host.personalities.has(opposedPersonality(g.personality)))
+            && (host.familyKey || '') === (g.familyKey || '');
         rows.forEach(g => {
             // A facility with a resident Aniimo keeps it to itself.
             const host = g.environment ? null : kept.find(k => holds(k, g));
             if (host) {
                 host.spare -= g.busy;
                 host.busy += g.busy;
+                if (!host.rawFacility && g.rawFacility) host.rawFacility = g.rawFacility;
+                if (!host.rawItem && g.rawItem) host.rawItem = g.rawItem;
                 if (g.personality) host.personalities.add(g.personality);
                 g.where.forEach((n, place) => host.where.set(place, (host.where.get(place) || 0) + n));
                 g.jobs.forEach((at, job) => {
@@ -4788,8 +4832,8 @@ function renderAniimoSummary(plan) {
             total += g.count;
             const where = whereText(g);
             const facNames = [...g.where.keys()].map(k => k.split(' (')[0]);
-            const primaryFac = facNames[0] || (g.jobs.size ? [...g.jobs.values()][0]?.values()?.next()?.value : '') || '';
-            const primaryItem = [...g.jobs.keys()][0] || null;
+            const primaryFac = g.rawFacility || facNames[0] || (g.jobs.size ? [...g.jobs.values()][0]?.values()?.next()?.value : '') || '';
+            const primaryItem = g.rawItem || [...g.jobs.keys()][0] || null;
             const worker = getBestAniimoForFacility(primaryFac, g.ability, g.level, primaryItem);
             const avatarHtml = worker?.avatar ? `<img src="${worker.avatar}" class="aniimo-row-avatar" alt="${worker.name}" loading="lazy">` : '';
             const workerNameHtml = worker?.name ? `<strong class="aniimo-row-name">${worker.name}</strong>` : '';
@@ -5533,7 +5577,7 @@ export function renderAllSkeletons() {
     const aniimoSummary = document.getElementById('aniimo-summary');
     const facilityContainer = document.getElementById('facility-plan-container');
     const seedCard = document.getElementById('seed-card');
-    const seedContainer = document.getElementById('seed-table-container');
+    const seedContainer = document.getElementById('seed-table') || document.getElementById('seed-table-container');
     const improveCard = document.getElementById('improve-card');
     const improveList = document.getElementById('improve-list');
     const planRate = document.getElementById('plan-rate');
@@ -6288,8 +6332,8 @@ function renderConcreteWorkforce(plan, kept = []) {
     // Map each kept role to the best concrete Aniimo character
     kept.forEach(g => {
         const facNames = [...g.where.keys()].map(k => k.split(' (')[0]);
-        const primaryFac = facNames[0] || (g.jobs.size ? [...g.jobs.values()][0]?.values()?.next()?.value : '') || '';
-        const primaryItem = [...g.jobs.keys()][0] || null;
+        const primaryFac = g.rawFacility || facNames[0] || (g.jobs.size ? [...g.jobs.values()][0]?.values()?.next()?.value : '') || '';
+        const primaryItem = g.rawItem || [...g.jobs.keys()][0] || null;
         const worker = getBestAniimoForFacility(primaryFac, g.ability, g.level, primaryItem);
         if (!worker) return;
 

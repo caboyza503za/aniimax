@@ -314,6 +314,13 @@ export function layOutHomeland(pieces, cells, storage = { w: 2, h: 2 }, storageC
             || (out.unplaced.length === best.out.unplaced.length && cost < best.cost - EPSILON);
         if (better) best = { out, cost, at };
     }
+    if (!best) {
+        const at = byMid[0] || { x: Math.round(mid.x), y: Math.round(mid.y) };
+        const relative = cells.map(c => ({ x: c.x - at.x, y: c.y - at.y, w: c.w, h: c.h }));
+        const out = layOut(pieces, { storage, cells: relative });
+        tried += out.tried;
+        best = { out, cost: out.pieces.reduce((sum, p) => sum + p.cost, 0), at };
+    }
     const { out, at } = best;
     const move = r => ({ ...r, x: r.x + at.x, y: r.y + at.y });
     const primaryStorage = move(out.storage);
