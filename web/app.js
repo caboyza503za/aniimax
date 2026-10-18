@@ -444,6 +444,7 @@ function attachFacilityTierHandlers() {
             tier.level = numberOrDefault(e.target.value, 1);
         }
         saveInputsToStorage();
+        scheduleAutoSolve(350);
     });
 
     grid.addEventListener('click', (e) => {
@@ -455,6 +456,7 @@ function attachFacilityTierHandlers() {
             tiers.push({ count: 1, level: nextLevel });
             renderTierRows(name);
             saveInputsToStorage();
+            scheduleAutoSolve(220);
             return;
         }
         const removeBtn = e.target.closest('.tier-remove-btn');
@@ -466,6 +468,7 @@ function attachFacilityTierHandlers() {
             facilityTiers[name].splice(idx, 1);
             renderTierRows(name);
             saveInputsToStorage();
+            scheduleAutoSolve(220);
         }
     });
 
@@ -651,6 +654,21 @@ function loadInputsFromStorage(data) {
     levelUpTargetChosen = 'level-up-target' in data;
 }
 
+let autoSolveTimer = null;
+const NON_SOLVE_FIELD_IDS = new Set([
+    'target-amount', 'current-amount', 'rate-unit',
+    'aniimo-best', 'aniimo-minimum', 'aniimo-custom',
+    'layout-storage-count'
+]);
+
+function scheduleAutoSolve(delay = 220) {
+    if (!wasmReady) return;
+    clearTimeout(autoSolveTimer);
+    autoSolveTimer = setTimeout(() => {
+        runFindPlan();
+    }, delay);
+}
+
 // Auto-save on every change to a persisted static field (facility tier inputs save themselves;
 // see `attachFacilityTierHandlers`).
 function attachAutoSave() {
@@ -658,7 +676,12 @@ function attachAutoSave() {
         const el = document.getElementById(id);
         if (!el) return;
         const eventName = (el.type === 'checkbox' || el.type === 'radio' || el.tagName === 'SELECT') ? 'change' : 'input';
-        el.addEventListener(eventName, saveInputsToStorage);
+        el.addEventListener(eventName, () => {
+            saveInputsToStorage();
+            if (!NON_SOLVE_FIELD_IDS.has(id)) {
+                scheduleAutoSolve(220);
+            }
+        });
     });
 }
 
@@ -683,6 +706,7 @@ async function initWasm() {
         loadRecipeIndex();
 
         console.log(`Aniimo Homeland v${version} loaded successfully`);
+        scheduleAutoSolve(60);
     } catch (error) {
         console.error('Failed to initialize WASM:', error);
         showError('Failed to load the optimizer. Please refresh the page.');
@@ -789,6 +813,7 @@ function fillAdvancedFrom(homeLevel) {
     followLevelUpTarget(homeLevel);
     renderStrategy();
     saveInputsToStorage();
+    scheduleAutoSolve(180);
 }
 
 function attachModeHandlers() {
@@ -825,6 +850,7 @@ function attachSpecialHandlers() {
         if (e.target.checked) unlockedSpecial.add(name); else unlockedSpecial.delete(name);
         renderRecipeCount();
         saveInputsToStorage();
+        scheduleAutoSolve(220);
     });
 }
 
@@ -3525,6 +3551,7 @@ function attachSeasonHandlers() {
         if (!name) return;
         if (e.target.checked) unlockedSpecial.add(name); else unlockedSpecial.delete(name);
         saveInputsToStorage();
+        scheduleAutoSolve(220);
     });
 }
 
@@ -3618,6 +3645,7 @@ function setSkipped(name, skipped) {
     if (skipped) skippedRecipes.add(name); else skippedRecipes.delete(name);
     renderSkippedRecipes();
     saveInputsToStorage();
+    scheduleAutoSolve(180);
 }
 
 // Adds what's typed in the search box: a full "Item (Facility)" pick, or a unique partial match.
@@ -3767,7 +3795,7 @@ function isLevelUpStrategy() {
 
 // --- Priorities ------------------------------------------------------------------------
 // What the Priorities strategy can go for, and the player's ranking of it. The plan makes as much
-// of each ticked one as the ones above it allow, then earns coins with what's left (see
+// of each ticked priority as the ones above it allow, then earns coins with what's left (see
 // `JsPlanInput::priorities` in wasm.rs).
 const PRIORITY_TARGETS = [
     { id: 'coins', label: 'Home Coins' },
@@ -3845,6 +3873,7 @@ function movePriority(from, to) {
     priorityOrder.splice(to, 0, moved);
     renderPriorities();
     saveInputsToStorage();
+    scheduleAutoSolve(220);
 }
 
 function attachPriorityHandlers() {
@@ -3855,6 +3884,7 @@ function attachPriorityHandlers() {
         priorityOrder[i].on = e.target.checked;
         renderPriorities();
         saveInputsToStorage();
+        scheduleAutoSolve(220);
     });
     list.addEventListener('click', (e) => {
         const button = e.target.closest('[data-move]');
@@ -3987,6 +4017,7 @@ function attachStrategyHandlers() {
         if (!name) return;
         levelUpStock[name] = Math.max(0, floatOrDefault(e.target.value, 0));
         saveInputsToStorage();
+        scheduleAutoSolve(350);
     });
     grid.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && e.target.matches('input')) runFindPlan();

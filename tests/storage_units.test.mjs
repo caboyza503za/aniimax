@@ -222,3 +222,24 @@ test('environment buildings in data provide 2 Cooling Units, 2 Sunlamps, and 2 H
     assert.deepEqual(setup12.facilities['Heat Furnace'], [{ count: 2, level: 1 }]);
 });
 
+test('layOutHomeland assigns higher-weight same-size pieces to slots closer to the nearest storage hub', () => {
+    const cells = [
+        { x: 40, y: 45, w: 20, h: 15 },
+        { x: 20, y: 45, w: 20, h: 15 },
+    ];
+    const pieces = [
+        { members: [{ x: 0, y: 0, w: 2, h: 2, weight: 300, facility: 'Farmland', crop: 'apple' }] },
+        { members: [{ x: 0, y: 0, w: 2, h: 2, weight: 100, facility: 'Farmland', crop: 'wheat' }] },
+        { members: [{ x: 0, y: 0, w: 2, h: 2, weight: 10, facility: 'Farmland', crop: 'strawberry' }] },
+    ];
+    const res = layOutHomeland(pieces, cells, { w: 2, h: 2 }, 2);
+    const distToNearest = (m) => Math.min(
+        ...res.storages.map(s => Math.hypot((m.x + m.w / 2) - (s.x + s.w / 2), (m.y + m.h / 2) - (s.y + s.h / 2)))
+    );
+    const members = res.pieces.flatMap(p => p.members);
+    const d300 = distToNearest(members.find(m => m.weight === 300));
+    const d10 = distToNearest(members.find(m => m.weight === 10));
+    assert.ok(d300 <= d10 + 1e-6, `Highest weight piece (${d300.toFixed(2)}) should be at least as close to nearest storage as lowest weight piece (${d10.toFixed(2)})`);
+});
+
+

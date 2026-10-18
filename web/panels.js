@@ -1,6 +1,10 @@
-/* Panels: turns every result card except the Homeland map into a slide-out drawer,
-   and the setup card into a left drawer once a plan exists. Pure DOM/CSS layering:
-   cards keep their IDs, so app.js keeps rendering into them untouched. */
+/* ==========================================================================
+   Aniimo Homeland Studio v4.0 — Split-Screen Workspace & Live KPI Controller
+   Replaces legacy modal drawers with a persistent 2-column Split-Screen Studio:
+   - Top Command Bar: Quick RV Level, Strategy Switch, 4 Live KPIs, Auto-Sync status
+   - Left Studio Pane: Persistent 3-Layer Homeland Blueprint Map + Rate Summary
+   - Right Studio Pane: Tabbed Analytics & Setup Dock (Workforce / Production / Goals / Config)
+   ========================================================================== */
 (function () {
     'use strict';
 
@@ -8,196 +12,419 @@
     const results = $('results-section');
     const content = $('results-content');
     const config = document.querySelector('.config-section');
-    if (!results || !content || !config) return;
+    const mainEl = document.querySelector('main');
+    const containerEl = document.querySelector('.container');
+    if (!results || !content || !config || !mainEl || !containerEl) return;
 
-    // Cards without an id of their own.
+    // Ensure key cards have stable IDs
     const planContainer = $('facility-plan-container');
     const planCard = planContainer && planContainer.closest('.card');
     if (planCard && !planCard.id) planCard.id = 'facility-plan-card';
     const rateCard = content.querySelector('.rate-card');
     if (rateCard && !rateCard.id) rateCard.id = 'rate-card';
+    const layoutCard = $('layout-card');
+    const aniimoCard = $('aniimo-card');
+    const improveCard = $('improve-card');
+    const seedCard = $('seed-card');
+    const profitCard = $('profit-card');
+    const goalSection = $('goal-section');
 
-    const PANELS = [
-        { key: 'rate-card',         icon: '📈', label: 'อัตราผลิต' },
-        { key: 'facility-plan-card', icon: '🏭', label: 'แต่ละ Facility' },
-        { key: 'aniimo-card',       icon: '🐾', label: 'ทีม Aniimo' },
-        { key: 'improve-card',      icon: '💡', label: 'โอกาสปรับปรุง' },
-        { key: 'seed-card',         icon: '🌱', label: 'เมล็ดพันธุ์' },
-        { key: 'profit-card',       icon: '💰', label: 'กำไรต่อสินค้า' },
-        { key: 'goal-section',      icon: '🎯', label: 'ตั้งเป้าหมาย' },
-    ].filter(p => $(p.key));
-    const SETUP = { key: 'setup', icon: '⚙️', label: 'ตั้งค่า' };
+    document.body.classList.add('studio-v4');
 
-    const elFor = key => (key === 'setup' ? config : $(key));
-    const titleFor = key => {
-        const p = key === 'setup' ? SETUP : PANELS.find(x => x.key === key);
-        return p ? `${p.icon} ${p.label}` : '';
-    };
+    // --- 1. Build Top Command & Live KPI Bar -----------------------------------
+    const commandBar = document.createElement('section');
+    commandBar.id = 'studio-command-bar';
+    commandBar.className = 'studio-command-bar';
+    commandBar.setAttribute('aria-label', 'แผงควบคุมหลักและสรุปผลการผลิต');
+    commandBar.innerHTML = `
+        <div class="scb-controls">
+            <div class="scb-field">
+                <label for="studio-quick-rv" class="scb-label">🏰 เลเวลบ้าน (RV)</label>
+                <select id="studio-quick-rv" class="scb-select" aria-label="RV Level"></select>
+            </div>
+            <div class="scb-field">
+                <span class="scb-label">🎯 กลยุทธ์หลัก</span>
+                <div class="scb-seg" role="group" aria-label="Strategy mode">
+                    <button type="button" class="scb-seg-btn active" id="scb-strat-levelup" data-strat="level-up">🚀 อัปเลเวล RV</button>
+                    <button type="button" class="scb-seg-btn" id="scb-strat-priorities" data-strat="priorities">🪙 เน้นเหรียญ/จัดลำดับ</button>
+                </div>
+            </div>
+        </div>
 
-    // --- Drawer chrome -------------------------------------------------------------
-    function addHead(el, key) {
-        if (el.querySelector(':scope > .panel-head')) return;
-        const head = document.createElement('div');
-        head.className = 'panel-head';
-        head.innerHTML = '<span class="panel-title"></span><button type="button" class="panel-close" aria-label="ปิด">&times;</button>';
-        head.querySelector('.panel-title').textContent = titleFor(key);
-        head.querySelector('.panel-close').addEventListener('click', closePanel);
-        el.insertBefore(head, el.firstChild);
-    }
-    PANELS.forEach(p => {
-        const el = $(p.key);
-        el.classList.add('panel-drawer');
-        addHead(el, p.key);
+        <div class="scb-kpis">
+            <button type="button" class="scb-kpi" id="kpi-btn-rate" data-target-tab="production" title="คลิกเพื่อดูตารางการผลิต">
+                <span class="scb-kpi-icon" id="kpi-rate-icon">⏱</span>
+                <div class="scb-kpi-body">
+                    <span class="scb-kpi-label" id="kpi-rate-label">เวลาอัปเลเวล / อัตราผลิต</span>
+                    <strong class="scb-kpi-value" id="kpi-rate-val">กำลังคำนวณ...</strong>
+                    <span class="scb-kpi-sub" id="kpi-rate-sub">ซิงค์ข้อมูลอัตโนมัติ</span>
+                </div>
+            </button>
+
+            <button type="button" class="scb-kpi" id="kpi-btn-workforce" data-target-tab="workforce" title="คลิกเพื่อดูทีมแอนิโมและความสามารถ 13 สาย">
+                <span class="scb-kpi-icon">🐾</span>
+                <div class="scb-kpi-body">
+                    <span class="scb-kpi-label">ทีมแอนิโม & 13 สาย</span>
+                    <strong class="scb-kpi-value" id="kpi-workforce-val">- / -</strong>
+                    <span class="scb-kpi-sub" id="kpi-workforce-sub">รอผลคำนวณ</span>
+                </div>
+            </button>
+
+            <button type="button" class="scb-kpi" id="kpi-btn-facilities" data-target-tab="production" title="คลิกเพื่อดูคำสั่งงานแต่ละเครื่องจักร">
+                <span class="scb-kpi-icon">🏭</span>
+                <div class="scb-kpi-body">
+                    <span class="scb-kpi-label">สิ่งปลูกสร้าง & ผลผลิต</span>
+                    <strong class="scb-kpi-value" id="kpi-facilities-val">- เครื่อง</strong>
+                    <span class="scb-kpi-sub" id="kpi-facilities-sub">แยกตามโซนอุณหภูมิ</span>
+                </div>
+            </button>
+
+            <button type="button" class="scb-kpi" id="kpi-btn-storage" data-target-tab="map-focus" title="คลิกเพื่อจัดกึ่งกลางแผนผังบ้าน">
+                <span class="scb-kpi-icon">📦</span>
+                <div class="scb-kpi-body">
+                    <span class="scb-kpi-label">คลังเก็บของอัตโนมัติ</span>
+                    <strong class="scb-kpi-value" id="kpi-storage-val">Auto</strong>
+                    <span class="scb-kpi-sub" id="kpi-storage-sub">คลิกคลังบนแผนที่เพื่อดูเส้นทาง</span>
+                </div>
+            </button>
+        </div>
+
+        <div class="scb-actions">
+            <button type="button" class="scb-solve-btn" id="studio-solve-btn" title="คำนวณแผนที่ดีที่สุดใหม่ทันที">
+                <span class="scb-solve-dot" id="studio-solve-dot"></span>
+                <span class="scb-solve-text" id="studio-solve-text">⚡ คำนวณแผนใหม่</span>
+            </button>
+        </div>
+    `;
+    containerEl.insertBefore(commandBar, mainEl);
+
+    // --- 2. Build Split-Screen Studio DOM Structure ----------------------------
+    const studioGrid = document.createElement('div');
+    studioGrid.id = 'studio-split-grid';
+    studioGrid.className = 'studio-split-grid';
+
+    // Left Pane: Persistent Map + Rate Breakdown
+    const leftPane = document.createElement('div');
+    leftPane.id = 'studio-left-pane';
+    leftPane.className = 'studio-left-pane';
+
+    // Right Pane: Sticky Tab Bar + Tab Panels
+    const rightPane = document.createElement('div');
+    rightPane.id = 'studio-right-pane';
+    rightPane.className = 'studio-right-pane';
+
+    const tabBar = document.createElement('nav');
+    tabBar.id = 'studio-tab-bar';
+    tabBar.className = 'studio-tab-bar';
+    tabBar.setAttribute('role', 'tablist');
+    tabBar.setAttribute('aria-label', 'หมวดหมู่ข้อมูลและการตั้งค่า');
+
+    const TABS = [
+        { key: 'workforce',  icon: '🐾', label: 'ทีมแอนิโม & 13 สาย', badgeId: 'tab-badge-workforce' },
+        { key: 'production', icon: '🏭', label: 'สายการผลิต & เมล็ด', badgeId: 'tab-badge-production' },
+        { key: 'goals',      icon: '🎯', label: 'เป้าหมาย & อัปเกรด', badgeId: 'tab-badge-goals' },
+        { key: 'config',     icon: '⚙️', label: 'ตั้งค่าบ้าน & สูตร', badgeId: 'tab-badge-config' },
+    ];
+
+    const tabButtons = new Map();
+    TABS.forEach(t => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'studio-tab-btn';
+        btn.dataset.tab = t.key;
+        btn.setAttribute('role', 'tab');
+        btn.setAttribute('aria-selected', 'false');
+        btn.innerHTML = `
+            <span class="studio-tab-icon" aria-hidden="true">${t.icon}</span>
+            <span class="studio-tab-label">${t.label}</span>
+            <span class="studio-tab-badge" id="${t.badgeId}" hidden></span>
+        `;
+        btn.addEventListener('click', () => selectTab(t.key));
+        tabButtons.set(t.key, btn);
+        tabBar.appendChild(btn);
     });
-    addHead(config, 'setup');
 
-    const backdrop = document.createElement('div');
-    backdrop.id = 'panel-backdrop';
-    backdrop.addEventListener('click', closePanel);
-    document.body.appendChild(backdrop);
+    const tabViewport = document.createElement('div');
+    tabViewport.id = 'studio-tab-viewport';
+    tabViewport.className = 'studio-tab-viewport';
 
-    // --- Dock ----------------------------------------------------------------------
-    const dock = document.createElement('nav');
-    dock.id = 'dock-bar';
-    dock.setAttribute('aria-label', 'แผงข้อมูล');
-    dock.hidden = true;
-
-    const chip = document.createElement('span');
-    chip.className = 'dock-chip';
-    chip.setAttribute('role', 'status');
-    chip.setAttribute('aria-live', 'polite');
-    dock.appendChild(chip);
-
-    const buttons = new Map();
-    function makeButton(p, extraClass) {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'dock-btn' + (extraClass ? ' ' + extraClass : '');
-        b.title = p.label;
-        b.setAttribute('aria-expanded', 'false');
-        b.innerHTML = `<span class="dock-icon" aria-hidden="true">${p.icon}</span><span class="dock-label"></span>`;
-        b.querySelector('.dock-label').textContent = p.label;
-        b.addEventListener('click', () => togglePanel(p.key));
-        buttons.set(p.key, b);
-        return b;
+    // Move cards into their designated Split-Screen slots
+    // Left Pane gets layoutCard and rateCard
+    if (layoutCard) {
+        layoutCard.style.display = 'block';
+        leftPane.appendChild(layoutCard);
     }
-    const sep = () => { const s = document.createElement('span'); s.className = 'dock-sep'; return s; };
+    if (rateCard) {
+        leftPane.appendChild(rateCard);
+    }
 
-    dock.appendChild(sep());
-    dock.appendChild(makeButton(SETUP));
-    const rerun = document.createElement('button');
-    rerun.type = 'button';
-    rerun.className = 'dock-btn primary';
-    rerun.title = 'คำนวณแผนใหม่';
-    rerun.innerHTML = '<span class="dock-icon" aria-hidden="true">▶</span><span class="dock-label">คำนวณใหม่</span>';
-    rerun.addEventListener('click', () => {
-        const run = $('optimize-btn');
-        if (run && !run.disabled) run.click();
-    });
-    dock.appendChild(rerun);
-    dock.appendChild(sep());
-    PANELS.forEach(p => dock.appendChild(makeButton(p)));
-    document.body.appendChild(dock);
+    // Right Pane gets error-message, solve-progress, and all tabbed cards inside #results-content
+    const errorEl = $('error-message');
+    const solveProgress = $('solve-progress');
+    if (errorEl) tabViewport.appendChild(errorEl);
+    if (solveProgress) tabViewport.appendChild(solveProgress);
 
-    // --- Open / close --------------------------------------------------------------
-    let openKey = null;
+    // Tag each card with its tab group
+    if (aniimoCard) {
+        aniimoCard.dataset.studioTab = 'workforce';
+        tabViewport.appendChild(aniimoCard);
+    }
+    if (planCard) {
+        planCard.dataset.studioTab = 'production';
+        tabViewport.appendChild(planCard);
+    }
+    if (seedCard) {
+        seedCard.dataset.studioTab = 'production';
+        tabViewport.appendChild(seedCard);
+    }
+    if (profitCard) {
+        profitCard.dataset.studioTab = 'production';
+        tabViewport.appendChild(profitCard);
+    }
+    if (improveCard) {
+        improveCard.dataset.studioTab = 'goals';
+        tabViewport.appendChild(improveCard);
+    }
+    if (goalSection) {
+        goalSection.dataset.studioTab = 'goals';
+        tabViewport.appendChild(goalSection);
+    }
+    if (config) {
+        config.dataset.studioTab = 'config';
+        tabViewport.appendChild(config);
+    }
 
-    function paint() {
-        PANELS.concat([SETUP]).forEach(p => {
-            const el = elFor(p.key);
-            const on = p.key === openKey;
-            if (el) el.classList.toggle('panel-open', on);
-            const b = buttons.get(p.key);
-            if (b) {
-                b.classList.toggle('active', on);
-                b.setAttribute('aria-expanded', String(on));
+    rightPane.appendChild(tabBar);
+    rightPane.appendChild(tabViewport);
+
+    // Keep #results-content wrapping the studioGrid so app.js selectors remain 100% valid
+    results.style.display = 'block';
+    content.style.display = 'block';
+    studioGrid.appendChild(leftPane);
+    studioGrid.appendChild(rightPane);
+    content.appendChild(studioGrid);
+    mainEl.appendChild(results);
+
+    // --- 3. Tab Switching Logic ------------------------------------------------
+    let activeTab = 'workforce';
+
+    function selectTab(tabKey) {
+        activeTab = tabKey;
+        rightPane.dataset.activeTab = tabKey;
+        tabButtons.forEach((btn, key) => {
+            const isSelected = key === tabKey;
+            btn.classList.toggle('active', isSelected);
+            btn.setAttribute('aria-selected', String(isSelected));
+        });
+    }
+
+    // Default to workforce tab
+    selectTab('workforce');
+
+    // Wire KPI buttons to switch tabs or fit map
+    commandBar.querySelectorAll('.scb-kpi').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const target = btn.dataset.targetTab;
+            if (target === 'map-focus') {
+                const fitBtn = $('layout-zoom-fit');
+                if (fitBtn) fitBtn.click();
+                leftPane.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else if (target) {
+                selectTab(target);
             }
         });
-        backdrop.classList.toggle('show', !!openKey);
-        document.body.classList.toggle('panel-lock', !!openKey);
-    }
-    function openPanel(key) {
-        const el = elFor(key);
-        if (!el || getComputedStyle(el).display === 'none') return;
-        openKey = key;
-        paint();
-        el.scrollTop = 0;
-    }
-    function closePanel() {
-        openKey = null;
-        paint();
-    }
-    function togglePanel(key) {
-        if (openKey === key) closePanel(); else openPanel(key);
-    }
-    document.addEventListener('keydown', e => {
-        if (e.key === 'Escape' && openKey) closePanel();
     });
 
-    // --- Keeping everything in sync with what app.js does ---------------------------
-    let hadResults = false;
-    let forcedAniimo = false;
+    // --- 4. Two-Way Sync for Top Command Bar Controls --------------------------
+    const homeLevelSelect = $('home-level');
+    const quickRvSelect = $('studio-quick-rv');
+    const stratLevelUpRadio = $('strategy-level-up');
+    const stratPrioRadio = $('strategy-priorities');
+    const btnStratLevelUp = $('scb-strat-levelup');
+    const btnStratPrio = $('scb-strat-priorities');
+    const solveBtn = $('studio-solve-btn');
+    const origOptimizeBtn = $('optimize-btn');
 
-    function headline() {
-        const running = document.querySelector('#solve-progress .progress-step.running .step-label');
-        if (running) return { text: running.textContent.trim(), busy: true };
-        const lu = $('level-up-card');
-        if (lu && getComputedStyle(lu).display !== 'none') {
-            const t = ($('level-up-time') || {}).textContent;
-            return { text: t && t.trim() !== '-' ? `⏱ ${t.trim()}` : '', busy: false };
+    function syncQuickControlsFromForm() {
+        if (homeLevelSelect && quickRvSelect) {
+            if (quickRvSelect.options.length !== homeLevelSelect.options.length) {
+                quickRvSelect.innerHTML = homeLevelSelect.innerHTML;
+            }
+            quickRvSelect.value = homeLevelSelect.value;
         }
-        const rate = ($('plan-rate') || {}).textContent;
-        const unit = $('rate-unit');
-        if (rate && rate.trim() !== '-') {
-            const u = unit && unit.selectedIndex >= 0 ? unit.options[unit.selectedIndex].text : '';
-            return { text: `🪙 ${rate.trim()} ${u}`.trim(), busy: false };
+        if (stratLevelUpRadio && btnStratLevelUp && btnStratPrio) {
+            const isLu = stratLevelUpRadio.checked;
+            btnStratLevelUp.classList.toggle('active', isLu);
+            btnStratPrio.classList.toggle('active', !isLu);
         }
-        return { text: '', busy: false };
     }
 
-    function refresh() {
-        const has = getComputedStyle(results).display !== 'none';
-
-        document.body.classList.toggle('has-results', has);
-        config.classList.toggle('panel-drawer', has);
-        config.classList.toggle('panel-left', has);
-        dock.hidden = !has;
-        if (!has && openKey) closePanel();
-        if (has && !hadResults) window.scrollTo({ top: 0, behavior: 'smooth' });
-        hadResults = has;
-
-        // A failed plan shows only the Aniimo card: bring it up so there's something to act on.
-        const setupOnly = content.classList.contains('setup-only');
-        if (has && setupOnly && !forcedAniimo && $('aniimo-card')) {
-            forcedAniimo = true;
-            openPanel('aniimo-card');
-        }
-        if (!setupOnly) forcedAniimo = false;
-
-        PANELS.forEach(p => {
-            const el = $(p.key);
-            const b = buttons.get(p.key);
-            if (el && b) b.disabled = getComputedStyle(el).display === 'none';
+    if (quickRvSelect && homeLevelSelect) {
+        quickRvSelect.addEventListener('change', () => {
+            const modeSimple = $('mode-simple');
+            if (modeSimple && !modeSimple.checked) {
+                modeSimple.checked = true;
+                modeSimple.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            homeLevelSelect.value = quickRvSelect.value;
+            homeLevelSelect.dispatchEvent(new Event('change', { bubbles: true }));
         });
+        homeLevelSelect.addEventListener('change', syncQuickControlsFromForm);
+    }
 
-        const h = headline();
-        if (chip.textContent !== h.text) chip.textContent = h.text;
-        chip.classList.toggle('busy', h.busy);
+    if (btnStratLevelUp && stratLevelUpRadio) {
+        btnStratLevelUp.addEventListener('click', () => {
+            if (!stratLevelUpRadio.checked) {
+                stratLevelUpRadio.checked = true;
+                stratLevelUpRadio.dispatchEvent(new Event('change', { bubbles: true }));
+                syncQuickControlsFromForm();
+            }
+        });
+    }
+    if (btnStratPrio && stratPrioRadio) {
+        btnStratPrio.addEventListener('click', () => {
+            if (!stratPrioRadio.checked) {
+                stratPrioRadio.checked = true;
+                stratPrioRadio.dispatchEvent(new Event('change', { bubbles: true }));
+                syncQuickControlsFromForm();
+            }
+        });
+    }
+    if (stratLevelUpRadio) stratLevelUpRadio.addEventListener('change', syncQuickControlsFromForm);
+    if (stratPrioRadio) stratPrioRadio.addEventListener('change', syncQuickControlsFromForm);
+
+    if (solveBtn && origOptimizeBtn) {
+        solveBtn.addEventListener('click', () => {
+            if (!origOptimizeBtn.disabled) {
+                origOptimizeBtn.click();
+            }
+        });
+    }
+
+    // --- 5. Live KPI & Tab Badge Synchronization -------------------------------
+    function refreshStudioKpis() {
+        syncQuickControlsFromForm();
+
+        const isSolving = origOptimizeBtn ? origOptimizeBtn.disabled : false;
+        const solveTextEl = $('studio-solve-text');
+        if (solveBtn && solveTextEl) {
+            solveBtn.classList.toggle('is-solving', isSolving);
+            const runningStep = document.querySelector('#solve-progress .progress-step.running .step-label');
+            if (isSolving) {
+                solveTextEl.textContent = runningStep ? `⏳ ${runningStep.textContent.trim()}` : '⏳ กำลังคำนวณแผน...';
+            } else {
+                solveTextEl.textContent = '⚡ คำนวณอัตโนมัติ (พร้อม)';
+            }
+        }
+
+        // KPI 1: Rate / Level-Up Time
+        const luCard = $('level-up-card');
+        const kpiRateIcon = $('kpi-rate-icon');
+        const kpiRateLabel = $('kpi-rate-label');
+        const kpiRateVal = $('kpi-rate-val');
+        const kpiRateSub = $('kpi-rate-sub');
+        const isLuVisible = luCard && getComputedStyle(luCard).display !== 'none';
+
+        if (isLuVisible) {
+            const luTime = ($('level-up-time')?.textContent || '').trim();
+            const luLabel = ($('level-up-label')?.textContent || 'เลื่อนระดับบ้าน').trim();
+            if (kpiRateIcon) kpiRateIcon.textContent = '⏱';
+            if (kpiRateLabel) kpiRateLabel.textContent = luLabel;
+            if (kpiRateVal) kpiRateVal.textContent = luTime && luTime !== '-' ? luTime : 'กำลังคำนวณ...';
+            if (kpiRateSub) kpiRateSub.textContent = 'เวลาเร็วที่สุดในการอัปเลเวล RV';
+        } else {
+            const rateText = ($('plan-rate')?.textContent || '').trim();
+            const unitSel = $('rate-unit');
+            const unitText = unitSel && unitSel.selectedIndex >= 0 ? unitSel.options[unitSel.selectedIndex].text : '';
+            if (kpiRateIcon) kpiRateIcon.textContent = '🪙';
+            if (kpiRateLabel) kpiRateLabel.textContent = 'อัตราผลิตเหรียญบ้าน';
+            if (kpiRateVal) kpiRateVal.textContent = rateText && rateText !== '-' ? `${rateText} ${unitText}`.trim() : 'กำลังคำนวณ...';
+            if (kpiRateSub) kpiRateSub.textContent = 'รายได้สุทธิสูงสุดตามลำดับความสำคัญ';
+        }
+
+        // KPI 2: Workforce & 13 Abilities
+        const wfBadge = ($('aniimo-workforce-badge')?.textContent || '').trim();
+        const statusBadge = ($('homeland-status-badge')?.textContent || '').trim();
+        const kpiWfVal = $('kpi-workforce-val');
+        const kpiWfSub = $('kpi-workforce-sub');
+        const tabBadgeWf = $('tab-badge-workforce');
+        if (kpiWfVal) {
+            kpiWfVal.textContent = wfBadge && wfBadge !== 'Auto Calculated' ? `${wfBadge} ตัว` : 'จัดทีมอัตโนมัติ';
+        }
+        if (kpiWfSub) {
+            kpiWfSub.textContent = statusBadge || 'ครอบคลุมความสามารถ 13 สาย';
+        }
+        if (tabBadgeWf) {
+            const hasCount = wfBadge && wfBadge !== 'Auto Calculated' && wfBadge !== '0 ตัว';
+            tabBadgeWf.textContent = hasCount ? wfBadge.split('/')[0].trim() : '';
+            tabBadgeWf.hidden = !hasCount;
+        }
+
+        // KPI 3: Facilities & Production
+        const facRows = planContainer ? planContainer.querySelectorAll('tbody tr:not(.idle-row)').length : 0;
+        const kpiFacVal = $('kpi-facilities-val');
+        const kpiFacSub = $('kpi-facilities-sub');
+        const tabBadgeProd = $('tab-badge-production');
+        if (kpiFacVal) {
+            kpiFacVal.textContent = facRows > 0 ? `${facRows} สายการผลิต` : 'กำลังจัดสรร...';
+        }
+        if (kpiFacSub) {
+            const dailyItems = document.querySelectorAll('#layout-daily-output-items .hp-chip').length;
+            kpiFacSub.textContent = dailyItems > 0 ? `ผลิตสินค้า ${dailyItems} ชนิดพร้อมกัน` : 'แยกตามโซนอุณหภูมิและเครื่องจักร';
+        }
+        if (tabBadgeProd) {
+            tabBadgeProd.textContent = facRows > 0 ? String(facRows) : '';
+            tabBadgeProd.hidden = facRows === 0;
+        }
+
+        // KPI 4: Storage Units
+        const storageLabel = ($('layout-storage-count-label')?.textContent || '5 Storage Units').trim();
+        const kpiStorageVal = $('kpi-storage-val');
+        const kpiStorageSub = $('kpi-storage-sub');
+        const layoutSum = ($('layout-summary')?.textContent || '').trim();
+        if (kpiStorageVal) {
+            kpiStorageVal.textContent = storageLabel;
+        }
+        if (kpiStorageSub) {
+            kpiStorageSub.textContent = layoutSum || 'คลิกที่คลังบนแผนที่เพื่อดูเส้นทาง';
+        }
+
+        // Tab 3 Badge: Opportunities count
+        const improveItems = document.querySelectorAll('#improve-list .improve-item, #improve-list li').length;
+        const tabBadgeGoals = $('tab-badge-goals');
+        if (tabBadgeGoals) {
+            tabBadgeGoals.textContent = improveItems > 0 ? String(improveItems) : '';
+            tabBadgeGoals.hidden = improveItems === 0;
+        }
+
+        // If a custom roster failed (setup-only), switch to workforce tab so user sees the message
+        if (content.classList.contains('setup-only') && activeTab !== 'workforce') {
+            selectTab('workforce');
+        }
     }
 
     let queued = false;
-    function schedule() {
+    function scheduleKpiRefresh() {
         if (queued) return;
         queued = true;
-        requestAnimationFrame(() => { queued = false; refresh(); });
+        requestAnimationFrame(() => {
+            queued = false;
+            refreshStudioKpis();
+        });
     }
 
-    const opts = { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['style', 'class'] };
-    new MutationObserver(schedule).observe(results, opts);
-    const progress = $('solve-progress');
-    if (progress) new MutationObserver(schedule).observe(progress, opts);
-    const unit = $('rate-unit');
-    if (unit) unit.addEventListener('change', schedule);
+    const observerOpts = {
+        subtree: true,
+        childList: true,
+        characterData: true,
+        attributes: true,
+        attributeFilter: ['style', 'class', 'disabled', 'hidden'],
+    };
+    new MutationObserver(scheduleKpiRefresh).observe(results, observerOpts);
+    if (origOptimizeBtn) {
+        new MutationObserver(scheduleKpiRefresh).observe(origOptimizeBtn, { attributes: true });
+    }
 
-    refresh();
+    // Initial sync
+    setTimeout(refreshStudioKpis, 50);
 })();

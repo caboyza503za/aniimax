@@ -1,166 +1,393 @@
 /* ==========================================================================
-   Panels — the Homeland map is the hero; everything else slides out.
-   Loaded after redesign.css. Cards keep their IDs and markup (app.js still
-   renders into them); they are only repositioned as drawers.
+   Aniimo Homeland Studio v4.0 — Split-Screen Studio & Command Center Styles
+   Replaces legacy hidden drawers with a persistent side-by-side workspace:
+   - Top Command & Live KPI Bar (.studio-command-bar)
+   - Left Map & Rate Stage (.studio-left-pane)
+   - Right Tabbed Analytics & Setup Dock (.studio-right-pane)
    ========================================================================== */
 
-body.has-results { padding-bottom: 7rem; }
-body.has-results .atlas-hero { display: none; }
-body.panel-lock { overflow: hidden; }
+body.studio-v4 .container {
+    max-width: 1780px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0.65rem 1.25rem 3rem;
+}
 
-/* ---------- Floating dock ---------- */
-#dock-bar {
-    position: fixed;
-    left: 50%;
-    bottom: 1rem;
-    z-index: 800;
-    display: flex;
+body.studio-v4 .site-header {
+    max-width: 1780px;
+    margin: 0 auto;
+    padding: 0.75rem 1.25rem;
+}
+
+body.studio-v4 .disclaimer {
+    max-width: 1780px;
+    margin: 0.35rem auto 0.25rem;
+    padding: 0.35rem 1.25rem;
+    font-size: 0.78rem;
+}
+
+/* ---------- 1. Top Command & Live KPI Bar ---------- */
+.studio-command-bar {
+    position: sticky;
+    top: 0.5rem;
+    z-index: 600;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
     align-items: center;
-    gap: 0.4rem;
-    max-width: calc(100vw - 1.5rem);
-    padding: 0.45rem 0.55rem;
+    gap: 0.85rem;
+    margin-bottom: 1rem;
+    padding: 0.65rem 0.9rem;
     border: 1px solid var(--border-strong);
     border-radius: 18px;
-    background: color-mix(in srgb, var(--surface) 92%, transparent);
-    backdrop-filter: blur(12px);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 14px 40px rgba(0, 0, 0, 0.35);
-    overflow-x: auto;
-    scrollbar-width: none;
-    transform: translateX(-50%);
-    animation: dock-in 0.35s ease;
-}
-#dock-bar::-webkit-scrollbar { display: none; }
-@keyframes dock-in {
-    from { opacity: 0; transform: translate(-50%, 16px); }
+    background: color-mix(in srgb, var(--surface) 90%, transparent);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-.dock-btn {
-    display: inline-flex;
+.scb-controls {
+    display: flex;
     align-items: center;
-    gap: 0.4rem;
-    min-height: 38px;
-    padding: 0.3rem 0.8rem;
-    border: 1px solid transparent;
-    border-radius: 12px;
-    background: transparent;
-    color: var(--text-muted);
+    gap: 0.75rem;
+    padding-right: 0.85rem;
+    border-right: 1px solid var(--border);
+}
+
+.scb-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.22rem;
+}
+
+.scb-label {
     font-family: var(--font-display);
-    font-size: 0.88rem;
-    font-weight: 600;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
     white-space: nowrap;
-    cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-}
-.dock-btn:hover:not(:disabled) { background: var(--surface-raised); color: var(--text); }
-.dock-btn.active {
-    background: color-mix(in srgb, var(--accent) 16%, transparent);
-    border-color: color-mix(in srgb, var(--accent) 45%, transparent);
-    color: var(--text);
-}
-.dock-btn.primary { background: var(--accent); color: var(--on-accent); font-weight: 800; }
-.dock-btn.primary:hover:not(:disabled) { background: var(--accent-hover); color: var(--on-accent); }
-.dock-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-.dock-icon { font-size: 1rem; line-height: 1; filter: grayscale(1); opacity: 0.85; }
-.dock-btn.active .dock-icon, .dock-btn:hover .dock-icon { opacity: 1; }
-.dock-btn.primary .dock-icon { filter: none; }
-
-.dock-sep {
-    flex: 0 0 1px;
-    align-self: stretch;
-    margin: 0.2rem 0.15rem;
-    background: var(--border-strong);
 }
 
-.dock-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    max-width: 18rem;
-    padding: 0.3rem 0.85rem;
+.scb-select {
+    min-width: 115px;
+    height: 36px;
+    padding: 0 0.65rem;
+    border: 1px solid var(--border-strong);
     border-radius: 10px;
     background: var(--surface-2);
     color: var(--text);
     font-family: var(--font-display);
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     font-weight: 700;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+.scb-select:hover,
+.scb-select:focus {
+    border-color: var(--accent);
+    outline: none;
+}
+
+.scb-seg {
+    display: inline-flex;
+    padding: 3px;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: var(--bg-deep);
+    gap: 3px;
+}
+
+.scb-seg-btn {
+    height: 30px;
+    padding: 0 0.65rem;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.scb-seg-btn:hover {
+    color: var(--text);
+}
+.scb-seg-btn.active {
+    background: var(--accent);
+    color: var(--on-accent);
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+/* ---------- 4 Live KPI Cards ---------- */
+.scb-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.55rem;
+}
+
+.scb-kpi {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.45rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--surface-2) 75%, transparent);
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.14s ease, border-color 0.14s ease, background 0.14s ease;
+    min-width: 0;
+}
+.scb-kpi:hover {
+    transform: translateY(-1px);
+    border-color: var(--accent);
+    background: var(--surface-raised);
+}
+
+.scb-kpi-icon {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    font-size: 1.05rem;
+    flex-shrink: 0;
+}
+
+.scb-kpi-body {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}
+
+.scb-kpi-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--text-muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.dock-chip:empty { display: none; }
-.dock-chip.busy { color: var(--accent); }
-.dock-chip.busy::before {
-    content: '';
-    flex: 0 0 auto;
-    width: 0.8rem;
-    height: 0.8rem;
-    border: 2px solid var(--accent);
-    border-top-color: transparent;
+
+.scb-kpi-value {
+    font-family: 'JetBrains Mono', var(--font-display);
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.25;
+}
+
+.scb-kpi-sub {
+    font-size: 0.68rem;
+    color: var(--accent);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ---------- Right Action / Auto-Sync Button ---------- */
+.scb-actions {
+    display: flex;
+    align-items: center;
+}
+
+.scb-solve-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 42px;
+    padding: 0 1rem;
+    border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent-cool) 65%, var(--accent)));
+    color: var(--on-accent);
+    font-family: var(--font-display);
+    font-size: 0.84rem;
+    font-weight: 800;
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 28%, transparent);
+    transition: transform 0.14s ease, filter 0.14s ease, box-shadow 0.14s ease;
+}
+.scb-solve-btn:hover {
+    filter: brightness(1.07);
+    transform: translateY(-1px);
+}
+.scb-solve-btn.is-solving {
+    background: var(--surface-2);
+    color: var(--accent-warm);
+    border-color: var(--accent-warm);
+}
+
+.scb-solve-dot {
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
-    animation: step-spin 0.8s linear infinite;
+    background: currentColor;
+    box-shadow: 0 0 8px currentColor;
+}
+.scb-solve-btn.is-solving .scb-solve-dot {
+    animation: step-spin 0.9s linear infinite;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    background: transparent;
+    width: 11px;
+    height: 11px;
 }
 
-/* ---------- Backdrop ---------- */
-#panel-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 850;
-    background: rgba(8, 10, 13, 0.5);
-    backdrop-filter: blur(2px);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.25s ease;
+/* ---------- 2. Split-Screen Studio Grid ---------- */
+.studio-split-grid {
+    display: grid;
+    grid-template-columns: minmax(480px, 55%) minmax(420px, 45%);
+    gap: 1.15rem;
+    align-items: start;
+    width: 100%;
 }
-#panel-backdrop.show { opacity: 1; pointer-events: auto; }
 
-/* ---------- Drawers ---------- */
-.card.panel-drawer {
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: auto;
-    z-index: 900;
-    width: min(560px, 94vw);
-    height: 100dvh;
-    max-height: 100dvh;
+.studio-left-pane {
+    position: sticky;
+    top: 5.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+}
+
+.studio-left-pane #layout-card {
     margin: 0;
-    padding-top: calc(1.25rem + 3px);
-    border-width: 0 0 0 1px;
-    border-radius: 20px 0 0 20px;
-    overflow-x: hidden;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    box-shadow: -16px 0 48px rgba(0, 0, 0, 0.35);
-    transform: translateX(104%);
-    visibility: hidden;
-    transition: transform 0.3s cubic-bezier(.2, .8, .25, 1), visibility 0s linear 0.3s;
-}
-.card.panel-drawer.panel-left {
-    right: auto;
-    left: 0;
-    width: min(700px, 96vw);
-    border-width: 0 1px 0 0;
-    border-radius: 0 20px 20px 0;
-    box-shadow: 16px 0 48px rgba(0, 0, 0, 0.35);
-    transform: translateX(-104%);
-}
-.card.panel-drawer.panel-open {
-    transform: none;
-    visibility: visible;
-    transition: transform 0.3s cubic-bezier(.2, .8, .25, 1), visibility 0s;
+    padding: 1.1rem 1.25rem;
 }
 
-#facility-plan-card.panel-drawer { width: min(920px, 96vw); }
-#rate-card.panel-drawer { width: min(840px, 96vw); }
-#profit-card.panel-drawer { width: min(800px, 96vw); }
-#seed-card.panel-drawer { width: min(780px, 96vw); }
-#aniimo-card.panel-drawer { width: min(740px, 96vw); }
-#goal-section.panel-drawer { width: min(660px, 96vw); }
-#improve-card.panel-drawer { width: min(720px, 96vw); }
+.studio-left-pane #layout-card .layout-diagram {
+    min-height: clamp(420px, 58vh, 680px);
+    max-height: 70vh;
+}
 
-#results-content > .card.panel-drawer { grid-column: auto; }
+.studio-left-pane #rate-card {
+    margin: 0;
+    padding: 1.1rem 1.25rem;
+}
 
+/* ---------- 3. Right Tabbed Dock ---------- */
+.studio-right-pane {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    min-width: 0;
+}
+
+.studio-tab-bar {
+    position: sticky;
+    top: 5.5rem;
+    z-index: 450;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.35rem;
+    padding: 0.4rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+}
+
+.studio-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-height: 40px;
+    padding: 0.35rem 0.55rem;
+    border: 1px solid transparent;
+    border-radius: 11px;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-display);
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    min-width: 0;
+}
+.studio-tab-btn:hover {
+    background: var(--surface-2);
+    color: var(--text);
+}
+.studio-tab-btn.active {
+    background: color-mix(in srgb, var(--accent) 16%, var(--surface-2));
+    border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+    color: var(--text);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.studio-tab-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.studio-tab-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.studio-tab-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 19px;
+    padding: 0 0.38rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-family: 'JetBrains Mono', var(--font-display);
+    font-size: 0.7rem;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.studio-tab-viewport {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+}
+
+.studio-tab-viewport > .card {
+    margin: 0;
+}
+
+/* Tab visibility filtering */
+.studio-right-pane [data-studio-tab] {
+    display: none !important;
+}
+.studio-right-pane[data-active-tab="workforce"] [data-studio-tab="workforce"],
+.studio-right-pane[data-active-tab="production"] [data-studio-tab="production"],
+.studio-right-pane[data-active-tab="goals"] [data-studio-tab="goals"],
+.studio-right-pane[data-active-tab="config"] [data-studio-tab="config"] {
+    display: block !important;
+    animation: studio-tab-fade 0.2s ease-out;
+}
+
+@keyframes studio-tab-fade {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Keep drawer header classes for #facility-detail-drawer */
 .panel-head { display: none; }
 .panel-drawer > .panel-head {
     position: sticky;
@@ -201,41 +428,47 @@ body.panel-lock { overflow: hidden; }
 }
 .panel-close:hover { background: var(--surface-raised); color: var(--text); transform: none; }
 
-/* ---------- The map takes the stage ---------- */
-body.has-results #layout-card { padding-bottom: 1.75rem; }
-body.has-results #layout-card .layout-diagram { min-height: min(78vh, 860px); }
-body.has-results #layout-card .layout-svg { min-width: 0; }
-
-/* ---------- Small screens: bottom sheets ---------- */
-@media (max-width: 760px) {
-    .card.panel-drawer,
-    .card.panel-drawer.panel-left,
-    #facility-plan-card.panel-drawer,
-    #profit-card.panel-drawer,
-    #aniimo-card.panel-drawer,
-    #rate-card.panel-drawer,
-    #goal-section.panel-drawer,
-    #seed-card.panel-drawer,
-    #improve-card.panel-drawer {
-        top: auto;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        width: 100vw;
-        height: 88dvh;
-        max-height: 88dvh;
-        border-width: 1px 0 0 0;
-        border-radius: 20px 20px 0 0;
-        box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.35);
-        transform: translateY(104%);
+/* Responsive Breakpoints */
+@media (max-width: 1260px) {
+    .studio-command-bar {
+        grid-template-columns: 1fr auto;
     }
-    .card.panel-drawer.panel-open { transform: none; }
-    #dock-bar { bottom: 0.6rem; gap: 0.2rem; }
-    .dock-label { display: none; }
-    .dock-btn { padding: 0.3rem 0.65rem; }
-    .dock-btn.primary .dock-label { display: inline; }
-    .dock-chip { max-width: 9rem; font-size: 0.82rem; }
+    .scb-kpis {
+        grid-column: 1 / -1;
+        order: 3;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
+
+@media (max-width: 1080px) {
+    .studio-split-grid {
+        grid-template-columns: 1fr;
+    }
+    .studio-left-pane {
+        position: static;
+    }
+    .studio-tab-bar {
+        top: 0.5rem;
+    }
+    .studio-command-bar {
+        position: static;
+    }
+}
+
+@media (max-width: 640px) {
+    .scb-controls {
+        flex-wrap: wrap;
+        border-right: 0;
+        padding-right: 0;
+    }
+    .scb-kpis {
+        grid-template-columns: 1fr 1fr;
+    }
+    .studio-tab-label {
+        font-size: 0.74rem;
+    }
+}
+
 
 /* ---------- Table & content containment inside drawers ---------- */
 #level-up-lines,

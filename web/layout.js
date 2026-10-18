@@ -134,6 +134,7 @@ export function layOut(pieces, options = {}) {
                 if (firstFit === null) firstFit = distance;
                 let contact = 0;
                 let sameFacContact = 0;
+                let rowAlign = 0;
                 const myFac = shape.members[0]?.facility;
                 for (const r of rects) {
                     for (const [key, otherList] of placedRects) {
@@ -142,7 +143,12 @@ export function layOut(pieces, options = {}) {
                             const cl = contactLength(r, o);
                             if (cl > 0) {
                                 contact += cl;
-                                if (myFac && otherFac && myFac === otherFac) sameFacContact += cl;
+                                if (myFac && otherFac && myFac === otherFac) {
+                                    sameFacContact += cl;
+                                    if (Math.abs(r.x - o.x) < 0.01 || Math.abs(r.y - o.y) < 0.01) {
+                                        rowAlign += cl;
+                                    }
+                                }
                             }
                         }
                     }
@@ -150,7 +156,7 @@ export function layOut(pieces, options = {}) {
                 const cost = shape.members.reduce((sum, m) => sum + m.weight * centerDistance(m, x, y), 0)
                     // Pieces nobody visits still go as close as they can, to keep the homeland tight.
                     + EPSILON * Math.hypot(shape.cx + x, shape.cy + y)
-                    - contact * 0.10 - sameFacContact * 0.30;
+                    - contact * 0.12 - sameFacContact * 0.35 - rowAlign * 0.25;
                 if (!best || cost < best.cost - EPSILON) best = { cost, x, y, shape, rects, sensitive: touchy };
             }
         }
@@ -316,6 +322,11 @@ export function layOutHomeland(pieces, cells, storage = { w: 2, h: 2 }, storageC
     // Distribute up to targetStorageCount storage units across the homeland plots
     const storages = distributeStorageUnits(primaryStorage, placedPieces, cells, targetStorageCount, storage);
 
+    // Re-assign identical-footprint slots across clusters and rigid pieces to minimize distance to nearest Storage Unit
+    if (storages.length > 1) {
+        optimizeMultiHubAssignments(placedPieces, storages);
+    }
+
     return {
         ...out,
         tried,
@@ -324,6 +335,70 @@ export function layOutHomeland(pieces, cells, storage = { w: 2, h: 2 }, storageC
         storages,
         pieces: placedPieces,
     };
+}
+
+function nearestStorageDistance(rect, storages) {
+    const cx = rect.x + rect.w / 2;
+    const cy = rect.y + rect.h / 2;
+    let best = Infinity;
+    for (const s of storages) {
+        const d = Math.hypot(cx - (s.x + s.w / 2), cy - (s.y + s.h / 2));
+        if (d < best) best = d;
+    }
+    return best;
+}
+
+function optimizeMultiHubAssignments(placedPieces, storages) {
+    // 1. Within each cluster, assign busiest plots to slots nearest any Storage Unit
+    for (const p of placedPieces) {
+        if (!p.cluster || !p.members?.length) continue;
+        const bCount = p.buildings?.length || 0;
+        const plotGroups = new Map();
+        for (let j = bCount; j < p.members.length; j++) {
+            const m = p.members[j];
+            const key = `${m.facility || ''}|${m.zone ?? 0}|${m.w}x${m.h}`;
+            if (!plotGroups.has(key)) plotGroups.set(key, []);
+            plotGroups.get(key).push(j);
+        }
+        for (const indices of plotGroups.values()) {
+            if (indices.length < 2) continue;
+            const coords = indices
+                .map(idx => ({ x: p.members[idx].x, y: p.members[idx].y, dist: nearestStorageDistance(p.members[idx], storages) }))
+                .sort((a, b) => a.dist - b.dist);
+            const byWeight = [...indices].sort((a, b) => (p.members[b].weight || 0) - (p.members[a].weight || 0));
+            byWeight.forEach((memberIdx, rank) => {
+                p.members[memberIdx].x = coords[rank].x;
+                p.members[memberIdx].y = coords[rank].y;
+            });
+        }
+    }
+
+    // 2. Across single-member rigid pieces of identical facility, size, and sensitivity, assign busiest to nearest Storage Unit
+    const rigidGroups = new Map();
+    placedPieces.forEach((p, idx) => {
+        if (p.cluster || !p.members || p.members.length !== 1) return;
+        const m = p.members[0];
+        if (m.building || m.isGenerator || m.isPowerPole) return;
+        const key = `${m.facility || ''}|${m.w}x${m.h}|${Boolean(m.sensitive)}`;
+        if (!rigidGroups.has(key)) rigidGroups.set(key, []);
+        rigidGroups.get(key).push(idx);
+    });
+    for (const pieceIndices of rigidGroups.values()) {
+        if (pieceIndices.length < 2) continue;
+        const slots = pieceIndices
+            .map(i => {
+                const m = placedPieces[i].members[0];
+                return { x: m.x, y: m.y, w: m.w, h: m.h, dist: nearestStorageDistance(m, storages) };
+            })
+            .sort((a, b) => a.dist - b.dist);
+        const byWeight = [...pieceIndices].sort((a, b) => (placedPieces[b].members[0].weight || 0) - (placedPieces[a].members[0].weight || 0));
+        byWeight.forEach((pIdx, rank) => {
+            placedPieces[pIdx].members[0].x = slots[rank].x;
+            placedPieces[pIdx].members[0].y = slots[rank].y;
+            placedPieces[pIdx].members[0].w = slots[rank].w;
+            placedPieces[pIdx].members[0].h = slots[rank].h;
+        });
+    }
 }
 
 // Distributes up to `targetCount` Storage Units (2x2 tiles each) across the homeland.

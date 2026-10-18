@@ -1,74 +1,74 @@
 /* ==========================================================================
-   HOMELAND ATLAS — calm redesign (v3)
-   Loaded AFTER style.css; restyles only, no markup/JS contract changes.
-   Look: quiet charcoal / warm paper, hairline borders, soft shadows, muted accents.
+   HOMELAND STUDIO — Modern Game Command Center (v4.0)
+   Loaded AFTER style.css; high-clarity tactical command deck with glassmorphic
+   surfaces, crisp tabular telemetry, and full Dark / Light mode support.
    ========================================================================== */
 
 /* ---------- Tokens ---------- */
 :root {
-    --font-display: 'Nunito', 'Noto Sans Thai', 'Plus Jakarta Sans', system-ui, sans-serif;
-    --font-body: 'Nunito', 'Noto Sans Thai', 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-display: 'Plus Jakarta Sans', 'Nunito', 'Noto Sans Thai', system-ui, sans-serif;
+    --font-body: 'Plus Jakarta Sans', 'Nunito', 'Noto Sans Thai', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-    /* muted tones used for card accents and categories */
-    --coral: #c98f74;   /* clay  */
-    --sun: #c9b26b;     /* sand  */
-    --mint: #7fb39a;    /* sage  */
-    --sky: #7b9cc4;     /* slate */
-    --lilac: #9a8fc2;   /* dusk  */
-    --pink: #b98aa3;    /* rose  */
+    /* Tactical accent palette */
+    --coral: #f97316;
+    --sun: #f59e0b;
+    --mint: #10b981;
+    --sky: #38bdf8;
+    --lilac: #a78bfa;
+    --pink: #f472b6;
 
-    /* dark: neutral charcoal */
-    --bg: #14171c;
-    --bg-deep: #0f1215;
-    --surface: #1b2027;
-    --surface-2: #232a33;
-    --surface-raised: #2b333e;
-    --surface-card-hover: #262d37;
-    --text: #e8ebef;
-    --text-muted: #9aa3ae;
-    --border: rgba(255, 255, 255, 0.08);
-    --border-strong: rgba(255, 255, 255, 0.16);
-    --outline: rgba(255, 255, 255, 0.14);
-    --ink: #0f1215;
+    /* Dark: Deep Sci-Fi Command Deck */
+    --bg: #0b0f17;
+    --bg-deep: #070a10;
+    --surface: #121824;
+    --surface-2: #182130;
+    --surface-raised: #202c40;
+    --surface-card-hover: #1b2537;
+    --text: #f1f5f9;
+    --text-muted: #94a3b8;
+    --border: rgba(148, 163, 184, 0.12);
+    --border-strong: rgba(56, 189, 248, 0.22);
+    --outline: rgba(56, 189, 248, 0.18);
+    --ink: #070a10;
 
-    --accent: #5fb3a1;
-    --accent-hover: #74c4b2;
-    --accent-warm: #c9b26b;
-    --accent-cool: #7b9cc4;
-    --gold-electric: #c9b26b;
-    --on-accent: #0f1a17;
-    --success: #6fbf8f;
-    --error: #e08585;
-    --warning: #d1a954;
+    --accent: #14b8a6;
+    --accent-hover: #2dd4bf;
+    --accent-warm: #f59e0b;
+    --accent-cool: #38bdf8;
+    --gold-electric: #fbbf24;
+    --on-accent: #041311;
+    --success: #10b981;
+    --error: #f87171;
+    --warning: #f59e0b;
 
-    --radius: 20px;
+    --radius: 18px;
     --radius-small: 12px;
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 10px 30px rgba(0, 0, 0, 0.22);
+    --shadow: 0 2px 4px rgba(0, 0, 0, 0.35), 0 12px 32px rgba(0, 0, 0, 0.32);
     --tone: var(--mint);
 }
 
 .light {
-    --bg: #f4f1ea;
-    --bg-deep: #ebe7de;
+    --bg: #f1f5f9;
+    --bg-deep: #e2e8f0;
     --surface: #ffffff;
-    --surface-2: #f7f4ee;
+    --surface-2: #f8fafc;
     --surface-raised: #ffffff;
-    --surface-card-hover: #faf8f3;
-    --text: #23262b;
-    --text-muted: #6a707a;
-    --border: rgba(35, 38, 43, 0.09);
-    --border-strong: rgba(35, 38, 43, 0.2);
-    --outline: rgba(35, 38, 43, 0.16);
-    --ink: #23262b;
+    --surface-card-hover: #f1f5f9;
+    --text: #0f172a;
+    --text-muted: #475569;
+    --border: rgba(15, 23, 42, 0.09);
+    --border-strong: rgba(13, 148, 136, 0.24);
+    --outline: rgba(15, 23, 42, 0.16);
+    --ink: #0f172a;
 
-    --accent: #2f7d6d;
-    --accent-hover: #26695b;
+    --accent: #0d9488;
+    --accent-hover: #0f766e;
     --on-accent: #ffffff;
-    --accent-cool: #4c78a8;
-    --success: #2f8f5b;
-    --error: #c24b4b;
-    --warning: #a87a14;
-    --shadow: 0 1px 2px rgba(35, 38, 43, 0.06), 0 8px 24px rgba(35, 38, 43, 0.08);
+    --accent-cool: #0284c7;
+    --success: #059669;
+    --error: #dc2626;
+    --warning: #d97706;
+    --shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.08);
 }
 
 /* ---------- Base ---------- */
@@ -77,7 +77,10 @@ html { background: var(--bg); }
 body {
     font-family: var(--font-body);
     background-color: var(--bg);
-    background-image: none;
+    background-image:
+        radial-gradient(ellipse 80% 45% at 50% -10%, color-mix(in srgb, var(--accent) 12%, transparent), transparent),
+        radial-gradient(ellipse 60% 40% at 85% 5%, color-mix(in srgb, var(--accent-cool) 8%, transparent), transparent);
+    background-attachment: fixed;
 }
 body::before { content: none; }
 
