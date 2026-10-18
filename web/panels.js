@@ -98,143 +98,208 @@
     `;
     containerEl.insertBefore(commandBar, mainEl);
 
-    // --- 2. Build Split-Screen Studio DOM Structure ----------------------------
+    // --- 2. Giant Full-Width Map Hero + Collapsed Section Drawers --------------
     const studioGrid = document.createElement('div');
     studioGrid.id = 'studio-split-grid';
-    studioGrid.className = 'studio-split-grid';
+    studioGrid.className = 'studio-split-grid studio-map-first';
 
-    // Left Pane: Persistent Map + Rate Breakdown
-    const leftPane = document.createElement('div');
-    leftPane.id = 'studio-left-pane';
-    leftPane.className = 'studio-left-pane';
+    // Top Hero Pane: Full-Width Giant "แปลงที่ดินทั้งหมด" Map
+    const mapHeroPane = document.createElement('div');
+    mapHeroPane.id = 'studio-left-pane';
+    mapHeroPane.className = 'studio-map-hero-pane';
 
-    // Right Pane: Sticky Tab Bar + Tab Panels
-    const rightPane = document.createElement('div');
-    rightPane.id = 'studio-right-pane';
-    rightPane.className = 'studio-right-pane';
-
-    const tabBar = document.createElement('nav');
-    tabBar.id = 'studio-tab-bar';
-    tabBar.className = 'studio-tab-bar';
-    tabBar.setAttribute('role', 'tablist');
-    tabBar.setAttribute('aria-label', 'หมวดหมู่ข้อมูลและการตั้งค่า');
-
-    const TABS = [
-        { key: 'workforce',  icon: '🐾', label: 'ทีมแอนิโม & 13 สาย', badgeId: 'tab-badge-workforce' },
-        { key: 'production', icon: '🏭', label: 'สายการผลิต & เมล็ด', badgeId: 'tab-badge-production' },
-        { key: 'goals',      icon: '🎯', label: 'เป้าหมาย & อัปเกรด', badgeId: 'tab-badge-goals' },
-        { key: 'config',     icon: '⚙️', label: 'ตั้งค่าบ้าน & สูตร', badgeId: 'tab-badge-config' },
-    ];
-
-    const tabButtons = new Map();
-    TABS.forEach(t => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'studio-tab-btn';
-        btn.dataset.tab = t.key;
-        btn.setAttribute('role', 'tab');
-        btn.setAttribute('aria-selected', 'false');
-        btn.innerHTML = `
-            <span class="studio-tab-icon" aria-hidden="true">${t.icon}</span>
-            <span class="studio-tab-label">${t.label}</span>
-            <span class="studio-tab-badge" id="${t.badgeId}" hidden></span>
-        `;
-        btn.addEventListener('click', () => selectTab(t.key));
-        tabButtons.set(t.key, btn);
-        tabBar.appendChild(btn);
-    });
-
-    const tabViewport = document.createElement('div');
-    tabViewport.id = 'studio-tab-viewport';
-    tabViewport.className = 'studio-tab-viewport';
-
-    // Move cards into their designated Split-Screen slots
-    // Left Pane gets layoutCard and rateCard
     if (layoutCard) {
         layoutCard.style.display = 'block';
-        leftPane.appendChild(layoutCard);
-    }
-    if (rateCard) {
-        leftPane.appendChild(rateCard);
+        // Add a fullscreen/theater toggle button to the map zoom controls
+        const zoomGroup = layoutCard.querySelector('.layout-zoom-controls');
+        if (zoomGroup && !$('layout-theater-btn')) {
+            const theaterBtn = document.createElement('button');
+            theaterBtn.type = 'button';
+            theaterBtn.className = 'map-control map-control-theater';
+            theaterBtn.id = 'layout-theater-btn';
+            theaterBtn.title = 'ขยาย/ย่อความสูงแผนผังแปลงที่ดิน';
+            theaterBtn.textContent = '⛶ ขยายเต็มจอ';
+            theaterBtn.addEventListener('click', () => {
+                const isTheater = layoutCard.classList.toggle('is-theater-map');
+                theaterBtn.textContent = isTheater ? '✕ ย่อขนาด' : '⛶ ขยายเต็มจอ';
+                const fitBtn = $('layout-zoom-fit');
+                if (fitBtn) setTimeout(() => fitBtn.click(), 60);
+            });
+            zoomGroup.appendChild(theaterBtn);
+        }
+        mapHeroPane.appendChild(layoutCard);
     }
 
-    // Right Pane gets error-message, solve-progress, progress-bar, and all tabbed cards inside #results-content
+    // Bottom Collapsible Sections Container (all collapsed by default!)
+    const drawersPane = document.createElement('div');
+    drawersPane.id = 'studio-right-pane';
+    drawersPane.className = 'studio-drawers-pane';
+
+    // Status & Error/Progress container above drawers
+    const statusArea = document.createElement('div');
+    statusArea.id = 'studio-tab-viewport';
+    statusArea.className = 'studio-status-area';
     const errorEl = $('error-message');
     const solveProgress = $('solve-progress');
     const progressBarContainer = $('progress-bar-container');
     const progressBarCaption = $('progress-bar-caption');
-    if (errorEl) tabViewport.appendChild(errorEl);
-    if (solveProgress) tabViewport.appendChild(solveProgress);
-    if (progressBarContainer) tabViewport.appendChild(progressBarContainer);
-    if (progressBarCaption) tabViewport.appendChild(progressBarCaption);
+    if (errorEl) statusArea.appendChild(errorEl);
+    if (solveProgress) statusArea.appendChild(solveProgress);
+    if (progressBarContainer) statusArea.appendChild(progressBarContainer);
+    if (progressBarCaption) statusArea.appendChild(progressBarCaption);
+    mapHeroPane.insertBefore(statusArea, layoutCard);
 
-    // Tag each card with its tab group
-    if (aniimoCard) {
-        aniimoCard.dataset.studioTab = 'workforce';
-        tabViewport.appendChild(aniimoCard);
-    }
-    if (planCard) {
-        planCard.dataset.studioTab = 'production';
-        tabViewport.appendChild(planCard);
-    }
-    if (seedCard) {
-        seedCard.dataset.studioTab = 'production';
-        tabViewport.appendChild(seedCard);
-    }
-    if (profitCard) {
-        profitCard.dataset.studioTab = 'production';
-        tabViewport.appendChild(profitCard);
-    }
-    if (improveCard) {
-        improveCard.dataset.studioTab = 'goals';
-        tabViewport.appendChild(improveCard);
-    }
-    if (goalSection) {
-        goalSection.dataset.studioTab = 'goals';
-        tabViewport.appendChild(goalSection);
-    }
-    if (config) {
-        config.dataset.studioTab = 'config';
-        tabViewport.appendChild(config);
-    }
+    // Quick header bar to Collapse All / Expand All other sections
+    const drawersBar = document.createElement('div');
+    drawersBar.id = 'studio-tab-bar';
+    drawersBar.className = 'studio-drawers-header';
+    drawersBar.innerHTML = `
+        <div class="sdh-title">
+            <span>📑 รายละเอียดแผนการผลิตและการตั้งค่า (พับเก็บไว้เพื่อให้แปลงที่ดินแสดงผลขนาดใหญ่)</span>
+        </div>
+        <div class="sdh-actions">
+            <button type="button" class="sdh-btn" id="studio-expand-all-btn">📂 กางดูทั้งหมด</button>
+            <button type="button" class="sdh-btn" id="studio-collapse-all-btn">📁 พับเก็บทั้งหมด</button>
+        </div>
+    `;
+    drawersPane.appendChild(drawersBar);
 
-    rightPane.appendChild(tabBar);
-    rightPane.appendChild(tabViewport);
+    const DRAWER_SPECS = [
+        {
+            key: 'rate',
+            icon: '⏱',
+            title: 'สรุปเวลาอัปเลเวล RV & อัตราการผลิต (Rate & Level-Up Summary)',
+            badgeId: 'tab-badge-rate',
+            cards: [rateCard],
+        },
+        {
+            key: 'workforce',
+            icon: '🐾',
+            title: 'ทีมแอนิโม & ความสามารถของบ้าน 13 สาย (Aniimo Workforce & 13 Abilities)',
+            badgeId: 'tab-badge-workforce',
+            cards: [aniimoCard],
+        },
+        {
+            key: 'production',
+            icon: '🏭',
+            title: 'คำสั่งงานสิ่งปลูกสร้าง, เมล็ดพันธุ์ & กำไรรายชิ้น (Facilities & Seeds)',
+            badgeId: 'tab-badge-production',
+            cards: [planCard, seedCard, profitCard],
+        },
+        {
+            key: 'goals',
+            icon: '🎯',
+            title: 'เป้าหมายการผลิต & โอกาสอัปเกรด (Goals & Upgrade Opportunities)',
+            badgeId: 'tab-badge-goals',
+            cards: [improveCard, goalSection],
+        },
+        {
+            key: 'config',
+            icon: '⚙️',
+            title: 'ตั้งค่าบ้าน (RV), สต็อกวัตถุดิบ & สูตรอาหาร (Homeland & Recipe Setup)',
+            badgeId: 'tab-badge-config',
+            cards: [config],
+        },
+    ];
+
+    const drawerMap = new Map();
+    DRAWER_SPECS.forEach(spec => {
+        const details = document.createElement('details');
+        details.className = 'studio-drawer';
+        details.id = `studio-drawer-${spec.key}`;
+        details.dataset.drawerKey = spec.key;
+        // Explicitly closed by default so only the giant map is expanded!
+        details.open = false;
+
+        const summary = document.createElement('summary');
+        summary.className = 'studio-drawer-summary';
+        summary.innerHTML = `
+            <div class="sds-left">
+                <span class="sds-chevron" aria-hidden="true">▸</span>
+                <span class="sds-icon" aria-hidden="true">${spec.icon}</span>
+                <span class="sds-title">${spec.title}</span>
+            </div>
+            <div class="sds-right">
+                <span class="studio-tab-badge" id="${spec.badgeId}" hidden></span>
+                <span class="sds-hint">คลิกเพื่อเปิด/พับ</span>
+            </div>
+        `;
+
+        const body = document.createElement('div');
+        body.className = 'studio-drawer-body';
+
+        spec.cards.forEach(c => {
+            if (c) body.appendChild(c);
+        });
+
+        details.appendChild(summary);
+        details.appendChild(body);
+        drawersPane.appendChild(details);
+        drawerMap.set(spec.key, details);
+    });
+
+    // Also ensure all inner <details> inside cards start collapsed
+    document.querySelectorAll('.explain').forEach(d => {
+        d.open = false;
+    });
 
     // Keep #results-content wrapping the studioGrid so app.js selectors remain 100% valid
     results.style.display = 'block';
     content.style.display = 'block';
-    studioGrid.appendChild(leftPane);
-    studioGrid.appendChild(rightPane);
+    studioGrid.appendChild(mapHeroPane);
+    studioGrid.appendChild(drawersPane);
     content.appendChild(studioGrid);
     mainEl.appendChild(results);
 
-    // --- 3. Tab Switching Logic ------------------------------------------------
-    let activeTab = 'workforce';
+    // Trigger map re-fit once the full-width layout settles
+    setTimeout(() => {
+        const fitBtn = $('layout-zoom-fit');
+        if (fitBtn) fitBtn.click();
+    }, 120);
 
-    function selectTab(tabKey) {
-        activeTab = tabKey;
-        rightPane.dataset.activeTab = tabKey;
-        tabButtons.forEach((btn, key) => {
-            const isSelected = key === tabKey;
-            btn.classList.toggle('active', isSelected);
-            btn.setAttribute('aria-selected', String(isSelected));
-        });
+    // --- 3. Drawer Opening / Collapsing Logic ----------------------------------
+    function openDrawer(key, scroll = true) {
+        const d = drawerMap.get(key);
+        if (!d) return;
+        d.open = true;
+        if (scroll) {
+            d.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     }
 
-    // Default to workforce tab
-    selectTab('workforce');
+    function collapseAllDrawers() {
+        drawerMap.forEach(d => { d.open = false; });
+    }
 
-    // Wire KPI buttons to switch tabs or fit map
+    function expandAllDrawers() {
+        drawerMap.forEach(d => { d.open = true; });
+    }
+
+    $('studio-collapse-all-btn')?.addEventListener('click', () => {
+        collapseAllDrawers();
+        mapHeroPane.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const fitBtn = $('layout-zoom-fit');
+        if (fitBtn) setTimeout(() => fitBtn.click(), 80);
+    });
+
+    $('studio-expand-all-btn')?.addEventListener('click', () => {
+        expandAllDrawers();
+    });
+
+    // Wire KPI buttons: KPI 1 opens Rate drawer, KPI 2 opens Workforce, KPI 3 opens Production, KPI 4 collapses all & focuses Giant Map
+    const kpiRateBtn = $('kpi-btn-rate');
+    if (kpiRateBtn) kpiRateBtn.dataset.targetTab = 'rate';
+
     commandBar.querySelectorAll('.scb-kpi').forEach(btn => {
         btn.addEventListener('click', () => {
             const target = btn.dataset.targetTab;
             if (target === 'map-focus') {
+                collapseAllDrawers();
                 const fitBtn = $('layout-zoom-fit');
                 if (fitBtn) fitBtn.click();
-                leftPane.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                mapHeroPane.scrollIntoView({ behavior: 'smooth', block: 'start' });
             } else if (target) {
-                selectTab(target);
+                openDrawer(target, true);
             }
         });
     });
@@ -333,7 +398,8 @@
         const kpiRateLabel = $('kpi-rate-label');
         const kpiRateVal = $('kpi-rate-val');
         const kpiRateSub = $('kpi-rate-sub');
-        const isLuVisible = luCard && getComputedStyle(luCard).display !== 'none';
+        const tabBadgeRate = $('tab-badge-rate');
+        const isLuVisible = luCard && luCard.style.display !== 'none';
 
         if (isLuVisible) {
             const luTime = ($('level-up-time')?.textContent || '').trim();
@@ -342,6 +408,11 @@
             if (kpiRateLabel) kpiRateLabel.textContent = luLabel;
             if (kpiRateVal) kpiRateVal.textContent = luTime && luTime !== '-' ? luTime : 'กำลังคำนวณ...';
             if (kpiRateSub) kpiRateSub.textContent = 'เวลาเร็วที่สุดในการอัปเลเวล RV';
+            if (tabBadgeRate) {
+                const hasLu = Boolean(luTime && luTime !== '-');
+                tabBadgeRate.textContent = hasLu ? `${luLabel}: ${luTime}` : '';
+                tabBadgeRate.hidden = !hasLu;
+            }
         } else {
             const prioRow = document.querySelector('#priority-rates tbody tr.top') || document.querySelector('#priority-rates tbody tr');
             const unitSel = $('rate-unit');
@@ -349,23 +420,30 @@
             if (prioRow && prioRow.cells && prioRow.cells.length >= 3) {
                 const prioLabel = (prioRow.cells[1]?.textContent || 'อัตราการผลิต').trim();
                 const prioVal = (prioRow.cells[2]?.textContent || '').trim();
+                const fullPrio = prioVal ? `${prioVal} ${unitText}`.trim() : '';
                 if (kpiRateIcon) kpiRateIcon.textContent = '🪙';
                 if (kpiRateLabel) kpiRateLabel.textContent = prioLabel;
-                if (kpiRateVal) kpiRateVal.textContent = prioVal ? `${prioVal} ${unitText}`.trim() : 'กำลังคำนวณ...';
+                if (kpiRateVal) kpiRateVal.textContent = fullPrio || 'กำลังคำนวณ...';
                 if (kpiRateSub) kpiRateSub.textContent = 'ผลผลิตสูงสุดตามลำดับความสำคัญ';
+                if (tabBadgeRate) {
+                    tabBadgeRate.textContent = fullPrio;
+                    tabBadgeRate.hidden = !fullPrio;
+                }
             } else {
                 const planRateEl = $('plan-rate');
                 const hasSkeleton = planRateEl && planRateEl.querySelector('.skeleton');
                 const rateText = hasSkeleton ? '' : (planRateEl?.textContent || '').trim();
+                const displayRate = rateText && rateText !== '-'
+                    ? (rateText.includes('/') ? rateText : `${rateText} ${unitText}`.trim())
+                    : '';
                 if (kpiRateIcon) kpiRateIcon.textContent = '🪙';
                 if (kpiRateLabel) kpiRateLabel.textContent = 'อัตราผลิตเหรียญบ้าน';
-                if (kpiRateVal) {
-                    const displayRate = rateText && rateText !== '-'
-                        ? (rateText.includes('/') ? rateText : `${rateText} ${unitText}`.trim())
-                        : 'กำลังคำนวณ...';
-                    kpiRateVal.textContent = displayRate;
-                }
+                if (kpiRateVal) kpiRateVal.textContent = displayRate || 'กำลังคำนวณ...';
                 if (kpiRateSub) kpiRateSub.textContent = 'รายได้สุทธิสูงสุดตามลำดับความสำคัญ';
+                if (tabBadgeRate) {
+                    tabBadgeRate.textContent = displayRate;
+                    tabBadgeRate.hidden = !displayRate;
+                }
             }
         }
 
