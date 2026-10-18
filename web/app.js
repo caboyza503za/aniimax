@@ -16,7 +16,16 @@ import {
     getBestAniimoForFacility, findAniimosByAbility, ALL_ANIIMOS, ABILITY_TH_MAP, PLOT_UNLOCK_INFO,
     HOMELAND_ABILITY_KEYS, HOMELAND_ABILITY_META, calculateHomelandDemands,
     calculateCurrentDistribution, findBestMultiSkillAniimos, isExcludedFromWorkforce,
+    resolveFacilityFamilySpec,
 } from './aniidex-data.js';
+
+// Facilities whose Aniimo lives there: every Aniimo Materials facility.
+const RESIDENT_FACILITIES = new Set(FACILITIES.filter(f => f.category === 'Aniimo Materials').map(f => f.name));
+
+// Processing facilities that do not have a worker personality bonus (use +40% per level above minLevel instead of 2.0 + above).
+const FACILITIES_WITHOUT_PERSONALITY = new Set(
+    FACILITIES.filter(f => f.hasWorker && !f.personality).map(f => f.name)
+);
 
 let wasmReady = false;
 
@@ -3277,9 +3286,6 @@ let lastBestTeam = null;
 function newRosterAniimo(abilities = {}, personalities = null) {
     return { name: '', count: 1, abilities, personalities: personalities || PERSONALITY_PAIRS.map(pair => pair.names[0]) };
 }
-
-// Facilities whose Aniimo lives there: every Aniimo Materials facility.
-const RESIDENT_FACILITIES = new Set(FACILITIES.filter(f => f.category === 'Aniimo Materials').map(f => f.name));
 
 // The roster for the solver (see `JsRoster` in wasm.rs).
 function rosterPayload() {
