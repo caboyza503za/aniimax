@@ -420,10 +420,10 @@ pub fn add_uncovered_variants(items: &mut Vec<ProductionItem>) {
         if item.workload.is_some() || item.production_time <= 0.0 {
             continue;
         }
-        let Some(efficiency) = uncovered_efficiency(environment) else { continue };
         let base_time = item.production_time;
         // Covered crops under matching environment grow at 120% speed (1.2x) in the game engine:
         item.production_time = base_time / ENVIRONMENT_MATCH_MULTIPLIER;
+        let Some(efficiency) = uncovered_efficiency(environment) else { continue };
         variants.push(ProductionItem {
             name: format!("{}{}", item.name, UNCOVERED_SUFFIX),
             production_time: base_time / efficiency,

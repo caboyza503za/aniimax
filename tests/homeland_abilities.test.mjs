@@ -140,3 +140,16 @@ test('isExcludedFromWorkforce identifies story characters and findAniimosByAbili
     assert.equal(foundHaulingStory.length, 0, 'No story characters in Hauling workers');
 });
 
+test('calculateHomelandDemands maps Phonolfactory Table to Perfumery and Dewy House to Leisure', () => {
+    const plan = {
+        coin_items: [
+            { facility: 'Phonolfactory Table', item_name: 'perfume', facility_count: 2 },
+            { facility: 'Dewy House', item_name: 'aromathyst', facility_count: 1 },
+        ]
+    };
+    const demands = calculateHomelandDemands(plan);
+    assert.equal(demands.Perfumery, 2);
+    assert.equal(demands.Leisure, 1);
+});
+
+

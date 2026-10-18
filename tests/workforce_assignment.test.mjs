@@ -173,3 +173,22 @@ test('Starfall Hammock (เปลดาวตก) requires squirrel family (ว�
     assert.equal(rec.name, 'กระรอกจ้าวเวหา');
 });
 
+test('Sunlamp recommended worker uses Light ability (ปลาดาวเรืองแสง) and Nikhahit+Sara Aa is normalized', () => {
+    const sunlampWorker = getBestAniimoForFacility('Sunlamp', 'Light', 1);
+    assert.ok(sunlampWorker);
+    assert.equal(sunlampWorker.name, 'ปลาดาวเรืองแสง');
+    assert.equal(sunlampWorker.ability, 'Light');
+
+    // Thai Nikhahit + Sara Aa (\u0e4d\u0e32) in บ้านนํ้าค้าง resolves to Dewy House
+    const nikhahitDewy = getBestAniimoForFacility('บ้านน\u0e4d\u0e49าค้าง', 'Leisure', 1);
+    assert.ok(nikhahitDewy);
+    assert.equal(nikhahitDewy.name, 'นกน้ำหอม');
+    assert.equal(nikhahitDewy.exclusive, true);
+
+    // 6xxxx / 9xxxx special IDs (e.g. ภูตไฟน้อย 69993) are excluded from workforce
+    assert.equal(isExcludedFromWorkforce({ name: 'ภูตไฟน้อย', id: '69993' }), true);
+    assert.equal(isExcludedFromWorkforce({ id: '6999301' }), true);
+    assert.equal(isExcludedFromWorkforce('ภูตไฟน้อย'), true);
+});
+
+

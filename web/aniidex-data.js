@@ -1088,12 +1088,12 @@ export const RECOMMENDED_WORKERS = {
     "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10131.webp"
   },
   "Sunlamp": {
-    "name": "หลอดไฟจิ๋ว",
-    "nameEn": "Bulbly",
-    "ability": "Lightning",
-    "abilityTh": "สายฟ้า",
+    "name": "ปลาดาวเรืองแสง",
+    "nameEn": "Lumistar",
+    "ability": "Light",
+    "abilityTh": "ส่องแสง",
     "level": 1,
-    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10141.webp"
+    "avatar": "https://aniidex.com/images/aniimo/UI_PetHead_10221.webp"
   }
 };
 
@@ -1180,7 +1180,7 @@ export const ANIMAL_MATERIAL_FAMILIES = {
 
 export function resolveFacilityFamilySpec(facilityName, item = null) {
     if (!facilityName) return null;
-    const lowerFac = String(facilityName).toLowerCase();
+    const lowerFac = String(facilityName).replace(/\u0e4d([\u0e48-\u0e4b]?)\u0e32/g, '$1\u0e33').toLowerCase();
     let facKey = null;
     if (lowerFac.includes('nimbus') || lowerFac.includes('เมฆฝน')) facKey = 'Nimbus Bed';
     else if (lowerFac.includes('sandcastle') || lowerFac.includes('ปราสาททราย') || lowerFac.includes('ประสาททราย')) facKey = 'Tidewhisper Sandcastle';
@@ -1193,7 +1193,7 @@ export function resolveFacilityFamilySpec(facilityName, item = null) {
     if (facConfig.default) return facConfig.default;
 
     if (item) {
-        const lowerItem = String(item).toLowerCase();
+        const lowerItem = String(item).replace(/\u0e4d([\u0e48-\u0e4b]?)\u0e32/g, '$1\u0e33').toLowerCase();
         if (facKey === 'Nimbus Bed') {
             if (lowerItem.includes('petal') || lowerItem.includes('กลีบ') || lowerItem.includes('ดอกไม้')) {
                 return facConfig['Petals'];
@@ -4498,9 +4498,10 @@ export const EXCLUDED_FROM_WORKFORCE = new Set([
     'helion', 'soleon', 'lunara', 'fennelun',
     'infergon', 'irisalis',
     '10361', '10363', '10371', '10373',
-    '10025', '10213',
+    '10025', '10213', '69993',
     '1036100', '1036300', '1037100', '1037300',
-    '1002500', '1021300', '1002503',
+    '1002500', '1021300', '1002503', '6999301',
+    'ภูตไฟน้อย',
 ]);
 
 export function isExcludedFromWorkforce(aniimo) {
@@ -4508,14 +4509,17 @@ export function isExcludedFromWorkforce(aniimo) {
     if (typeof aniimo === 'string') return EXCLUDED_FROM_WORKFORCE.has(aniimo);
     if (aniimo.name && EXCLUDED_FROM_WORKFORCE.has(aniimo.name)) return true;
     if (aniimo.slug && EXCLUDED_FROM_WORKFORCE.has(aniimo.slug)) return true;
-    if (aniimo.id && EXCLUDED_FROM_WORKFORCE.has(String(aniimo.id))) return true;
-    if (aniimo.petId && EXCLUDED_FROM_WORKFORCE.has(String(aniimo.petId))) return true;
+    const idStr = aniimo.id ? String(aniimo.id) : '';
+    const petIdStr = aniimo.petId ? String(aniimo.petId) : '';
+    if (idStr && (EXCLUDED_FROM_WORKFORCE.has(idStr) || idStr.startsWith('6') || idStr.startsWith('9'))) return true;
+    if (petIdStr && (EXCLUDED_FROM_WORKFORCE.has(petIdStr) || petIdStr.startsWith('6') || petIdStr.startsWith('9'))) return true;
     return false;
 }
 
 export function findAniimosByAbility(ability, minLevel = 1) {
     if (!ability) return [];
-    const engAbility = Object.keys(ABILITY_TH_MAP).find(k => k.toLowerCase() === ability.toLowerCase() || ABILITY_TH_MAP[k] === ability) || ability;
+    const normAb = String(ability).replace(/\u0e4d([\u0e48-\u0e4b]?)\u0e32/g, '$1\u0e33');
+    const engAbility = Object.keys(ABILITY_TH_MAP).find(k => k.toLowerCase() === normAb.toLowerCase() || ABILITY_TH_MAP[k] === normAb) || normAb;
     return ALL_ANIIMOS
         .filter(a => !isExcludedFromWorkforce(a) && a.skills && a.skills[engAbility] >= minLevel)
         .sort((a, b) => (b.skills[engAbility] || 0) - (a.skills[engAbility] || 0));
@@ -4595,7 +4599,7 @@ export const HOMELAND_ABILITY_META = {
     'Hauling':     { th: 'แบก', en: 'Hauling', icon: '🛒', desc: 'ขนส่งผลผลิตทั้งหมดเข้าสู่โกดัง', color: '#94a3b8' },
     'Artisanship': { th: 'ช่างฝีมือ', en: 'Artisanship', icon: '✂️', desc: 'งานแปรรูปไม้และประดิษฐ์สิ่งของ', color: '#d97706' },
     'Leisure':     { th: 'ไม่รีบร้อน', en: 'Leisure', icon: '🌸', desc: 'สิ่งปลูกสร้างพักผ่อนและสันทนาการ', color: '#ec4899' },
-    'Perfumery':   { th: 'การผลิตน้ำหอม', en: 'Perfumery', icon: '🧴', desc: 'บ้านน้ำค้าง (เฉพาะนกน้ำหอม)', color: '#8b5cf6' }
+    'Perfumery':   { th: 'การผลิตน้ำหอม', en: 'Perfumery', icon: '🧴', desc: 'โต๊ะน้ำหอมและบ้านน้ำค้าง', color: '#8b5cf6' }
 };
 
 export function calculateHomelandDemands(plan = null, lastLayout = null, kept = null) {
@@ -4625,7 +4629,7 @@ export function calculateHomelandDemands(plan = null, lastLayout = null, kept = 
     if (plan?.coin_items && Array.isArray(plan.coin_items)) {
         for (const step of plan.coin_items) {
             const count = step.facility_count || 1;
-            const fac = (step.facility || '').toLowerCase();
+            const fac = (step.facility || '').replace(/\u0e4d([\u0e48-\u0e4b]?)\u0e32/g, '$1\u0e33').toLowerCase();
             totalFacilities += count;
 
             if (fac.includes('cropland') || fac === 'crop' || fac.includes('farmland') || fac.includes('แปลงเกษตร')) {
@@ -4651,8 +4655,10 @@ export function calculateHomelandDemands(plan = null, lastLayout = null, kept = 
                     demands.Artisanship += count;
                 } else if (fac.includes('well') || fac.includes('บ่อน้ำ')) {
                     demands.Water += count;
-                } else if (fac.includes('dewy') || fac.includes('บ้านน้ำค้าง')) {
+                } else if (fac.includes('phonolfactory') || fac.includes('น้ำหอม')) {
                     demands.Perfumery += count;
+                } else if (fac.includes('dewy') || fac.includes('บ้านน้ำค้าง') || fac.includes('sandcastle') || fac.includes('ปราสาททราย') || fac.includes('bed') || fac.includes('hammock')) {
+                    demands.Leisure += count;
                 } else if (fac.includes('carousel') || fac.includes('windmill') || fac.includes('กังหัน') || fac.includes('loom')) {
                     demands.Wind += count;
                 } else if (fac.includes('dryer') || fac.includes('pickling')) {
@@ -4667,14 +4673,14 @@ export function calculateHomelandDemands(plan = null, lastLayout = null, kept = 
     // 3. Parse environment assignments from plan
     if (plan?.environment_assignments && Array.isArray(plan.environment_assignments)) {
         for (const a of plan.environment_assignments) {
-            const b = a.building || '';
+            const b = (a.building || '').replace(/\u0e4d([\u0e48-\u0e4b]?)\u0e32/g, '$1\u0e33');
             const units = a.units || 1;
             totalFacilities += units;
             if (b.includes('Heat Furnace') || b.includes('เตาทำความร้อน')) demands.Fire += units;
             else if (b.includes('Cooling Unit') || b.includes('เครื่องทำความเย็น')) demands.Ice += units;
             else if (b.includes('Sunlamp') || b.includes('โคมไฟ')) demands.Light += units;
             else if (b.includes('Sandcastle') || b.includes('ปราสาททราย')) demands.Leisure += units;
-            else if (b.includes('Dewy') || b.includes('บ้านน้ำค้าง')) demands.Perfumery += units;
+            else if (b.includes('Dewy') || b.includes('บ้านน้ำค้าง')) demands.Leisure += units;
         }
     }
 
@@ -4682,7 +4688,7 @@ export function calculateHomelandDemands(plan = null, lastLayout = null, kept = 
     if (plan?.steps && Array.isArray(plan.steps)) {
         for (const step of plan.steps) {
             const count = step.building_count || step.facility_count || 1;
-            const fac = (step.facility || '').toLowerCase();
+            const fac = (step.facility || '').replace(/\u0e4d([\u0e48-\u0e4b]?)\u0e32/g, '$1\u0e33').toLowerCase();
             totalFacilities += count;
 
             if (fac.includes('cropland') || fac === 'crop' || fac.includes('farmland') || fac.includes('แปลงเกษตร')) {
@@ -4700,12 +4706,12 @@ export function calculateHomelandDemands(plan = null, lastLayout = null, kept = 
                 demands.Artisanship += count;
             } else if (fac.includes('well') || fac.includes('บ่อน้ำ')) {
                 demands.Water += count;
-            } else if (fac.includes('dewy') || fac.includes('บ้านน้ำค้าง')) {
+            } else if (fac.includes('phonolfactory') || fac.includes('น้ำหอม')) {
                 demands.Perfumery += count;
+            } else if (fac.includes('dewy') || fac.includes('บ้านน้ำค้าง') || fac.includes('sandcastle') || fac.includes('ปราสาททราย') || fac.includes('bed') || fac.includes('hammock')) {
+                demands.Leisure += count;
             } else if (fac.includes('carousel') || fac.includes('windmill') || fac.includes('กังหัน')) {
                 demands.Wind += count;
-            } else if (fac.includes('sandcastle') || fac.includes('ปราสาททราย') || fac.includes('bed') || fac.includes('hammock')) {
-                demands.Leisure += count;
             } else if (fac.includes('generator') || fac.includes('เครื่องปั่นไฟ')) {
                 demands.Lightning += count;
             }
@@ -4727,7 +4733,8 @@ export function calculateHomelandDemands(plan = null, lastLayout = null, kept = 
                 else if (b.includes('Cooling Unit')) demands.Ice = Math.max(demands.Ice, 1);
                 else if (b.includes('Sunlamp')) demands.Light = Math.max(demands.Light, 1);
                 else if (b.includes('Sandcastle')) demands.Leisure = Math.max(demands.Leisure, 1);
-                else if (b.includes('Dewy')) demands.Perfumery = Math.max(demands.Perfumery, 1);
+                else if (b.includes('Dewy')) demands.Leisure = Math.max(demands.Leisure, 1);
+                else if (b.includes('Phonolfactory')) demands.Perfumery = Math.max(demands.Perfumery, 1);
             }
             if (m.facility === 'Farmland') croplandCount = Math.max(croplandCount, 1);
             else if (m.facility === 'Woodland') woodlandCount = Math.max(woodlandCount, 1);
@@ -4735,6 +4742,7 @@ export function calculateHomelandDemands(plan = null, lastLayout = null, kept = 
             else if (m.facility === 'Well') demands.Water = Math.max(demands.Water, 1);
             else if (m.facility === 'Chimney Kiln') demands.Fire = Math.max(demands.Fire, 1);
             else if (m.facility === 'Woodworking Bench' || m.facility === 'Crafting Table') demands.Artisanship = Math.max(demands.Artisanship, 1);
+            else if (m.facility === 'Phonolfactory Table') demands.Perfumery = Math.max(demands.Perfumery, 1);
         }
     }
 

@@ -1111,8 +1111,12 @@ pub fn check_plan(
             .filter(|(n, &r)| r > 1e-9 && all.get(n.as_str()).map_or(false, |i| i.facility == recipe.facility && i.sell_currency == "none"))
             .map(|(n, _)| n.as_str())
             .collect();
+        let active_none_units: u32 = active_none
+            .iter()
+            .map(|&n| plan.units.get(n).copied().unwrap_or(0))
+            .sum();
         let owned = facility_counts.get_count(&recipe.facility);
-        let facility_turns = recipe.sell_currency == "none" && active_none.len() > owned as usize;
+        let facility_turns = recipe.sell_currency == "none" && (active_none.len() > owned as usize || active_none_units > owned);
         let in_use = if facility_turns { rate * recipe.production_time } else { units as f64 };
         units_at.entry(recipe.facility.as_str()).or_default().push((recipe.facility_level, in_use));
         if let Some(environment) = recipe.environment.as_deref() {
@@ -1573,13 +1577,18 @@ pub fn to_production_plan(
             });
             continue;
         }
-        // Recipes taking turns share units only when there are fewer units owned than active tiers.
+        // Recipes taking turns share units when there are fewer units owned than active tiers or rounded units.
         let active_none: Vec<&str> = rows
             .iter()
             .filter(|(r, _, rate)| r.sell_currency == "none" && *rate > 1e-9)
             .map(|(r, _, _)| r.name.as_str())
             .collect();
-        let facility_turns = active_none.len() > owned as usize;
+        let active_none_units: u32 = rows
+            .iter()
+            .filter(|(r, _, rate)| r.sell_currency == "none" && *rate > 1e-9)
+            .map(|(_, u, _)| *u)
+            .sum();
+        let facility_turns = active_none.len() > owned as usize || active_none_units > owned;
         let is_turning = |r: &ProductionItem| r.sell_currency == "none" && facility_turns;
 
         let shared: Vec<&str> = rows.iter().filter(|(r, _, _)| is_turning(r)).map(|(r, _, _)| r.name.as_str()).collect();
